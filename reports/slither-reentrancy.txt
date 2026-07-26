@@ -1,14 +1,6 @@
 'forge clean' running (wd: C:\dev\chain-security-cultivation)
 'forge config --json' running
-'forge build --build-info --skip ./test/** ./script/** --force' running (wd: C:\dev\chain-security-cultivation)
-INFO:Detectors:
-Detector: reentrancy-events
-Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36):
-	External calls:
-	- (success,None) = msg.sender.call{value: amount}() (src/VulnerableCharityVault.sol#29)
-	Event emitted after the call(s):
-	- Withdrawn(msg.sender,amount) (src/VulnerableCharityVault.sol#35)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+'forge build --build-info src\VulnerableCharityVault.sol' running (wd: C:\dev\chain-security-cultivation)
 INFO:Detectors:
 Detector: reentrancy-eth
 Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36):
@@ -21,4 +13,12 @@ Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#
 	- VulnerableCharityVault.donate() (src/VulnerableCharityVault.sol#13-19)
 	- VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
-INFO:Slither:. analyzed (4 contracts with 2 detectors), 2 result(s) found
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36):
+	External calls:
+	- (success,None) = msg.sender.call{value: amount}() (src/VulnerableCharityVault.sol#29)
+	Event emitted after the call(s):
+	- Withdrawn(msg.sender,amount) (src/VulnerableCharityVault.sol#35)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Slither:src\VulnerableCharityVault.sol analyzed (1 contracts with 2 detectors), 2 result(s) found

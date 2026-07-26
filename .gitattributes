@@ -1,6 +1,10 @@
+.gitattributes text eol=lf
 
 # Preserve exact bytes used by Quest 1 on-chain contentHash
 quests/1-reentrancy.md -text
 
 # Preserve Quest 1 audit report hash with LF line endings
 reports/quest-1-audit-report.md text eol=lf
+reports/slither-checklist.md text eol=lf
+reports/slither-reentrancy.txt text eol=lf
+reports/slither-fixed.txt text eol=lf
