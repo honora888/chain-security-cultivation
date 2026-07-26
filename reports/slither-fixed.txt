@@ -1,0 +1,4 @@
+'forge clean' running (wd: C:\dev\chain-security-cultivation)
+'forge config --json' running
+'forge build --build-info --skip ./test/** ./script/** --force' running (wd: C:\dev\chain-security-cultivation)
+INFO:Slither:. analyzed (4 contracts with 2 detectors), 0 result(s) found

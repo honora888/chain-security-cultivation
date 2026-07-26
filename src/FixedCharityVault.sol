@@ -25,11 +25,12 @@ contract FixedCharityVault {
         // Effects：先更新内部状态
         balances[msg.sender] = 0;
 
-        // Interactions：最后再执行外部调用
+        // Event 也属于本次状态变化的记录，放在外部调用之前
+        emit Withdrawn(msg.sender, amount);
+
+        // Interactions：最后才与外部地址交互
         (bool success,) = msg.sender.call{value: amount}("");
         require(success, "Transfer failed");
-
-        emit Withdrawn(msg.sender, amount);
     }
 
     function vaultBalance() external view returns (uint256) {
