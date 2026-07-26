@@ -27,3 +27,9 @@ docs/
 !.env.example
 
 broadcast/
+
+# 只跟踪项目根目录的文档
+# Docs
+docs/
+!/docs/
+!/docs/**
