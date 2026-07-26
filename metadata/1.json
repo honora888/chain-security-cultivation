@@ -1,0 +1,38 @@
+﻿{
+  "name": "水系守护者",
+  "description": "完成《链安修仙录》金丹期水属性关卡“噬灵回环兽”，掌握经典重入漏洞的识别、攻击验证与修复方法。",
+  "attributes": [
+    {
+      "trait_type": "项目",
+      "value": "链安修仙录"
+    },
+    {
+      "trait_type": "境界",
+      "value": "金丹期"
+    },
+    {
+      "trait_type": "五行属性",
+      "value": "水"
+    },
+    {
+      "trait_type": "漏洞妖兽",
+      "value": "噬灵回环兽"
+    },
+    {
+      "trait_type": "漏洞类型",
+      "value": "经典重入"
+    },
+    {
+      "trait_type": "风险等级",
+      "value": "High"
+    },
+    {
+      "trait_type": "五行熟练度",
+      "value": "水属性 +1"
+    },
+    {
+      "trait_type": "勋章类型",
+      "value": "不可转让"
+    }
+  ]
+}

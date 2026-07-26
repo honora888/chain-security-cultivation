@@ -20,3 +20,10 @@ docs/
 !.env.example
 
 .venv/
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+broadcast/
