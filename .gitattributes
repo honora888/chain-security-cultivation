@@ -1,0 +1,3 @@
+
+# Preserve exact bytes used by Quest 1 on-chain contentHash
+quests/1-reentrancy.md -text
