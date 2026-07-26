@@ -1,3 +1,6 @@
 
 # Preserve exact bytes used by Quest 1 on-chain contentHash
 quests/1-reentrancy.md -text
+
+# Preserve Quest 1 audit report hash with LF line endings
+reports/quest-1-audit-report.md text eol=lf
