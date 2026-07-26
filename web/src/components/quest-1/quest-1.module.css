@@ -1,0 +1,1011 @@
+.entryPage {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 100%;
+  max-width: 1536px;
+  min-width: 0;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 80px);
+}
+
+.siteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 84px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.brand strong {
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+}
+
+.brand small,
+.headerStatus {
+  color: var(--ink-soft);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.brandSeal {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--cinnabar) 64%, white);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--cinnabar) 9%, var(--jade));
+  color: var(--cinnabar);
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.entryMain {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.82fr) minmax(440px, 1.18fr);
+  gap: clamp(48px, 7vw, 112px);
+  align-items: center;
+  padding: clamp(56px, 8vh, 104px) 0;
+}
+
+.entryCopy {
+  min-width: 0;
+  max-width: 620px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--lake);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.entryCopy h1,
+.stageHeading h1 {
+  margin: 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.entryCopy h1 {
+  font-size: clamp(54px, 7vw, 96px);
+  line-height: 0.96;
+}
+
+.entryLead {
+  max-width: 34em;
+  margin: 28px 0 34px;
+  color: var(--ink-soft);
+  font-size: clamp(17px, 1.6vw, 21px);
+  line-height: 1.8;
+}
+
+.questFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-block: 1px solid var(--line);
+}
+
+.questFacts div {
+  min-width: 0;
+  padding: 16px 14px 16px 0;
+}
+
+.questFacts div:nth-child(n + 4) {
+  border-top: 1px solid var(--line);
+}
+
+.questFacts dt {
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.questFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.riskText {
+  color: var(--cinnabar);
+}
+
+.entryVisual {
+  position: relative;
+  min-width: 0;
+}
+
+.entryVisual::before {
+  position: absolute;
+  inset: -10% 8% 15%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(82, 169, 163, 0.22),
+    rgba(82, 169, 163, 0) 68%
+  );
+  content: "";
+  filter: blur(18px);
+}
+
+.visualPlaceholder {
+  display: grid;
+  min-height: clamp(360px, 51vh, 620px);
+  place-content: center;
+  padding: 40px;
+  border: 1px dashed color-mix(in srgb, var(--lake) 48%, transparent);
+  border-radius: 38% 42% 28% 34% / 30% 34% 40% 38%;
+  background:
+    linear-gradient(rgba(250, 251, 247, 0.76), rgba(236, 246, 242, 0.86)),
+    radial-gradient(circle at 50% 90%, rgba(44, 142, 158, 0.22), transparent 48%);
+  box-shadow: inset 0 0 70px rgba(255, 255, 255, 0.62);
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.visualPlaceholderCompact {
+  min-height: 280px;
+  padding: 28px;
+}
+
+.visualPlaceholder strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--ink);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(22px, 2.5vw, 34px);
+}
+
+.visualPlaceholder p {
+  max-width: 34em;
+  margin: 12px auto 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.placeholderLabel {
+  color: var(--cinnabar);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.entryAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 112px;
+  border-top: 1px solid var(--line);
+}
+
+.entryAction > div {
+  display: grid;
+  gap: 5px;
+}
+
+.entryAction span {
+  color: var(--ink-soft);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.entryAction strong {
+  font-size: 16px;
+}
+
+.primaryButton {
+  display: inline-flex;
+  min-width: 156px;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 24px;
+  border: 1px solid color-mix(in srgb, var(--lake) 70%, black);
+  border-radius: 9px;
+  background: var(--lake);
+  box-shadow: 0 8px 24px rgba(44, 142, 158, 0.18);
+  color: white;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #237e8c;
+  box-shadow: 0 10px 28px rgba(44, 142, 158, 0.24);
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  border-color: color-mix(in srgb, var(--ink) 16%, white);
+  background: #aabbb9;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.loadingScreen {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  color: var(--ink-soft);
+  letter-spacing: 0.12em;
+}
+
+.battlePage {
+  display: grid;
+  grid-template-rows: auto minmax(470px, 1fr) auto;
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 0 clamp(18px, 3.5vw, 56px);
+}
+
+.battleHud {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.45fr) minmax(420px, 1.35fr) minmax(
+      240px,
+      0.6fr
+    );
+  gap: 24px;
+  align-items: center;
+  min-height: 106px;
+  border-bottom: 1px solid var(--line);
+}
+
+.battleHud > *,
+.bossIdentity > *,
+.commandBar > *,
+.codeStage > * {
+  min-width: 0;
+}
+
+.backLink,
+.textButton {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.backLink {
+  width: fit-content;
+  text-decoration: none;
+}
+
+.backLink:hover,
+.textButton:hover {
+  color: var(--lake);
+}
+
+.bossIdentity {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.55fr) minmax(220px, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.bossIdentity > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.bossIdentity span,
+.hpGroup small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+
+.bossIdentity strong {
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 24px;
+}
+
+.hpGroup {
+  display: grid;
+  gap: 5px;
+}
+
+.hpLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.hpLabel strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.hpTrack {
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(185, 71, 61, 0.22);
+  border-radius: 999px;
+  background: rgba(185, 71, 61, 0.1);
+}
+
+.hpFill {
+  display: block;
+  width: var(--boss-hp);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d16455, var(--cinnabar));
+  transition: width 700ms cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.hudActions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.hudActions label {
+  display: grid;
+  gap: 5px;
+}
+
+.hudActions label span {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.hudActions select {
+  min-height: 36px;
+  padding: 6px 30px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(250, 251, 247, 0.82);
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.textButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(250, 251, 247, 0.7);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.battleStage {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  padding: clamp(26px, 4vh, 48px) 0;
+}
+
+.battleStage::before {
+  position: absolute;
+  inset: 8% 5% 3%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.86),
+    rgba(217, 232, 229, 0.12) 66%
+  );
+  content: "";
+}
+
+.stageHeading {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.stageHeading .eyebrow {
+  margin-bottom: 7px;
+}
+
+.stageHeading h1 {
+  font-size: clamp(28px, 3.5vw, 48px);
+}
+
+.beastScene {
+  display: grid;
+  width: min(760px, 72vw);
+  min-height: 0;
+  margin: 24px auto 0;
+}
+
+.codeStage {
+  display: grid;
+  grid-template-columns: minmax(540px, 1.25fr) minmax(300px, 0.75fr);
+  gap: clamp(24px, 3vw, 48px);
+  align-items: center;
+  min-height: 0;
+  margin-top: 24px;
+}
+
+.codePuzzleColumn {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.codeScroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.codePanel {
+  min-width: 680px;
+  overflow: hidden;
+  border: 1px solid rgba(230, 244, 239, 0.12);
+  border-radius: 16px;
+  background: var(--code);
+  color: #e8f2ee;
+}
+
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(232, 242, 238, 0.1);
+  color: #a8c4c0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.codeLines {
+  display: grid;
+  padding: 14px 0;
+}
+
+.codeLine {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  min-height: 54px;
+  align-items: center;
+  padding: 0 20px 0 0;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: #d9e8e5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.codeLine:hover:not(:disabled) {
+  background: rgba(91, 176, 164, 0.08);
+}
+
+.codeLine:disabled {
+  cursor: default;
+}
+
+.codeLineSelected {
+  border-left-color: #64bea9;
+  background: rgba(91, 176, 164, 0.15);
+}
+
+.codeLine code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  white-space: pre;
+}
+
+.lineNumber {
+  color: #6f918e;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+
+.line_wrong {
+  border-left-color: #d7695d;
+  background: rgba(185, 71, 61, 0.18);
+}
+
+.line_partial {
+  border-left-color: #d0a650;
+  background: rgba(185, 149, 77, 0.18);
+}
+
+.line_correct {
+  border-left-color: #79ccb4;
+  background: rgba(63, 165, 138, 0.22);
+}
+
+.beastSide {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.feedbackSlot {
+  display: grid;
+  min-height: 84px;
+  align-items: start;
+  margin-top: 14px;
+  scroll-margin-block-end: calc(118px + env(safe-area-inset-bottom));
+}
+
+.feedback {
+  margin: 0;
+  padding: 13px 16px;
+  border-left: 3px solid;
+  border-radius: 3px 10px 10px 3px;
+  background: rgba(250, 251, 247, 0.86);
+  box-shadow: 0 8px 24px rgba(37, 74, 77, 0.08);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.feedbackTitle {
+  display: block;
+  margin-bottom: 3px;
+  color: currentcolor;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.feedback span {
+  display: block;
+}
+
+.feedback_wrong {
+  border-color: var(--cinnabar);
+  color: #87352f;
+}
+
+.feedback_partial {
+  border-color: var(--gold);
+  color: #755b27;
+}
+
+.feedback_correct {
+  border-color: var(--water);
+  color: #226d5e;
+}
+
+.commandBar {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.9fr) minmax(320px, 1.2fr) auto;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+  min-height: 132px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.dialogue {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.dialogue span,
+.objective span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--lake);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.objective {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.objective strong {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.objective small {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.beastEntrance {
+  animation: beast-entrance 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.codeStrike {
+  animation: code-strike 1.35s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+
+@keyframes beast-entrance {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateY(26px) scale(0.96);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+  78% {
+    transform: translateY(-5px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes code-strike {
+  0% {
+    filter: brightness(1);
+    transform: translateX(0);
+  }
+  35% {
+    filter: brightness(1.12);
+    transform: translateX(8px);
+  }
+  52% {
+    filter: brightness(1.22);
+    transform: translateX(-4px);
+  }
+  100% {
+    filter: brightness(1);
+    transform: translateX(0);
+  }
+}
+
+.battlePage[data-reduced-motion="true"] .beastEntrance,
+.battlePage[data-reduced-motion="true"] .codeStrike {
+  animation: none;
+}
+
+.battlePage[data-reduced-motion="true"] .hpFill,
+.battlePage[data-reduced-motion="true"] .primaryButton {
+  transition: none;
+}
+
+@media (max-width: 1100px) {
+  .entryMain {
+    grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+    gap: 44px;
+  }
+
+  .battleHud {
+    grid-template-columns: 90px 1fr;
+    gap: 16px 24px;
+    padding: 16px 0;
+  }
+
+  .hudActions {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+
+  .codeStage {
+    grid-template-columns: minmax(500px, 1.35fr) minmax(240px, 0.65fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .entryMain {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .entryCopy {
+    max-width: 680px;
+  }
+
+  .entryVisual {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .battlePage {
+    grid-template-rows: auto auto auto;
+  }
+
+  .codeStage {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .beastSide {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .commandBar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px 28px;
+  }
+
+  .dialogue {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .entryPage {
+    display: block;
+    min-height: 100svh;
+    padding: 0 18px;
+  }
+
+  .siteHeader {
+    min-height: 72px;
+  }
+
+  .headerStatus {
+    display: none;
+  }
+
+  .entryMain {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 44px 0 32px;
+  }
+
+  .entryCopy h1 {
+    font-size: clamp(52px, 17vw, 72px);
+  }
+
+  .entryLead {
+    margin: 20px 0 28px;
+    font-size: 16px;
+  }
+
+  .questFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .questFacts div:nth-child(3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .entryVisual {
+    width: 100%;
+  }
+
+  .visualPlaceholder,
+  .visualPlaceholderCompact {
+    min-height: 280px;
+    padding: 28px 20px;
+    border-radius: 28% 34% 22% 30% / 26% 28% 34% 30%;
+  }
+
+  .entryAction {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    min-height: 96px;
+    margin: 0 -18px;
+    padding: 14px 18px;
+    background: rgba(244, 241, 232, 0.94);
+    backdrop-filter: blur(12px);
+  }
+
+  .entryAction strong {
+    font-size: 13px;
+  }
+
+  .entryAction .primaryButton {
+    min-width: 126px;
+  }
+
+  .battlePage {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100svh;
+    padding: 0 14px calc(118px + env(safe-area-inset-bottom));
+  }
+
+  .battleHud {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    min-height: 0;
+    padding: 14px 0;
+  }
+
+  .backLink {
+    grid-row: 1;
+  }
+
+  .bossIdentity {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 16px;
+  }
+
+  .bossIdentity strong {
+    font-size: 20px;
+  }
+
+  .hudActions {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .hudActions label {
+    grid-auto-flow: column;
+    align-items: center;
+  }
+
+  .hudActions label > span {
+    display: none;
+  }
+
+  .hudActions select {
+    min-height: 44px;
+    max-width: 118px;
+  }
+
+  .textButton {
+    min-height: 44px;
+    padding-inline: 9px;
+  }
+
+  .battleStage {
+    display: block;
+    min-height: 0;
+    padding: 26px 0;
+  }
+
+  .stageHeading {
+    text-align: left;
+  }
+
+  .stageHeading h1 {
+    font-size: 30px;
+  }
+
+  .beastScene {
+    width: 100%;
+    min-height: 330px;
+    margin-top: 20px;
+  }
+
+  .codeStage {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 16px;
+    align-items: stretch;
+    margin-top: 20px;
+  }
+
+  .feedbackSlot {
+    min-height: 96px;
+    margin-top: 12px;
+  }
+
+  .beastSide .visualPlaceholderCompact {
+    min-height: 170px;
+  }
+
+  .beastSide .visualPlaceholderCompact p {
+    display: none;
+  }
+
+  .codeScroll {
+    border-radius: 14px;
+  }
+
+  .codePanel {
+    border-radius: 14px;
+  }
+
+  .commandBar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    min-height: 94px;
+    padding: 13px 14px max(13px, env(safe-area-inset-bottom));
+    max-width: 100%;
+    border-top: 1px solid var(--line);
+    background: rgba(250, 251, 247, 0.95);
+    box-shadow: 0 -12px 32px rgba(37, 74, 77, 0.1);
+    backdrop-filter: blur(14px);
+  }
+
+  .dialogue {
+    display: none;
+  }
+
+  .objective strong {
+    font-size: 13px;
+  }
+
+  .objective small {
+    display: none;
+  }
+
+  .commandBar .primaryButton {
+    min-width: 122px;
+    min-height: 48px;
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .entryAction span {
+    display: none;
+  }
+
+  .commandBar {
+    grid-template-columns: minmax(0, 1fr) 116px;
+  }
+
+  .commandBar .primaryButton {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .hudActions select {
+    max-width: 106px;
+    padding-right: 24px;
+  }
+}

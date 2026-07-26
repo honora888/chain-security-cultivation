@@ -1,0 +1,366 @@
+"use client";
+
+import Link from "next/link";
+import {
+  type AnimationEvent,
+  type CSSProperties,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  QUEST_ONE,
+  QUEST_ONE_CODE_LINES,
+  QUEST_ONE_COPY,
+} from "@/data/quest-1";
+import {
+  battleReducer,
+  createInitialBattleState,
+} from "@/features/quest-1/battle-reducer";
+import {
+  clearBattleProgress,
+  loadBattleData,
+  saveCheckpoint,
+  saveMotionMode,
+} from "@/features/quest-1/persistence";
+import type { MotionMode } from "@/features/quest-1/battle-types";
+
+import { CodeLinePuzzle } from "./CodeLinePuzzle";
+import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
+import styles from "./quest-1.module.css";
+
+function getLiveMessage(
+  phase: ReturnType<typeof createInitialBattleState>["phase"],
+): string {
+  switch (phase) {
+    case "ACT1_READY":
+      return "噬灵回环兽现身，迎战操作已可用。";
+    case "ACT2_LOCATE":
+      return "请选择一行代码，然后确认剑诀。";
+    case "ACT2_WRONG":
+    case "ACT2_PARTIAL":
+    case "ACT2_HIT":
+      return "";
+    default:
+      return "水灵秘境正在显现。";
+  }
+}
+
+export function QuestBattleExperience() {
+  const [state, dispatch] = useReducer(
+    battleReducer,
+    undefined,
+    () => createInitialBattleState(),
+  );
+  const [systemReduced, setSystemReduced] = useState(false);
+  const hydratedOnce = useRef(false);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  const reducedMotion =
+    state.motionMode === "reduced" ||
+    (state.motionMode === "system" && systemReduced);
+  const isActTwo = state.phase.startsWith("ACT2");
+  const copy = isActTwo ? QUEST_ONE_COPY.act2 : QUEST_ONE_COPY.act1;
+  const liveMessage = useMemo(() => getLiveMessage(state.phase), [state.phase]);
+
+  useEffect(() => {
+    if (hydratedOnce.current) return;
+    hydratedOnce.current = true;
+    dispatch({ type: "HYDRATE", payload: loadBattleData() });
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setSystemReduced(mediaQuery.matches);
+    syncPreference();
+    mediaQuery.addEventListener("change", syncPreference);
+    return () => mediaQuery.removeEventListener("change", syncPreference);
+  }, []);
+
+  useEffect(() => {
+    if (state.hydrated && state.phase === "ENTRY") {
+      dispatch({ type: "ENTER_QUEST" });
+    }
+  }, [state.hydrated, state.phase]);
+
+  useEffect(() => {
+    if (!state.hydrated) return;
+    saveCheckpoint(state.checkpoint);
+  }, [state.checkpoint, state.hydrated]);
+
+  useEffect(() => {
+    if (!state.hydrated) return;
+    saveMotionMode(state.motionMode);
+  }, [state.hydrated, state.motionMode]);
+
+  useEffect(() => {
+    if (state.phase !== "ACT2_WRONG" && state.phase !== "ACT2_PARTIAL") {
+      return;
+    }
+    const timer = window.setTimeout(
+      () => dispatch({ type: "CODE_FEEDBACK_FINISHED" }),
+      3000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [state.phase]);
+
+  useEffect(() => {
+    const feedbackElement = feedbackRef.current;
+    if (
+      !state.codeFeedback ||
+      !feedbackElement ||
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const feedbackRect = feedbackElement.getBoundingClientRect();
+      const commandBar = document.querySelector(
+        '[aria-label="当前战斗指令"]',
+      );
+      const commandBarTop =
+        commandBar?.getBoundingClientRect().top ?? window.innerHeight;
+      const visibleBottom = Math.min(window.innerHeight, commandBarTop);
+      const outsideViewport =
+        feedbackRect.top < 0 || feedbackRect.bottom > visibleBottom;
+
+      if (outsideViewport) {
+        feedbackElement.scrollIntoView({
+          behavior: reducedMotion ? "auto" : "smooth",
+          block: "nearest",
+        });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [reducedMotion, state.codeFeedback]);
+
+  useEffect(() => {
+    if (!reducedMotion) return;
+
+    if (state.phase === "ACT1_APPEARING") {
+      dispatch({
+        type: "ANIMATION_FINISHED",
+        animation: "beast-entry",
+      });
+    } else if (state.phase === "ACT2_HIT" && state.checkpoint !== "ACT2_HIT") {
+      dispatch({
+        type: "ANIMATION_FINISHED",
+        animation: "code-strike",
+      });
+    }
+  }, [reducedMotion, state.checkpoint, state.phase]);
+
+  function handleStageAnimationEnd(event: AnimationEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) return;
+
+    if (state.phase === "ACT1_APPEARING") {
+      dispatch({
+        type: "ANIMATION_FINISHED",
+        animation: "beast-entry",
+      });
+    } else if (state.phase === "ACT2_HIT" && state.checkpoint !== "ACT2_HIT") {
+      dispatch({
+        type: "ANIMATION_FINISHED",
+        animation: "code-strike",
+      });
+    }
+  }
+
+  function handleMotionMode(mode: MotionMode) {
+    dispatch({ type: "SET_MOTION_MODE", mode });
+  }
+
+  function handleReset() {
+    clearBattleProgress();
+    dispatch({ type: "RESET_QUEST" });
+  }
+
+  if (!state.hydrated) {
+    return (
+      <main className={styles.loadingScreen}>
+        <p>水灵秘境正在显现</p>
+      </main>
+    );
+  }
+
+  const feedback =
+    state.codeFeedback === "wrong"
+      ? { title: "错误", text: "妖兽闪避。" }
+      : state.codeFeedback === "partial"
+        ? {
+            title: "部分正确",
+            text: "已找到关联行，再定位打开窗口的一行。",
+          }
+        : state.codeFeedback === "correct"
+          ? { title: "正确", text: "重入窗口已锁定。" }
+          : null;
+
+  const hpStyle = {
+    "--boss-hp": `${state.bossHp}%`,
+  } as CSSProperties;
+
+  const stageAnimationClass =
+    state.phase === "ACT1_APPEARING"
+      ? styles.beastEntrance
+      : state.phase === "ACT2_HIT" && state.checkpoint !== "ACT2_HIT"
+        ? styles.codeStrike
+        : "";
+
+  return (
+    <main
+      className={styles.battlePage}
+      data-reduced-motion={reducedMotion ? "true" : "false"}
+    >
+      <header className={styles.battleHud}>
+        <Link className={styles.backLink} href="/">
+          返回山门
+        </Link>
+
+        <div className={styles.bossIdentity}>
+          <div>
+            <span>
+              Quest {QUEST_ONE.id} · {QUEST_ONE.realm} · {QUEST_ONE.element}系
+            </span>
+            <strong>{QUEST_ONE.name}</strong>
+          </div>
+          <div className={styles.hpGroup}>
+            <div className={styles.hpLabel}>
+              <span>Boss HP</span>
+              <strong>{state.bossHp}%</strong>
+            </div>
+            <div
+              className={styles.hpTrack}
+              role="progressbar"
+              aria-label="Boss 本地战斗生命值"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={state.bossHp}
+            >
+              <span className={styles.hpFill} style={hpStyle} />
+            </div>
+            <small>本地学习进度</small>
+          </div>
+        </div>
+
+        <div className={styles.hudActions}>
+          <label>
+            <span>动态效果</span>
+            <select
+              value={state.motionMode}
+              onChange={(event) =>
+                handleMotionMode(event.target.value as MotionMode)
+              }
+            >
+              <option value="system">跟随系统</option>
+              <option value="full">完整动态</option>
+              <option value="reduced">减少动态</option>
+            </select>
+          </label>
+          <button className={styles.textButton} onClick={handleReset}>
+            重置修炼
+          </button>
+        </div>
+      </header>
+
+      <section className={styles.battleStage} aria-labelledby="stage-title">
+        <div className={styles.stageHeading}>
+          <p className={styles.eyebrow}>{copy.eyebrow}</p>
+          <h1 id="stage-title">
+            {isActTwo ? "锁定重入窗口" : "噬灵回环兽现身"}
+          </h1>
+        </div>
+
+        {isActTwo ? (
+          <div
+            className={`${styles.codeStage} ${stageAnimationClass}`}
+            onAnimationEnd={handleStageAnimationEnd}
+          >
+            <div className={styles.codePuzzleColumn}>
+              <CodeLinePuzzle
+                lines={QUEST_ONE_CODE_LINES}
+                selectedLineId={state.selectedCodeLineId}
+                feedback={state.codeFeedback}
+                disabled={state.transitionLocked}
+                onSelect={(lineId) =>
+                  dispatch({ type: "SELECT_CODE_LINE", lineId })
+                }
+              />
+              <div
+                className={styles.feedbackSlot}
+                ref={feedbackRef}
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {feedback ? (
+                  <p
+                    className={`${styles.feedback} ${
+                      styles[`feedback_${state.codeFeedback}`]
+                    }`}
+                  >
+                    <strong className={styles.feedbackTitle}>
+                      {feedback.title}
+                    </strong>
+                    <span>{feedback.text}</span>
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className={styles.beastSide}>
+              <TemporaryVisualPlaceholder compact />
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`${styles.beastScene} ${stageAnimationClass}`}
+            onAnimationEnd={handleStageAnimationEnd}
+          >
+            <TemporaryVisualPlaceholder />
+          </div>
+        )}
+      </section>
+
+      <section className={styles.commandBar} aria-label="当前战斗指令">
+        <p className={styles.dialogue}>
+          <span>守阵长老</span>
+          {copy.dialogue}
+        </p>
+        <div className={styles.objective}>
+          <span>当前目标</span>
+          <strong>{copy.target}</strong>
+          <small>{copy.hint}</small>
+        </div>
+        {isActTwo ? (
+          <button
+            className={styles.primaryButton}
+            disabled={
+              !state.selectedCodeLineId ||
+              state.transitionLocked ||
+              state.phase === "ACT2_HIT"
+            }
+            onClick={() => dispatch({ type: "CONFIRM_CODE_LINE" })}
+          >
+            {state.phase === "ACT2_HIT" ? "危险行已锁定" : copy.action}
+          </button>
+        ) : (
+          <button
+            className={styles.primaryButton}
+            disabled={state.phase !== "ACT1_READY" || state.transitionLocked}
+            onClick={() => dispatch({ type: "START_BATTLE" })}
+          >
+            {state.phase === "ACT1_APPEARING" ? "妖兽现身中" : copy.action}
+          </button>
+        )}
+      </section>
+
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveMessage}
+      </p>
+    </main>
+  );
+}
