@@ -8,3 +8,4 @@ reports/quest-1-audit-report.md text eol=lf
 reports/slither-checklist.md text eol=lf
 reports/slither-reentrancy.txt text eol=lf
 reports/slither-fixed.txt text eol=lf
+README.md text eol=lf
