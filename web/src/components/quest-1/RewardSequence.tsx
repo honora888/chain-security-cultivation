@@ -11,11 +11,13 @@ import {
   QUEST_ONE_REWARD_TIMING,
 } from "@/data/quest-1";
 
+import { ChainStatusPanel } from "./ChainStatusPanel";
 import styles from "./quest-1.module.css";
 
 interface RewardSequenceProps {
   complete: boolean;
   reducedMotion: boolean;
+  showChainStatus: boolean;
   onAnimationEnd: (event: AnimationEvent<HTMLElement>) => void;
 }
 
@@ -31,6 +33,7 @@ const rewardTimingStyle = {
 export function RewardSequence({
   complete,
   reducedMotion,
+  showChainStatus,
   onAnimationEnd,
 }: RewardSequenceProps) {
   return (
@@ -105,6 +108,8 @@ export function RewardSequence({
       <p className={styles.rewardDataNote}>
         EXP、水属性熟练度与徽记均为本地学习结算，不写入链上。
       </p>
+
+      {complete && showChainStatus ? <ChainStatusPanel /> : null}
     </section>
   );
 }

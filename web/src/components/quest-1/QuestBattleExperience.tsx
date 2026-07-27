@@ -489,6 +489,7 @@ export function QuestBattleExperience() {
             complete={state.phase !== "ACT6_REWARDING"}
             onAnimationEnd={handleRewardAnimationEnd}
             reducedMotion={reducedMotion}
+            showChainStatus={state.phase === "ACT6_COMPLETE"}
           />
         ) : isActFive ? (
           state.phase === "ACT5_REPAIR" ? (
