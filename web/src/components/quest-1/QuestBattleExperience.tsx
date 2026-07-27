@@ -23,11 +23,12 @@ import {
 import {
   clearBattleProgress,
   loadBattleData,
-  saveCheckpoint,
+  saveBattleProgress,
   saveMotionMode,
 } from "@/features/quest-1/persistence";
 import type { MotionMode } from "@/features/quest-1/battle-types";
 
+import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
 import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
 import styles from "./quest-1.module.css";
@@ -43,6 +44,8 @@ function getLiveMessage(
     case "ACT2_WRONG":
     case "ACT2_PARTIAL":
     case "ACT2_HIT":
+    case "ACT3_CLASSIFY":
+    case "ACT3_FORMATION":
       return "";
     default:
       return "水灵秘境正在显现。";
@@ -58,12 +61,18 @@ export function QuestBattleExperience() {
   const [systemReduced, setSystemReduced] = useState(false);
   const hydratedOnce = useRef(false);
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const classificationFeedbackRef = useRef<HTMLDivElement>(null);
 
   const reducedMotion =
     state.motionMode === "reduced" ||
     (state.motionMode === "system" && systemReduced);
   const isActTwo = state.phase.startsWith("ACT2");
-  const copy = isActTwo ? QUEST_ONE_COPY.act2 : QUEST_ONE_COPY.act1;
+  const isActThree = state.phase.startsWith("ACT3");
+  const copy = isActThree
+    ? QUEST_ONE_COPY.act3
+    : isActTwo
+      ? QUEST_ONE_COPY.act2
+      : QUEST_ONE_COPY.act1;
   const liveMessage = useMemo(() => getLiveMessage(state.phase), [state.phase]);
 
   useEffect(() => {
@@ -88,8 +97,8 @@ export function QuestBattleExperience() {
 
   useEffect(() => {
     if (!state.hydrated) return;
-    saveCheckpoint(state.checkpoint);
-  }, [state.checkpoint, state.hydrated]);
+    saveBattleProgress(state.checkpoint, state.classificationAnswers);
+  }, [state.checkpoint, state.classificationAnswers, state.hydrated]);
 
   useEffect(() => {
     if (!state.hydrated) return;
@@ -140,6 +149,38 @@ export function QuestBattleExperience() {
   }, [reducedMotion, state.codeFeedback]);
 
   useEffect(() => {
+    const feedbackElement = classificationFeedbackRef.current;
+    if (
+      !state.classificationFeedback ||
+      !feedbackElement ||
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const feedbackRect = feedbackElement.getBoundingClientRect();
+      const commandBar = document.querySelector(
+        '[aria-label="当前战斗指令"]',
+      );
+      const commandBarTop =
+        commandBar?.getBoundingClientRect().top ?? window.innerHeight;
+      const visibleBottom = Math.min(window.innerHeight, commandBarTop);
+      const outsideViewport =
+        feedbackRect.top < 0 || feedbackRect.bottom > visibleBottom;
+
+      if (outsideViewport) {
+        feedbackElement.scrollIntoView({
+          behavior: reducedMotion ? "auto" : "smooth",
+          block: "nearest",
+        });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [reducedMotion, state.classificationFeedback]);
+
+  useEffect(() => {
     if (!reducedMotion) return;
 
     if (state.phase === "ACT1_APPEARING") {
@@ -152,6 +193,11 @@ export function QuestBattleExperience() {
         type: "ANIMATION_FINISHED",
         animation: "code-strike",
       });
+    } else if (
+      state.phase === "ACT3_FORMATION" &&
+      state.checkpoint !== "ACT3_FORMATION"
+    ) {
+      dispatch({ type: "CLASSIFICATION_FEEDBACK_FINISHED" });
     }
   }, [reducedMotion, state.checkpoint, state.phase]);
 
@@ -168,6 +214,11 @@ export function QuestBattleExperience() {
         type: "ANIMATION_FINISHED",
         animation: "code-strike",
       });
+    } else if (
+      state.phase === "ACT3_FORMATION" &&
+      state.checkpoint !== "ACT3_FORMATION"
+    ) {
+      dispatch({ type: "CLASSIFICATION_FEEDBACK_FINISHED" });
     }
   }
 
@@ -209,7 +260,10 @@ export function QuestBattleExperience() {
       ? styles.beastEntrance
       : state.phase === "ACT2_HIT" && state.checkpoint !== "ACT2_HIT"
         ? styles.codeStrike
-        : "";
+        : state.phase === "ACT3_FORMATION" &&
+            state.checkpoint !== "ACT3_FORMATION"
+          ? styles.formationReveal
+          : "";
 
   return (
     <main
@@ -271,11 +325,47 @@ export function QuestBattleExperience() {
         <div className={styles.stageHeading}>
           <p className={styles.eyebrow}>{copy.eyebrow}</p>
           <h1 id="stage-title">
-            {isActTwo ? "锁定重入窗口" : "噬灵回环兽现身"}
+            {isActThree
+              ? "识破妖法"
+              : isActTwo
+                ? "锁定重入窗口"
+                : "噬灵回环兽现身"}
           </h1>
         </div>
 
-        {isActTwo ? (
+        {isActThree ? (
+          <div
+            className={`${styles.classificationStage} ${stageAnimationClass}`}
+            onAnimationEnd={handleStageAnimationEnd}
+          >
+            <ClassificationPuzzle
+              answers={state.classificationAnswers}
+              complete={state.phase === "ACT3_FORMATION"}
+              disabled={
+                state.transitionLocked || state.phase === "ACT3_FORMATION"
+              }
+              feedback={state.classificationFeedback}
+              onChange={(field, value) =>
+                dispatch({ type: "SET_CLASSIFICATION", field, value })
+              }
+              results={state.classificationResults}
+              statusRef={classificationFeedbackRef}
+            />
+            <div
+              className={`${styles.waterFormation} ${
+                state.phase === "ACT3_FORMATION"
+                  ? styles.waterFormationActive
+                  : ""
+              }`}
+              aria-hidden="true"
+            >
+              <span />
+              <span />
+              <span />
+              <strong>水</strong>
+            </div>
+          </div>
+        ) : isActTwo ? (
           <div
             className={`${styles.codeStage} ${stageAnimationClass}`}
             onAnimationEnd={handleStageAnimationEnd}
@@ -335,18 +425,34 @@ export function QuestBattleExperience() {
           <strong>{copy.target}</strong>
           <small>{copy.hint}</small>
         </div>
-        {isActTwo ? (
+        {isActThree ? (
           <button
             className={styles.primaryButton}
             disabled={
-              !state.selectedCodeLineId ||
-              state.transitionLocked ||
-              state.phase === "ACT2_HIT"
+              state.transitionLocked || state.phase === "ACT3_FORMATION"
             }
-            onClick={() => dispatch({ type: "CONFIRM_CODE_LINE" })}
+            onClick={() => dispatch({ type: "SUBMIT_CLASSIFICATION" })}
           >
-            {state.phase === "ACT2_HIT" ? "危险行已锁定" : copy.action}
+            {state.phase === "ACT3_FORMATION" ? "妖法已识破" : copy.action}
           </button>
+        ) : isActTwo ? (
+          state.phase === "ACT2_HIT" ? (
+            <button
+              className={styles.primaryButton}
+              disabled={state.transitionLocked}
+              onClick={() => dispatch({ type: "ENTER_CLASSIFICATION" })}
+            >
+              继续追击
+            </button>
+          ) : (
+            <button
+              className={styles.primaryButton}
+              disabled={!state.selectedCodeLineId || state.transitionLocked}
+              onClick={() => dispatch({ type: "CONFIRM_CODE_LINE" })}
+            >
+              {copy.action}
+            </button>
+          )
         ) : (
           <button
             className={styles.primaryButton}

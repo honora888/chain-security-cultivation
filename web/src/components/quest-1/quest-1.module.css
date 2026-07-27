@@ -291,7 +291,8 @@
 .battleHud > *,
 .bossIdentity > *,
 .commandBar > *,
-.codeStage > * {
+.codeStage > *,
+.classificationStage > * {
   min-width: 0;
 }
 
@@ -610,6 +611,278 @@
   color: #226d5e;
 }
 
+.classificationStage {
+  display: grid;
+  grid-template-columns: minmax(620px, 1.3fr) minmax(260px, 0.7fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+  min-height: 0;
+  margin-top: 24px;
+}
+
+.classificationPuzzle {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(18px, 2vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(250, 251, 247, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.classificationGroups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.classificationGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--jade);
+}
+
+.classificationGroup legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.classificationGroup[data-result="correct"] {
+  border-color: color-mix(in srgb, var(--water) 58%, white);
+}
+
+.classificationGroup[data-result="incorrect"] {
+  border-color: color-mix(in srgb, var(--cinnabar) 58%, white);
+}
+
+.classificationOptions {
+  display: grid;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.classificationOption {
+  position: relative;
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--jade-muted);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.classificationOption:hover {
+  border-color: color-mix(in srgb, var(--lake) 35%, white);
+}
+
+.classificationOption:has(input:checked) {
+  border-color: color-mix(in srgb, var(--lake) 64%, white);
+  background: color-mix(in srgb, var(--cloud) 68%, white);
+  box-shadow: inset 3px 0 var(--lake);
+}
+
+.classificationOption:has(input:disabled) {
+  cursor: default;
+}
+
+.classificationOption input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--lake);
+}
+
+.classificationOption input:focus-visible + span {
+  outline: 3px solid color-mix(in srgb, var(--focus) 78%, white);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+.classificationItemResult {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 9px;
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.classificationItemResult strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.classificationResultMark {
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border: 2px solid currentcolor;
+  border-radius: 2px;
+}
+
+.classificationItemCorrect {
+  color: #226d5e;
+}
+
+.classificationItemCorrect .classificationResultMark {
+  background: color-mix(in srgb, var(--water) 52%, white);
+}
+
+.classificationItemIncorrect {
+  color: #87352f;
+}
+
+.classificationItemIncorrect .classificationResultMark {
+  background:
+    linear-gradient(
+      45deg,
+      transparent 42%,
+      currentcolor 42%,
+      currentcolor 58%,
+      transparent 58%
+    );
+}
+
+.classificationStatus {
+  display: grid;
+  min-height: 72px;
+  align-items: start;
+  margin-top: 14px;
+  scroll-margin-block-end: calc(118px + env(safe-area-inset-bottom));
+}
+
+.classificationStatus p {
+  margin: 0;
+  padding: 13px 16px;
+  border-left: 3px solid var(--gold);
+  border-radius: 3px 10px 10px 3px;
+  background: color-mix(in srgb, var(--paper) 74%, white);
+  color: #755b27;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.classificationStatus[data-feedback="incorrect"] p {
+  border-color: var(--cinnabar);
+  color: #87352f;
+}
+
+.classificationStatus[data-feedback="correct"] p {
+  border-color: var(--water);
+  color: #226d5e;
+}
+
+.classificationConclusion {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--water) 44%, white);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cloud) 55%, white);
+}
+
+.classificationConclusion > span {
+  color: var(--lake);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.classificationConclusion h2 {
+  margin: 4px 0 12px;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 25px;
+}
+
+.classificationConclusion dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.classificationConclusion dl div {
+  min-width: 0;
+}
+
+.classificationConclusion dt {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.classificationConclusion dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.waterFormation {
+  position: relative;
+  width: min(300px, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  color: color-mix(in srgb, var(--lake) 45%, white);
+}
+
+.waterFormation span {
+  position: absolute;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+}
+
+.waterFormation span:nth-child(1) {
+  inset: 5%;
+}
+
+.waterFormation span:nth-child(2) {
+  inset: 21%;
+  border-style: dashed;
+}
+
+.waterFormation span:nth-child(3) {
+  inset: 36%;
+  border-width: 2px;
+}
+
+.waterFormation strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--lake);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 44px;
+}
+
+.waterFormationActive {
+  color: color-mix(in srgb, var(--water) 72%, white);
+  filter: drop-shadow(0 12px 24px rgba(44, 142, 158, 0.18));
+}
+
+.waterFormationActive strong {
+  color: #237e8c;
+}
+
 .commandBar {
   display: grid;
   grid-template-columns: minmax(250px, 0.9fr) minmax(320px, 1.2fr) auto;
@@ -665,6 +938,10 @@
   animation: code-strike 1.35s cubic-bezier(0.25, 0.8, 0.3, 1) both;
 }
 
+.formationReveal {
+  animation: formation-reveal 900ms cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+
 @keyframes beast-entrance {
   0% {
     opacity: 0;
@@ -704,8 +981,27 @@
   }
 }
 
+@keyframes formation-reveal {
+  0% {
+    opacity: 0.72;
+    filter: saturate(0.65);
+    transform: scale(0.985);
+  }
+  55% {
+    opacity: 1;
+    filter: saturate(1.18);
+    transform: scale(1.008);
+  }
+  100% {
+    opacity: 1;
+    filter: saturate(1);
+    transform: scale(1);
+  }
+}
+
 .battlePage[data-reduced-motion="true"] .beastEntrance,
-.battlePage[data-reduced-motion="true"] .codeStrike {
+.battlePage[data-reduced-motion="true"] .codeStrike,
+.battlePage[data-reduced-motion="true"] .formationReveal {
   animation: none;
 }
 
@@ -736,6 +1032,11 @@
     grid-template-columns: minmax(500px, 1.35fr) minmax(240px, 0.65fr);
     gap: 20px;
   }
+
+  .classificationStage {
+    grid-template-columns: minmax(580px, 1fr) minmax(220px, 0.45fr);
+    gap: 24px;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -760,6 +1061,15 @@
   .codeStage {
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
+  }
+
+  .classificationStage {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .waterFormation {
+    width: min(260px, 54vw);
   }
 
   .beastSide {
@@ -930,6 +1240,56 @@
     gap: 16px;
     align-items: stretch;
     margin-top: 20px;
+  }
+
+  .classificationStage {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: stretch;
+    margin-top: 20px;
+  }
+
+  .classificationPuzzle {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .classificationGroups {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .classificationGroup {
+    padding: 12px;
+  }
+
+  .classificationOptions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .classificationOption {
+    min-height: 48px;
+    justify-content: flex-start;
+    padding: 8px;
+  }
+
+  .classificationStatus {
+    min-height: 96px;
+    margin-top: 12px;
+  }
+
+  .classificationConclusion {
+    margin-bottom: 14px;
+    padding: 14px;
+  }
+
+  .classificationConclusion dl {
+    gap: 8px;
+  }
+
+  .waterFormation {
+    width: min(220px, 62vw);
   }
 
   .feedbackSlot {

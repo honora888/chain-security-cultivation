@@ -1,11 +1,32 @@
-import { QUEST_ONE_CODE_LINES } from "@/data/quest-1";
+import {
+  QUEST_ONE_CLASSIFICATION_CORRECT,
+  QUEST_ONE_CODE_LINES,
+} from "@/data/quest-1";
 
 import type {
   BattleEvent,
   BattleState,
+  ClassificationAnswers,
+  ClassificationResults,
   HydratedBattleData,
   MotionMode,
 } from "./battle-types";
+
+function createEmptyClassificationAnswers(): ClassificationAnswers {
+  return {
+    vulnerability: null,
+    element: null,
+    risk: null,
+  };
+}
+
+function createEmptyClassificationResults(): ClassificationResults {
+  return {
+    vulnerability: null,
+    element: null,
+    risk: null,
+  };
+}
 
 export function createInitialBattleState(
   motionMode: MotionMode = "system",
@@ -16,6 +37,9 @@ export function createInitialBattleState(
     bossHp: 100,
     selectedCodeLineId: null,
     codeFeedback: null,
+    classificationAnswers: createEmptyClassificationAnswers(),
+    classificationResults: createEmptyClassificationResults(),
+    classificationFeedback: null,
     transitionLocked: false,
     hydrated: false,
     motionMode,
@@ -49,6 +73,32 @@ function restoreCheckpoint(payload: HydratedBattleData): BattleState {
         bossHp: 75,
         selectedCodeLineId: "external-call",
         codeFeedback: "correct",
+      };
+    case "ACT3_CLASSIFY":
+      return {
+        ...base,
+        phase: "ACT3_CLASSIFY",
+        checkpoint: "ACT3_CLASSIFY",
+        bossHp: 75,
+        selectedCodeLineId: "external-call",
+        codeFeedback: "correct",
+        classificationAnswers: payload.classificationAnswers,
+      };
+    case "ACT3_FORMATION":
+      return {
+        ...base,
+        phase: "ACT3_FORMATION",
+        checkpoint: "ACT3_FORMATION",
+        bossHp: 50,
+        selectedCodeLineId: "external-call",
+        codeFeedback: "correct",
+        classificationAnswers: { ...QUEST_ONE_CLASSIFICATION_CORRECT },
+        classificationResults: {
+          vulnerability: true,
+          element: true,
+          risk: true,
+        },
+        classificationFeedback: "correct",
       };
     case "ENTRY":
     default:
@@ -153,6 +203,85 @@ export function battleReducer(
       return {
         ...state,
         phase: "ACT2_LOCATE",
+        transitionLocked: false,
+      };
+
+    case "ENTER_CLASSIFICATION":
+      if (state.phase !== "ACT2_HIT" || state.transitionLocked) return state;
+      return {
+        ...state,
+        phase: "ACT3_CLASSIFY",
+        checkpoint: "ACT3_CLASSIFY",
+        classificationFeedback: null,
+        classificationResults: createEmptyClassificationResults(),
+      };
+
+    case "SET_CLASSIFICATION":
+      if (state.phase !== "ACT3_CLASSIFY" || state.transitionLocked) {
+        return state;
+      }
+      return {
+        ...state,
+        classificationAnswers: {
+          ...state.classificationAnswers,
+          [event.field]: event.value,
+        },
+        classificationResults: {
+          ...state.classificationResults,
+          [event.field]: null,
+        },
+        classificationFeedback: null,
+      };
+
+    case "SUBMIT_CLASSIFICATION": {
+      if (state.phase !== "ACT3_CLASSIFY" || state.transitionLocked) {
+        return state;
+      }
+
+      const { vulnerability, element, risk } = state.classificationAnswers;
+      if (!vulnerability || !element || !risk) {
+        return {
+          ...state,
+          classificationFeedback: "incomplete",
+        };
+      }
+
+      const classificationResults: ClassificationResults = {
+        vulnerability:
+          vulnerability === QUEST_ONE_CLASSIFICATION_CORRECT.vulnerability,
+        element: element === QUEST_ONE_CLASSIFICATION_CORRECT.element,
+        risk: risk === QUEST_ONE_CLASSIFICATION_CORRECT.risk,
+      };
+      const allCorrect = Object.values(classificationResults).every(Boolean);
+
+      if (!allCorrect) {
+        return {
+          ...state,
+          classificationResults,
+          classificationFeedback: "incorrect",
+        };
+      }
+
+      return {
+        ...state,
+        phase: "ACT3_FORMATION",
+        bossHp: 50,
+        classificationResults,
+        classificationFeedback: "correct",
+        transitionLocked: true,
+      };
+    }
+
+    case "CLASSIFICATION_FEEDBACK_FINISHED":
+      if (
+        state.phase !== "ACT3_FORMATION" ||
+        state.checkpoint === "ACT3_FORMATION"
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        checkpoint: "ACT3_FORMATION",
         transitionLocked: false,
       };
 
