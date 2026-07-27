@@ -209,6 +209,15 @@ function restoreCheckpoint(payload: HydratedBattleData): BattleState {
         bossHp: 0,
         repairOrder: [...QUEST_ONE_REPAIR_CORRECT_ORDER],
       };
+    case "ACT6_COMPLETE":
+      return {
+        ...base,
+        ...createCompletedReplayState(),
+        phase: "ACT6_COMPLETE",
+        checkpoint: "ACT6_COMPLETE",
+        bossHp: 0,
+        repairOrder: [...QUEST_ONE_REPAIR_CORRECT_ORDER],
+      };
     case "ENTRY":
     default:
       return base;
@@ -643,6 +652,60 @@ export function battleReducer(
         repairOrder: [...QUEST_ONE_REPAIR_CORRECT_ORDER],
         repairFeedback: null,
         transitionLocked: false,
+      };
+
+    case "START_REWARD_SEQUENCE":
+      if (
+        state.phase !== "ACT5_COMPLETE" ||
+        state.checkpoint !== "ACT5_COMPLETE" ||
+        state.transitionLocked
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT6_REWARDING",
+        bossHp: 0,
+        transitionLocked: true,
+      };
+
+    case "REWARD_SEQUENCE_FINISHED":
+      if (state.phase !== "ACT6_REWARDING" || !state.transitionLocked) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT6_COMPLETE",
+        checkpoint: "ACT6_COMPLETE",
+        bossHp: 0,
+        transitionLocked: false,
+      };
+
+    case "OPEN_BESTIARY":
+      if (
+        state.phase !== "ACT6_COMPLETE" ||
+        state.checkpoint !== "ACT6_COMPLETE" ||
+        state.transitionLocked
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "BESTIARY_OPEN",
+        bossHp: 0,
+      };
+
+    case "CLOSE_BESTIARY":
+      if (
+        state.phase !== "BESTIARY_OPEN" ||
+        state.checkpoint !== "ACT6_COMPLETE"
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT6_COMPLETE",
+        bossHp: 0,
       };
 
     case "SET_MOTION_MODE":

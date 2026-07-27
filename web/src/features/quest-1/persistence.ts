@@ -16,10 +16,23 @@ import type {
 
 const PROGRESS_KEY = "chain-security-cultivation:quest-1:v1";
 const MOTION_KEY = "chain-security-cultivation:motion-preference:v1";
-const STORAGE_VERSION = 4;
+const STORAGE_VERSION = 5;
 const LAST_REPLAY_STEP = QUEST_ONE_ATTACK_REPLAY_STEPS.length - 1;
 
 const CHECKPOINTS: StableCheckpoint[] = [
+  "ENTRY",
+  "ACT1_READY",
+  "ACT2_LOCATE",
+  "ACT2_HIT",
+  "ACT3_CLASSIFY",
+  "ACT3_FORMATION",
+  "ACT4_REPLAY",
+  "ACT4_COMPLETE",
+  "ACT5_REPAIR",
+  "ACT5_COMPLETE",
+  "ACT6_COMPLETE",
+];
+const VERSION_FOUR_CHECKPOINTS: StableCheckpoint[] = [
   "ENTRY",
   "ACT1_READY",
   "ACT2_LOCATE",
@@ -100,10 +113,6 @@ function createSafeHydratedData(
     viewedReplaySteps: [],
     repairOrder: [...QUEST_ONE_REPAIR_INITIAL_ORDER],
   };
-}
-
-function isCheckpoint(value: unknown): value is StableCheckpoint {
-  return CHECKPOINTS.includes(value as StableCheckpoint);
 }
 
 function isMotionMode(value: unknown): value is MotionMode {
@@ -329,13 +338,18 @@ function restoreVersionThree(
         : storedStatus;
 }
 
-function restoreVersionFour(
+function restoreVersionFourOrFive(
   parsed: Record<string, unknown>,
   hydrated: HydratedBattleData,
+  allowedCheckpoints: StableCheckpoint[],
 ): void {
-  if (!isCheckpoint(parsed.checkpoint)) return;
+  if (
+    !allowedCheckpoints.includes(parsed.checkpoint as StableCheckpoint)
+  ) {
+    return;
+  }
 
-  const checkpoint = parsed.checkpoint;
+  const checkpoint = parsed.checkpoint as StableCheckpoint;
   const storedAnswers = readClassificationAnswers(
     parsed.classificationAnswers,
   );
@@ -346,7 +360,8 @@ function restoreVersionFour(
       checkpoint === "ACT4_REPLAY" ||
       checkpoint === "ACT4_COMPLETE" ||
       checkpoint === "ACT5_REPAIR" ||
-      checkpoint === "ACT5_COMPLETE"
+      checkpoint === "ACT5_COMPLETE" ||
+      checkpoint === "ACT6_COMPLETE"
         ? "ACT2_HIT"
         : "ENTRY";
     return;
@@ -360,7 +375,8 @@ function restoreVersionFour(
     checkpoint === "ACT4_REPLAY" ||
     checkpoint === "ACT4_COMPLETE" ||
     checkpoint === "ACT5_REPAIR" ||
-    checkpoint === "ACT5_COMPLETE";
+    checkpoint === "ACT5_COMPLETE" ||
+    checkpoint === "ACT6_COMPLETE";
   if (
     requiresCorrectClassification &&
     !classificationIsCorrect(storedAnswers)
@@ -373,7 +389,8 @@ function restoreVersionFour(
     checkpoint === "ACT4_REPLAY" ||
     checkpoint === "ACT4_COMPLETE" ||
     checkpoint === "ACT5_REPAIR" ||
-    checkpoint === "ACT5_COMPLETE";
+    checkpoint === "ACT5_COMPLETE" ||
+    checkpoint === "ACT6_COMPLETE";
   if (!requiresReplay) return;
 
   if (!isValidReplayStep(parsed.replayStep)) {
@@ -421,17 +438,36 @@ function restoreVersionFour(
   if (checkpoint === "ACT4_COMPLETE") return;
 
   if (!isValidRepairOrder(parsed.repairOrder)) {
-    hydrated.checkpoint = "ACT4_COMPLETE";
+    hydrated.checkpoint =
+      checkpoint === "ACT5_COMPLETE" ||
+      checkpoint === "ACT6_COMPLETE"
+        ? "ACT5_REPAIR"
+        : "ACT4_COMPLETE";
     return;
   }
 
   hydrated.repairOrder = [...parsed.repairOrder];
   if (
-    checkpoint === "ACT5_COMPLETE" &&
+    (checkpoint === "ACT5_COMPLETE" ||
+      checkpoint === "ACT6_COMPLETE") &&
     !repairOrderIsCorrect(hydrated.repairOrder)
   ) {
     hydrated.checkpoint = "ACT5_REPAIR";
   }
+}
+
+function restoreVersionFour(
+  parsed: Record<string, unknown>,
+  hydrated: HydratedBattleData,
+): void {
+  restoreVersionFourOrFive(parsed, hydrated, VERSION_FOUR_CHECKPOINTS);
+}
+
+function restoreVersionFive(
+  parsed: Record<string, unknown>,
+  hydrated: HydratedBattleData,
+): void {
+  restoreVersionFourOrFive(parsed, hydrated, CHECKPOINTS);
 }
 
 export function loadBattleData(): HydratedBattleData {
@@ -451,8 +487,10 @@ export function loadBattleData(): HydratedBattleData {
         migrateVersionTwo(parsed, hydrated);
       } else if (parsed.version === 3) {
         restoreVersionThree(parsed, hydrated);
-      } else if (parsed.version === STORAGE_VERSION) {
+      } else if (parsed.version === 4) {
         restoreVersionFour(parsed, hydrated);
+      } else if (parsed.version === STORAGE_VERSION) {
+        restoreVersionFive(parsed, hydrated);
       }
     }
   } catch {

@@ -297,7 +297,11 @@
 .replayStage > *,
 .repairPuzzle > *,
 .sealResult > *,
-.repairDiffGrid > * {
+.repairDiffGrid > *,
+.rewardSequence > *,
+.rewardCards > *,
+.completionSummary > *,
+.bestiaryContent > * {
   min-width: 0;
 }
 
@@ -414,6 +418,32 @@
   background: rgba(250, 251, 247, 0.7);
   white-space: nowrap;
   cursor: pointer;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border: 1px solid color-mix(in srgb, var(--lake) 38%, white);
+  border-radius: 9px;
+  background: rgba(250, 251, 247, 0.9);
+  color: var(--lake);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--lake);
+  background: color-mix(in srgb, var(--cloud) 48%, white);
+}
+
+.secondaryButton:disabled {
+  border-color: var(--line);
+  color: color-mix(in srgb, var(--ink-soft) 62%, white);
+  cursor: not-allowed;
 }
 
 .battleStage {
@@ -1900,6 +1930,353 @@
   color: #9bd5c4;
 }
 
+.rewardSequence {
+  display: grid;
+  width: min(1120px, 100%);
+  min-width: 0;
+  gap: 18px;
+  margin: 22px auto 0;
+  padding: clamp(18px, 3vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--gold) 38%, white);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.96), transparent 48%),
+    linear-gradient(145deg, rgba(250, 251, 247, 0.98), rgba(229, 241, 236, 0.92));
+  box-shadow: var(--shadow);
+}
+
+.rewardHeader {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.rewardStamp {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--cinnabar) 48%, white);
+  border-radius: 5px;
+  color: var(--cinnabar);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.rewardHeader h2 {
+  margin: 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.rewardHeader p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.rewardCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rewardCards article {
+  display: grid;
+  min-width: 0;
+  min-height: 138px;
+  gap: 7px;
+  align-content: center;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--water) 34%, white);
+  border-radius: 14px;
+  background: rgba(250, 251, 247, 0.94);
+  text-align: center;
+}
+
+.rewardCards article > span:not(.rewardAssetPlaceholder) {
+  color: var(--lake);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.rewardCards article > strong {
+  color: var(--ink);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.rewardCards article > small {
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rewardBadgeCard {
+  border-color: color-mix(in srgb, var(--gold) 46%, white) !important;
+}
+
+.rewardBadgeCard > strong {
+  color: color-mix(in srgb, var(--gold) 76%, var(--ink)) !important;
+}
+
+.rewardAssetPlaceholder {
+  display: inline-flex;
+  justify-self: center;
+  padding: 4px 8px;
+  border: 1px dashed color-mix(in srgb, var(--gold) 50%, white);
+  border-radius: 5px;
+  color: var(--ink-soft);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.completionSummary {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.36fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 15px 16px;
+  border-left: 3px solid var(--water);
+  background: rgba(250, 251, 247, 0.76);
+}
+
+.completionSummary header {
+  display: grid;
+  gap: 3px;
+}
+
+.completionSummary header span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.completionSummary h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.completionSummary ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.completionSummary li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.completionSummary li span {
+  color: var(--water);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.completionSummary li strong {
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rewardDataNote {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  text-align: center;
+}
+
+.rewardSequenceAnimating {
+  animation: reward-completion-signal var(--reward-sequence-duration) ease-out
+    both;
+}
+
+.rewardSequenceAnimating .rewardStamp,
+.rewardSequenceAnimating .rewardCards article {
+  animation: reward-reveal var(--reward-reveal-duration) ease-out both;
+}
+
+.rewardSequenceAnimating .rewardStamp {
+  animation-delay: var(--reward-stamp-delay);
+}
+
+.rewardSequenceAnimating .rewardExpCard {
+  animation-delay: var(--reward-exp-delay);
+}
+
+.rewardSequenceAnimating .rewardMasteryCard {
+  animation-delay: var(--reward-mastery-delay);
+}
+
+.rewardSequenceAnimating .rewardBadgeCard {
+  animation-delay: var(--reward-badge-delay);
+}
+
+.rewardSequenceComplete {
+  border-color: color-mix(in srgb, var(--gold) 55%, white);
+}
+
+.bestiaryOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 52, 59, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.bestiaryDialog {
+  width: min(900px, 100%);
+  max-width: 100%;
+  max-height: min(88dvh, 820px);
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--water) 38%, white);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(250, 251, 247, 0.99), rgba(237, 244, 239, 0.99));
+  box-shadow: 0 28px 80px rgba(23, 52, 59, 0.24);
+}
+
+.bestiaryHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(250, 251, 247, 0.97);
+}
+
+.bestiaryHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.bestiaryHeader span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.bestiaryHeader h2 {
+  margin: 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.bestiaryHeader p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.bestiaryHeader button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--jade);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.bestiaryContent {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+.bestiaryVisual {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.bestiaryVisual .visualPlaceholderCompact {
+  min-height: 250px;
+}
+
+.bestiaryVisual > p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 10px;
+  text-align: center;
+}
+
+.bestiaryFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  min-width: 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.bestiaryFacts div {
+  min-width: 0;
+  padding: 13px 14px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(250, 251, 247, 0.64);
+}
+
+.bestiaryFacts dt {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bestiaryFacts dd {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.bestiaryDialog > footer {
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.bestiaryDialog > footer p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 @keyframes seal-completion-signal {
   0% {
     opacity: 0.78;
@@ -1912,6 +2289,32 @@
   100% {
     opacity: 1;
     filter: saturate(1);
+  }
+}
+
+@keyframes reward-completion-signal {
+  0% {
+    opacity: 0.84;
+    filter: saturate(0.72);
+  }
+  72% {
+    opacity: 1;
+    filter: saturate(1.12);
+  }
+  100% {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
+@keyframes reward-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -2015,6 +2418,12 @@
   font-size: 12px;
 }
 
+.completionActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(138px, 1fr));
+  gap: 9px;
+}
+
 .beastEntrance {
   animation: beast-entrance 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
@@ -2092,7 +2501,13 @@
 .battlePage[data-reduced-motion="true"] .replayReason,
 .battlePage[data-reduced-motion="true"] .sealSequence,
 .battlePage[data-reduced-motion="true"] .sealFormationLines path,
-.battlePage[data-reduced-motion="true"] .sealFormation li {
+.battlePage[data-reduced-motion="true"] .sealFormation li,
+.battlePage[data-reduced-motion="true"] .rewardSequenceAnimating,
+.battlePage[data-reduced-motion="true"] .rewardSequenceAnimating .rewardStamp,
+.battlePage[data-reduced-motion="true"]
+  .rewardSequenceAnimating
+  .rewardCards
+  article {
   animation: none;
 }
 
@@ -2191,6 +2606,10 @@
 
   .repairAssessment {
     min-height: 92px;
+  }
+
+  .rewardCards {
+    gap: 10px;
   }
 
   .waterFormation {
@@ -2573,6 +2992,85 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .rewardSequence {
+    gap: 14px;
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .rewardCards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rewardCards article {
+    min-height: 118px;
+    padding: 14px;
+  }
+
+  .completionSummary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .completionSummary ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bestiaryOverlay {
+    align-items: end;
+    padding: 10px;
+  }
+
+  .bestiaryDialog {
+    max-height: 92dvh;
+    border-radius: 16px 16px 10px 10px;
+  }
+
+  .bestiaryHeader {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .bestiaryHeader button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .bestiaryContent {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .bestiaryVisual .visualPlaceholderCompact {
+    min-height: 200px;
+  }
+
+  .bestiaryFacts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .commandBar[data-final-actions="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .commandBar[data-final-actions="true"] .objective {
+    display: none;
+  }
+
+  .completionActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .completionActions button {
+    min-width: 0;
+    min-height: 48px;
+    padding-inline: 10px;
+  }
+
   .diffCodeScroll pre {
     min-width: 620px;
   }
@@ -2684,6 +3182,10 @@
 
   .commandBar {
     grid-template-columns: minmax(0, 1fr) 116px;
+  }
+
+  .commandBar[data-final-actions="true"] {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .commandBar .primaryButton {

@@ -36,9 +36,11 @@ import type {
 } from "@/features/quest-1/battle-types";
 
 import { AttackReplay } from "./AttackReplay";
+import { BestiaryEntryDialog } from "./BestiaryEntryDialog";
 import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
 import { RepairOrderPuzzle } from "./RepairOrderPuzzle";
+import { RewardSequence } from "./RewardSequence";
 import { SealFormationResult } from "./SealFormationResult";
 import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
 import styles from "./quest-1.module.css";
@@ -61,6 +63,9 @@ function getLiveMessage(
     case "ACT5_REPAIR":
     case "ACT5_SEALING":
     case "ACT5_COMPLETE":
+    case "ACT6_REWARDING":
+    case "ACT6_COMPLETE":
+    case "BESTIARY_OPEN":
       return "";
     default:
       return "水灵秘境正在显现。";
@@ -100,9 +105,13 @@ export function QuestBattleExperience() {
   const isActThree = state.phase.startsWith("ACT3");
   const isActFour = state.phase.startsWith("ACT4");
   const isActFive = state.phase.startsWith("ACT5");
-  const copy = isActFive
-    ? QUEST_ONE_COPY.act5
-    : isActFour
+  const isActSix =
+    state.phase.startsWith("ACT6") || state.phase === "BESTIARY_OPEN";
+  const copy = isActSix
+    ? QUEST_ONE_COPY.act6
+    : isActFive
+      ? QUEST_ONE_COPY.act5
+      : isActFour
       ? QUEST_ONE_COPY.act4
       : isActThree
         ? QUEST_ONE_COPY.act3
@@ -302,6 +311,8 @@ export function QuestBattleExperience() {
       dispatch({ type: "CLASSIFICATION_FEEDBACK_FINISHED" });
     } else if (state.phase === "ACT5_SEALING") {
       dispatch({ type: "SEAL_ANIMATION_FINISHED" });
+    } else if (state.phase === "ACT6_REWARDING") {
+      dispatch({ type: "REWARD_SEQUENCE_FINISHED" });
     }
   }, [reducedMotion, state.checkpoint, state.phase]);
 
@@ -332,6 +343,15 @@ export function QuestBattleExperience() {
       state.phase === "ACT5_SEALING"
     ) {
       dispatch({ type: "SEAL_ANIMATION_FINISHED" });
+    }
+  }
+
+  function handleRewardAnimationEnd(event: AnimationEvent<HTMLElement>) {
+    if (
+      event.target === event.currentTarget &&
+      state.phase === "ACT6_REWARDING"
+    ) {
+      dispatch({ type: "REWARD_SEQUENCE_FINISHED" });
     }
   }
 
@@ -427,6 +447,7 @@ export function QuestBattleExperience() {
           <label>
             <span>动态效果</span>
             <select
+              aria-label="动态效果"
               value={state.motionMode}
               onChange={(event) =>
                 handleMotionMode(event.target.value as MotionMode)
@@ -437,9 +458,11 @@ export function QuestBattleExperience() {
               <option value="reduced">减少动态</option>
             </select>
           </label>
-          <button className={styles.textButton} onClick={handleReset}>
-            重置修炼
-          </button>
+          {!isActSix ? (
+            <button className={styles.textButton} onClick={handleReset}>
+              重置修炼
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -447,7 +470,9 @@ export function QuestBattleExperience() {
         <div className={styles.stageHeading}>
           <p className={styles.eyebrow}>{copy.eyebrow}</p>
           <h1 id="stage-title">
-            {isActFive
+            {isActSix
+              ? "战利品与升级"
+              : isActFive
               ? "布阵封印"
               : isActFour
               ? "回环噬灵"
@@ -459,7 +484,13 @@ export function QuestBattleExperience() {
           </h1>
         </div>
 
-        {isActFive ? (
+        {isActSix ? (
+          <RewardSequence
+            complete={state.phase !== "ACT6_REWARDING"}
+            onAnimationEnd={handleRewardAnimationEnd}
+            reducedMotion={reducedMotion}
+          />
+        ) : isActFive ? (
           state.phase === "ACT5_REPAIR" ? (
             <RepairOrderPuzzle
               disabled={state.transitionLocked}
@@ -580,7 +611,11 @@ export function QuestBattleExperience() {
         )}
       </section>
 
-      <section className={styles.commandBar} aria-label="当前战斗指令">
+      <section
+        className={styles.commandBar}
+        data-final-actions={isActSix ? "true" : "false"}
+        aria-label="当前战斗指令"
+      >
         <p className={styles.dialogue}>
           <span>守阵长老</span>
           {copy.dialogue}
@@ -590,18 +625,50 @@ export function QuestBattleExperience() {
           <strong>{copy.target}</strong>
           <small>{copy.hint}</small>
         </div>
-        {isActFive ? (
+        {isActSix ? (
+          <div className={styles.completionActions}>
+            <button
+              className={styles.primaryButton}
+              disabled={
+                state.phase === "ACT6_REWARDING" ||
+                state.phase === "BESTIARY_OPEN"
+              }
+              onClick={() => dispatch({ type: "OPEN_BESTIARY" })}
+              type="button"
+            >
+              {state.phase === "ACT6_REWARDING"
+                ? "正在结算"
+                : "查看异兽志"}
+            </button>
+            <button
+              className={styles.secondaryButton}
+              disabled={
+                state.phase === "ACT6_REWARDING" ||
+                state.phase === "BESTIARY_OPEN"
+              }
+              onClick={handleReset}
+              type="button"
+            >
+              重新修炼
+            </button>
+          </div>
+        ) : isActFive ? (
           <button
             className={styles.primaryButton}
-            disabled={
-              state.transitionLocked || state.phase === "ACT5_COMPLETE"
+            disabled={state.transitionLocked}
+            onClick={() =>
+              dispatch({
+                type:
+                  state.phase === "ACT5_COMPLETE"
+                    ? "START_REWARD_SEQUENCE"
+                    : "SUBMIT_REPAIR",
+              })
             }
-            onClick={() => dispatch({ type: "SUBMIT_REPAIR" })}
           >
             {state.phase === "ACT5_SEALING"
               ? "封印闭合中"
               : state.phase === "ACT5_COMPLETE"
-                ? "封印已成"
+                ? QUEST_ONE_COPY.act6.action
                 : copy.action}
           </button>
         ) : isActFour ? (
@@ -663,6 +730,12 @@ export function QuestBattleExperience() {
           </button>
         )}
       </section>
+
+      {state.phase === "BESTIARY_OPEN" ? (
+        <BestiaryEntryDialog
+          onClose={() => dispatch({ type: "CLOSE_BESTIARY" })}
+        />
+      ) : null}
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         {liveMessage}

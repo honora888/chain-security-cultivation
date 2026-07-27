@@ -31,7 +31,8 @@ export type StableCheckpoint =
   | "ACT4_REPLAY"
   | "ACT4_COMPLETE"
   | "ACT5_REPAIR"
-  | "ACT5_COMPLETE";
+  | "ACT5_COMPLETE"
+  | "ACT6_COMPLETE";
 
 export type BossHp = 100 | 75 | 50 | 0;
 export type MotionMode = "system" | "full" | "reduced";
@@ -165,5 +166,9 @@ export type BattleEvent =
   | { type: "RESET_REPAIR_ORDER" }
   | { type: "SUBMIT_REPAIR" }
   | { type: "SEAL_ANIMATION_FINISHED" }
+  | { type: "START_REWARD_SEQUENCE" }
+  | { type: "REWARD_SEQUENCE_FINISHED" }
+  | { type: "OPEN_BESTIARY" }
+  | { type: "CLOSE_BESTIARY" }
   | { type: "SET_MOTION_MODE"; mode: MotionMode }
   | { type: "RESET_QUEST" };

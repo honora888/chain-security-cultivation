@@ -321,6 +321,33 @@ export const QUEST_ONE_SEAL_TIMING = {
   hpTransition: 700,
 } as const;
 
+export const QUEST_ONE_REWARD_TIMING = {
+  sequence: 2600,
+  reveal: 520,
+  stampDelay: 120,
+  expDelay: 420,
+  masteryDelay: 1120,
+  badgeDelay: 1820,
+} as const;
+
+export const QUEST_ONE_COMPLETION_CONCLUSIONS = [
+  "已定位外部调用",
+  "已识别经典重入漏洞",
+  "已看懂 receive() → withdraw() 回环",
+  "已完成 Checks → Effects → Interactions 修复",
+] as const;
+
+export const QUEST_ONE_BESTIARY_ENTRY = {
+  name: QUEST_ONE.name,
+  realm: QUEST_ONE.realm,
+  element: QUEST_ONE.element,
+  vulnerability: QUEST_ONE.vulnerability,
+  risk: QUEST_ONE.risk,
+  sealMethod: "Checks-Effects-Interactions",
+  status: "已封印",
+  badge: QUEST_ONE.badge,
+} as const;
+
 export const QUEST_ONE_COPY = {
   act1: {
     eyebrow: "第一幕 · 妖兽现身",
@@ -358,5 +385,12 @@ export const QUEST_ONE_COPY = {
     hint: "Checks → Effects → Interactions。",
     error: "阵序未成：Effects 必须先于 Interactions。",
     success: "回环已断，封印成阵。",
+  },
+  act6: {
+    eyebrow: "第六幕 · 战利品与升级",
+    dialogue: "回环已断，此兽当收入异兽志。",
+    target: "完成本地学习结算并查看收录结果。",
+    action: "结算战利品",
+    hint: "EXP 与水熟练度不会写入链上。",
   },
 } as const;
