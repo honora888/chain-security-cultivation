@@ -16,7 +16,7 @@
 | Quest 1 注册与报告存证 | 已完成 |
 | ERC-1155 不可转让勋章 | 已铸造 |
 | 前端视觉与开发规格 | 已完成 |
-| Quest 1 Boss 战前端 | 开发准备阶段 |
+| Quest 1 Boss 战前端 | 已完成六幕与只读链上核验 |
 
 当前版本聚焦 **Quest 1：噬灵回环兽**。前端只实现这一关，不虚构其他关卡。
 
@@ -181,6 +181,16 @@ FixedCharityVault 实际余额
 - [Quest 1 注册](deployments/quest-1.md)
 - [Quest 1 通关](deployments/quest-1-completion.md)
 
+## Monad Testnet 只读验证
+
+Quest 1 本地六幕完成后，`ACT6_COMPLETE` 支持查询 GuardianQuest 中指定地址的只读状态。目标网络为 Monad Testnet（Chain ID `10143`）；查询不连接钱包、不请求签名，也不发送交易。
+
+当前已使用真实 RPC 验证公共测试地址的 `completed=false` 结果。`completed=true` 分支仍需要可信、已登记且可公开的地址完成真实验证。
+
+完整验收范围、实际返回结果和安全复现步骤见：
+
+- [Quest 1 Monad Testnet 只读验收](docs/quest-1-chain-verification.md)
+
 ## 可复现证据
 
 ### Quest Content Hash
@@ -318,7 +328,7 @@ npm run build
 
 - 漏洞合约与攻击合约只用于本地教学和受控测试；
 - 不应使用漏洞版本承载真实资产；
-- 仓库不保存私钥、助记词或 Keystore 密码；
+- 仓库不保存私钥、恢复短语或 Keystore 密码；
 - 前端第一版只读 Monad Testnet，不请求钱包签名；
 - 本项目尚未经过完整生产级安全审计。
 
