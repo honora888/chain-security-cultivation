@@ -17,6 +17,7 @@ import {
   QUEST_ONE_CODE_LINES,
   QUEST_ONE_COPY,
   QUEST_ONE_REPLAY_TIMING,
+  QUEST_ONE_SEAL_TIMING,
 } from "@/data/quest-1";
 import {
   battleReducer,
@@ -37,6 +38,8 @@ import type {
 import { AttackReplay } from "./AttackReplay";
 import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
+import { RepairOrderPuzzle } from "./RepairOrderPuzzle";
+import { SealFormationResult } from "./SealFormationResult";
 import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
 import styles from "./quest-1.module.css";
 
@@ -55,6 +58,9 @@ function getLiveMessage(
     case "ACT3_FORMATION":
     case "ACT4_REPLAY":
     case "ACT4_COMPLETE":
+    case "ACT5_REPAIR":
+    case "ACT5_SEALING":
+    case "ACT5_COMPLETE":
       return "";
     default:
       return "水灵秘境正在显现。";
@@ -71,6 +77,7 @@ function persistBattleState(state: BattleState) {
     replayStep: state.replayStep,
     replayStatus,
     viewedReplaySteps: state.viewedReplaySteps,
+    repairOrder: state.repairOrder,
   });
 }
 
@@ -84,6 +91,7 @@ export function QuestBattleExperience() {
   const hydratedOnce = useRef(false);
   const feedbackRef = useRef<HTMLDivElement>(null);
   const classificationFeedbackRef = useRef<HTMLDivElement>(null);
+  const repairFeedbackRef = useRef<HTMLDivElement>(null);
 
   const reducedMotion =
     state.motionMode === "reduced" ||
@@ -91,13 +99,16 @@ export function QuestBattleExperience() {
   const isActTwo = state.phase.startsWith("ACT2");
   const isActThree = state.phase.startsWith("ACT3");
   const isActFour = state.phase.startsWith("ACT4");
-  const copy = isActFour
-    ? QUEST_ONE_COPY.act4
-    : isActThree
-      ? QUEST_ONE_COPY.act3
-      : isActTwo
-        ? QUEST_ONE_COPY.act2
-        : QUEST_ONE_COPY.act1;
+  const isActFive = state.phase.startsWith("ACT5");
+  const copy = isActFive
+    ? QUEST_ONE_COPY.act5
+    : isActFour
+      ? QUEST_ONE_COPY.act4
+      : isActThree
+        ? QUEST_ONE_COPY.act3
+        : isActTwo
+          ? QUEST_ONE_COPY.act2
+          : QUEST_ONE_COPY.act1;
   const replayFullyViewed = QUEST_ONE_ATTACK_REPLAY_STEPS.every((step) =>
     state.viewedReplaySteps.includes(step.id),
   );
@@ -240,6 +251,38 @@ export function QuestBattleExperience() {
   }, [reducedMotion, state.classificationFeedback]);
 
   useEffect(() => {
+    const feedbackElement = repairFeedbackRef.current;
+    if (
+      !state.repairFeedback ||
+      !feedbackElement ||
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const feedbackRect = feedbackElement.getBoundingClientRect();
+      const commandBar = document.querySelector(
+        '[aria-label="当前战斗指令"]',
+      );
+      const commandBarTop =
+        commandBar?.getBoundingClientRect().top ?? window.innerHeight;
+      const visibleBottom = Math.min(window.innerHeight, commandBarTop);
+      const outsideViewport =
+        feedbackRect.top < 0 || feedbackRect.bottom > visibleBottom;
+
+      if (outsideViewport) {
+        feedbackElement.scrollIntoView({
+          behavior: reducedMotion ? "auto" : "smooth",
+          block: "nearest",
+        });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [reducedMotion, state.repairFeedback]);
+
+  useEffect(() => {
     if (!reducedMotion) return;
 
     if (state.phase === "ACT1_APPEARING") {
@@ -257,6 +300,8 @@ export function QuestBattleExperience() {
       state.checkpoint !== "ACT3_FORMATION"
     ) {
       dispatch({ type: "CLASSIFICATION_FEEDBACK_FINISHED" });
+    } else if (state.phase === "ACT5_SEALING") {
+      dispatch({ type: "SEAL_ANIMATION_FINISHED" });
     }
   }, [reducedMotion, state.checkpoint, state.phase]);
 
@@ -278,6 +323,15 @@ export function QuestBattleExperience() {
       state.checkpoint !== "ACT3_FORMATION"
     ) {
       dispatch({ type: "CLASSIFICATION_FEEDBACK_FINISHED" });
+    }
+  }
+
+  function handleSealAnimationEnd(event: AnimationEvent<HTMLElement>) {
+    if (
+      event.target === event.currentTarget &&
+      state.phase === "ACT5_SEALING"
+    ) {
+      dispatch({ type: "SEAL_ANIMATION_FINISHED" });
     }
   }
 
@@ -320,6 +374,7 @@ export function QuestBattleExperience() {
 
   const hpStyle = {
     "--boss-hp": `${state.bossHp}%`,
+    "--hp-transition-duration": `${QUEST_ONE_SEAL_TIMING.hpTransition}ms`,
   } as CSSProperties;
 
   const stageAnimationClass =
@@ -392,7 +447,9 @@ export function QuestBattleExperience() {
         <div className={styles.stageHeading}>
           <p className={styles.eyebrow}>{copy.eyebrow}</p>
           <h1 id="stage-title">
-            {isActFour
+            {isActFive
+              ? "布阵封印"
+              : isActFour
               ? "回环噬灵"
               : isActThree
                 ? "识破妖法"
@@ -402,7 +459,30 @@ export function QuestBattleExperience() {
           </h1>
         </div>
 
-        {isActFour ? (
+        {isActFive ? (
+          state.phase === "ACT5_REPAIR" ? (
+            <RepairOrderPuzzle
+              disabled={state.transitionLocked}
+              feedback={state.repairFeedback}
+              onMove={(blockId, direction) =>
+                dispatch({
+                  type: "MOVE_REPAIR_BLOCK",
+                  blockId,
+                  direction,
+                })
+              }
+              onReset={() => dispatch({ type: "RESET_REPAIR_ORDER" })}
+              order={state.repairOrder}
+              statusRef={repairFeedbackRef}
+            />
+          ) : (
+            <SealFormationResult
+              complete={state.phase === "ACT5_COMPLETE"}
+              onAnimationEnd={handleSealAnimationEnd}
+              reducedMotion={reducedMotion}
+            />
+          )
+        ) : isActFour ? (
           <AttackReplay
             complete={state.phase === "ACT4_COMPLETE"}
             currentStep={state.replayStep}
@@ -510,19 +590,36 @@ export function QuestBattleExperience() {
           <strong>{copy.target}</strong>
           <small>{copy.hint}</small>
         </div>
-        {isActFour ? (
+        {isActFive ? (
           <button
             className={styles.primaryButton}
             disabled={
-              state.phase === "ACT4_COMPLETE" ||
-              state.transitionLocked ||
-              !replayFullyViewed
+              state.transitionLocked || state.phase === "ACT5_COMPLETE"
             }
-            onClick={() =>
-              handleReplayEvent({ type: "CONFIRM_ATTACK_REPLAY" })
-            }
+            onClick={() => dispatch({ type: "SUBMIT_REPAIR" })}
           >
-            {state.phase === "ACT4_COMPLETE" ? "回环已看破" : copy.action}
+            {state.phase === "ACT5_SEALING"
+              ? "封印闭合中"
+              : state.phase === "ACT5_COMPLETE"
+                ? "封印已成"
+                : copy.action}
+          </button>
+        ) : isActFour ? (
+          <button
+            className={styles.primaryButton}
+            disabled={
+              state.transitionLocked ||
+              (state.phase === "ACT4_REPLAY" && !replayFullyViewed)
+            }
+            onClick={() => {
+              if (state.phase === "ACT4_COMPLETE") {
+                dispatch({ type: "ENTER_REPAIR_STAGE" });
+              } else {
+                handleReplayEvent({ type: "CONFIRM_ATTACK_REPLAY" });
+              }
+            }}
+          >
+            {state.phase === "ACT4_COMPLETE" ? "布阵封印" : copy.action}
           </button>
         ) : isActThree ? (
           <button

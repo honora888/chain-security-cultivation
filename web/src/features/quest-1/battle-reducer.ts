@@ -2,6 +2,8 @@ import {
   QUEST_ONE_ATTACK_REPLAY_STEPS,
   QUEST_ONE_CLASSIFICATION_CORRECT,
   QUEST_ONE_CODE_LINES,
+  QUEST_ONE_REPAIR_CORRECT_ORDER,
+  QUEST_ONE_REPAIR_INITIAL_ORDER,
 } from "@/data/quest-1";
 
 import type {
@@ -11,6 +13,7 @@ import type {
   ClassificationResults,
   HydratedBattleData,
   MotionMode,
+  RepairBlockId,
   ReplayStatus,
 } from "./battle-types";
 
@@ -51,6 +54,39 @@ function getReplayStatus(
   return replayIsFullyViewed(viewedSteps) ? "complete" : fallback;
 }
 
+function repairOrderIsCorrect(order: RepairBlockId[]): boolean {
+  return QUEST_ONE_REPAIR_CORRECT_ORDER.every(
+    (blockId, index) => order[index] === blockId,
+  );
+}
+
+function createCompletedReplayState(): Pick<
+  BattleState,
+  | "selectedCodeLineId"
+  | "codeFeedback"
+  | "classificationAnswers"
+  | "classificationResults"
+  | "classificationFeedback"
+  | "replayStep"
+  | "replayStatus"
+  | "viewedReplaySteps"
+> {
+  return {
+    selectedCodeLineId: "external-call",
+    codeFeedback: "correct",
+    classificationAnswers: { ...QUEST_ONE_CLASSIFICATION_CORRECT },
+    classificationResults: {
+      vulnerability: true,
+      element: true,
+      risk: true,
+    },
+    classificationFeedback: "correct",
+    replayStep: LAST_REPLAY_STEP,
+    replayStatus: "complete",
+    viewedReplaySteps: QUEST_ONE_ATTACK_REPLAY_STEPS.map((step) => step.id),
+  };
+}
+
 export function createInitialBattleState(
   motionMode: MotionMode = "system",
 ): BattleState {
@@ -66,6 +102,8 @@ export function createInitialBattleState(
     replayStep: 0,
     replayStatus: "idle",
     viewedReplaySteps: [],
+    repairOrder: [...QUEST_ONE_REPAIR_INITIAL_ORDER],
+    repairFeedback: null,
     transitionLocked: false,
     hydrated: false,
     motionMode,
@@ -148,21 +186,28 @@ function restoreCheckpoint(payload: HydratedBattleData): BattleState {
     case "ACT4_COMPLETE":
       return {
         ...base,
+        ...createCompletedReplayState(),
         phase: "ACT4_COMPLETE",
         checkpoint: "ACT4_COMPLETE",
         bossHp: 50,
-        selectedCodeLineId: "external-call",
-        codeFeedback: "correct",
-        classificationAnswers: { ...QUEST_ONE_CLASSIFICATION_CORRECT },
-        classificationResults: {
-          vulnerability: true,
-          element: true,
-          risk: true,
-        },
-        classificationFeedback: "correct",
-        replayStep: LAST_REPLAY_STEP,
-        replayStatus: "complete",
-        viewedReplaySteps: QUEST_ONE_ATTACK_REPLAY_STEPS.map((step) => step.id),
+      };
+    case "ACT5_REPAIR":
+      return {
+        ...base,
+        ...createCompletedReplayState(),
+        phase: "ACT5_REPAIR",
+        checkpoint: "ACT5_REPAIR",
+        bossHp: 50,
+        repairOrder: payload.repairOrder,
+      };
+    case "ACT5_COMPLETE":
+      return {
+        ...base,
+        ...createCompletedReplayState(),
+        phase: "ACT5_COMPLETE",
+        checkpoint: "ACT5_COMPLETE",
+        bossHp: 0,
+        repairOrder: [...QUEST_ONE_REPAIR_CORRECT_ORDER],
       };
     case "ENTRY":
     default:
@@ -507,6 +552,97 @@ export function battleReducer(
         viewedReplaySteps: QUEST_ONE_ATTACK_REPLAY_STEPS.map(
           (step) => step.id,
         ),
+      };
+
+    case "ENTER_REPAIR_STAGE":
+      if (
+        state.phase !== "ACT4_COMPLETE" ||
+        state.checkpoint !== "ACT4_COMPLETE" ||
+        state.transitionLocked
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT5_REPAIR",
+        checkpoint: "ACT5_REPAIR",
+        bossHp: 50,
+        repairOrder: [...QUEST_ONE_REPAIR_INITIAL_ORDER],
+        repairFeedback: null,
+      };
+
+    case "MOVE_REPAIR_BLOCK": {
+      if (state.phase !== "ACT5_REPAIR" || state.transitionLocked) {
+        return state;
+      }
+
+      const currentIndex = state.repairOrder.indexOf(event.blockId);
+      if (currentIndex < 0) return state;
+
+      const targetIndex =
+        event.direction === "up" ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= state.repairOrder.length) {
+        return state;
+      }
+
+      const repairOrder = [...state.repairOrder];
+      [repairOrder[currentIndex], repairOrder[targetIndex]] = [
+        repairOrder[targetIndex],
+        repairOrder[currentIndex],
+      ];
+
+      return {
+        ...state,
+        bossHp: 50,
+        repairOrder,
+        repairFeedback: null,
+      };
+    }
+
+    case "RESET_REPAIR_ORDER":
+      if (state.phase !== "ACT5_REPAIR" || state.transitionLocked) {
+        return state;
+      }
+      return {
+        ...state,
+        bossHp: 50,
+        repairOrder: [...QUEST_ONE_REPAIR_INITIAL_ORDER],
+        repairFeedback: null,
+      };
+
+    case "SUBMIT_REPAIR":
+      if (state.phase !== "ACT5_REPAIR" || state.transitionLocked) {
+        return state;
+      }
+
+      if (!repairOrderIsCorrect(state.repairOrder)) {
+        return {
+          ...state,
+          bossHp: 50,
+          repairFeedback: "invalid",
+        };
+      }
+
+      return {
+        ...state,
+        phase: "ACT5_SEALING",
+        bossHp: 50,
+        repairFeedback: null,
+        transitionLocked: true,
+      };
+
+    case "SEAL_ANIMATION_FINISHED":
+      if (state.phase !== "ACT5_SEALING" || !state.transitionLocked) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT5_COMPLETE",
+        checkpoint: "ACT5_COMPLETE",
+        bossHp: 0,
+        repairOrder: [...QUEST_ONE_REPAIR_CORRECT_ORDER],
+        repairFeedback: null,
+        transitionLocked: false,
       };
 
     case "SET_MOTION_MODE":

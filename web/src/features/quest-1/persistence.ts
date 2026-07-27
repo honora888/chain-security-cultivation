@@ -1,20 +1,37 @@
-import { QUEST_ONE_ATTACK_REPLAY_STEPS } from "@/data/quest-1";
+import {
+  QUEST_ONE_ATTACK_REPLAY_STEPS,
+  QUEST_ONE_REPAIR_CORRECT_ORDER,
+  QUEST_ONE_REPAIR_INITIAL_ORDER,
+} from "@/data/quest-1";
 
 import type {
   BattleState,
   ClassificationAnswers,
   HydratedBattleData,
   MotionMode,
+  RepairBlockId,
   ReplayStatus,
   StableCheckpoint,
 } from "./battle-types";
 
 const PROGRESS_KEY = "chain-security-cultivation:quest-1:v1";
 const MOTION_KEY = "chain-security-cultivation:motion-preference:v1";
-const STORAGE_VERSION = 3;
+const STORAGE_VERSION = 4;
 const LAST_REPLAY_STEP = QUEST_ONE_ATTACK_REPLAY_STEPS.length - 1;
 
 const CHECKPOINTS: StableCheckpoint[] = [
+  "ENTRY",
+  "ACT1_READY",
+  "ACT2_LOCATE",
+  "ACT2_HIT",
+  "ACT3_CLASSIFY",
+  "ACT3_FORMATION",
+  "ACT4_REPLAY",
+  "ACT4_COMPLETE",
+  "ACT5_REPAIR",
+  "ACT5_COMPLETE",
+];
+const VERSION_THREE_CHECKPOINTS: StableCheckpoint[] = [
   "ENTRY",
   "ACT1_READY",
   "ACT2_LOCATE",
@@ -60,6 +77,7 @@ type PersistedBattleProgress = Pick<
   | "replayStep"
   | "replayStatus"
   | "viewedReplaySteps"
+  | "repairOrder"
 >;
 
 function emptyClassificationAnswers(): ClassificationAnswers {
@@ -80,6 +98,7 @@ function createSafeHydratedData(
     replayStep: 0,
     replayStatus: "idle",
     viewedReplaySteps: [],
+    repairOrder: [...QUEST_ONE_REPAIR_INITIAL_ORDER],
   };
 }
 
@@ -166,6 +185,28 @@ function replayIsFullyViewed(viewedSteps: number[]): boolean {
   );
 }
 
+function isValidRepairOrder(value: unknown): value is RepairBlockId[] {
+  if (
+    !Array.isArray(value) ||
+    value.length !== QUEST_ONE_REPAIR_CORRECT_ORDER.length
+  ) {
+    return false;
+  }
+
+  const knownIds = new Set<RepairBlockId>(QUEST_ONE_REPAIR_CORRECT_ORDER);
+  const uniqueIds = new Set(value);
+  return (
+    uniqueIds.size === knownIds.size &&
+    value.every((blockId) => knownIds.has(blockId as RepairBlockId))
+  );
+}
+
+function repairOrderIsCorrect(order: RepairBlockId[]): boolean {
+  return QUEST_ONE_REPAIR_CORRECT_ORDER.every(
+    (blockId, index) => order[index] === blockId,
+  );
+}
+
 function migrateVersionTwo(
   parsed: Record<string, unknown>,
   hydrated: HydratedBattleData,
@@ -205,9 +246,15 @@ function restoreVersionThree(
   parsed: Record<string, unknown>,
   hydrated: HydratedBattleData,
 ): void {
-  if (!isCheckpoint(parsed.checkpoint)) return;
+  if (
+    !VERSION_THREE_CHECKPOINTS.includes(
+      parsed.checkpoint as StableCheckpoint,
+    )
+  ) {
+    return;
+  }
 
-  const checkpoint = parsed.checkpoint;
+  const checkpoint = parsed.checkpoint as StableCheckpoint;
   const storedAnswers = readClassificationAnswers(
     parsed.classificationAnswers,
   );
@@ -282,6 +329,111 @@ function restoreVersionThree(
         : storedStatus;
 }
 
+function restoreVersionFour(
+  parsed: Record<string, unknown>,
+  hydrated: HydratedBattleData,
+): void {
+  if (!isCheckpoint(parsed.checkpoint)) return;
+
+  const checkpoint = parsed.checkpoint;
+  const storedAnswers = readClassificationAnswers(
+    parsed.classificationAnswers,
+  );
+  if (!storedAnswers) {
+    hydrated.checkpoint =
+      checkpoint === "ACT3_CLASSIFY" ||
+      checkpoint === "ACT3_FORMATION" ||
+      checkpoint === "ACT4_REPLAY" ||
+      checkpoint === "ACT4_COMPLETE" ||
+      checkpoint === "ACT5_REPAIR" ||
+      checkpoint === "ACT5_COMPLETE"
+        ? "ACT2_HIT"
+        : "ENTRY";
+    return;
+  }
+
+  hydrated.checkpoint = checkpoint;
+  hydrated.classificationAnswers = storedAnswers;
+
+  const requiresCorrectClassification =
+    checkpoint === "ACT3_FORMATION" ||
+    checkpoint === "ACT4_REPLAY" ||
+    checkpoint === "ACT4_COMPLETE" ||
+    checkpoint === "ACT5_REPAIR" ||
+    checkpoint === "ACT5_COMPLETE";
+  if (
+    requiresCorrectClassification &&
+    !classificationIsCorrect(storedAnswers)
+  ) {
+    hydrated.checkpoint = "ACT3_CLASSIFY";
+    return;
+  }
+
+  const requiresReplay =
+    checkpoint === "ACT4_REPLAY" ||
+    checkpoint === "ACT4_COMPLETE" ||
+    checkpoint === "ACT5_REPAIR" ||
+    checkpoint === "ACT5_COMPLETE";
+  if (!requiresReplay) return;
+
+  if (!isValidReplayStep(parsed.replayStep)) {
+    hydrated.checkpoint = "ACT3_FORMATION";
+    return;
+  }
+
+  const viewedReplaySteps = sanitizeViewedReplaySteps(
+    parsed.viewedReplaySteps,
+  );
+  if (!viewedReplaySteps.includes(parsed.replayStep)) {
+    viewedReplaySteps.push(parsed.replayStep);
+    viewedReplaySteps.sort((a, b) => a - b);
+  }
+
+  hydrated.replayStep = parsed.replayStep;
+  hydrated.viewedReplaySteps = viewedReplaySteps;
+
+  if (checkpoint === "ACT4_REPLAY") {
+    const storedStatus = isReplayStatus(parsed.replayStatus)
+      ? parsed.replayStatus
+      : "paused";
+    hydrated.replayStatus =
+      storedStatus === "playing"
+        ? "paused"
+        : storedStatus === "complete" &&
+            !replayIsFullyViewed(viewedReplaySteps)
+          ? "paused"
+          : storedStatus;
+    return;
+  }
+
+  if (!replayIsFullyViewed(viewedReplaySteps)) {
+    hydrated.checkpoint = "ACT4_REPLAY";
+    hydrated.replayStatus = "paused";
+    return;
+  }
+
+  hydrated.replayStep = LAST_REPLAY_STEP;
+  hydrated.replayStatus = "complete";
+  hydrated.viewedReplaySteps = QUEST_ONE_ATTACK_REPLAY_STEPS.map(
+    (step) => step.id,
+  );
+
+  if (checkpoint === "ACT4_COMPLETE") return;
+
+  if (!isValidRepairOrder(parsed.repairOrder)) {
+    hydrated.checkpoint = "ACT4_COMPLETE";
+    return;
+  }
+
+  hydrated.repairOrder = [...parsed.repairOrder];
+  if (
+    checkpoint === "ACT5_COMPLETE" &&
+    !repairOrderIsCorrect(hydrated.repairOrder)
+  ) {
+    hydrated.checkpoint = "ACT5_REPAIR";
+  }
+}
+
 export function loadBattleData(): HydratedBattleData {
   const hydrated = createSafeHydratedData();
 
@@ -297,8 +449,10 @@ export function loadBattleData(): HydratedBattleData {
         hydrated.checkpoint = parsed.checkpoint as StableCheckpoint;
       } else if (parsed.version === 2) {
         migrateVersionTwo(parsed, hydrated);
-      } else if (parsed.version === STORAGE_VERSION) {
+      } else if (parsed.version === 3) {
         restoreVersionThree(parsed, hydrated);
+      } else if (parsed.version === STORAGE_VERSION) {
+        restoreVersionFour(parsed, hydrated);
       }
     }
   } catch {
@@ -330,6 +484,7 @@ export function saveBattleProgress(
         replayStep: progress.replayStep,
         replayStatus: progress.replayStatus,
         viewedReplaySteps: progress.viewedReplaySteps,
+        repairOrder: progress.repairOrder,
       }),
     );
   } catch {

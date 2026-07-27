@@ -294,7 +294,10 @@
 .codeStage > *,
 .classificationStage > *,
 .replayShell > *,
-.replayStage > * {
+.replayStage > *,
+.repairPuzzle > *,
+.sealResult > *,
+.repairDiffGrid > * {
   min-width: 0;
 }
 
@@ -369,7 +372,8 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #d16455, var(--cinnabar));
-  transition: width 700ms cubic-bezier(0.3, 0.8, 0.3, 1);
+  transition: width var(--hp-transition-duration, 700ms)
+    cubic-bezier(0.3, 0.8, 0.3, 1);
 }
 
 .hudActions {
@@ -1338,6 +1342,601 @@
   overflow-wrap: anywhere;
 }
 
+.repairPuzzle {
+  display: grid;
+  width: min(1180px, 100%);
+  min-width: 0;
+  gap: 16px;
+  margin: 22px auto 0;
+}
+
+.repairPuzzleHeader {
+  display: flex;
+  min-width: 0;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(250, 251, 247, 0.82);
+}
+
+.repairPuzzleHeader > div {
+  min-width: 0;
+}
+
+.repairPuzzleHeader span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.repairPuzzleHeader h2 {
+  margin: 3px 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 23px;
+}
+
+.repairPuzzleHeader p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.repairResetButton {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--jade);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.repairOrderList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repairBlock {
+  position: relative;
+  min-width: 0;
+}
+
+.repairBlock::after {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  width: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--water) 52%, white);
+  content: "";
+}
+
+.repairBlock:last-child::after {
+  display: none;
+}
+
+.repairBlock article {
+  display: grid;
+  height: 100%;
+  min-width: 0;
+  gap: 11px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(250, 251, 247, 0.94);
+  box-shadow: 0 10px 26px rgba(37, 74, 77, 0.07);
+}
+
+.repairBlock[data-safe="true"] article {
+  border-color: color-mix(in srgb, var(--water) 46%, white);
+}
+
+.repairBlock[data-safe="false"] article {
+  border-color: color-mix(in srgb, var(--cinnabar) 36%, white);
+}
+
+.repairBlockHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.repairBlockHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.repairBlockHeader strong {
+  font-size: 16px;
+}
+
+.repairBlockHeader > div span,
+.repairOrderNumber {
+  color: var(--ink-soft);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.repairOrderNumber {
+  display: grid;
+  min-width: 54px;
+  min-height: 28px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--lake) 34%, white);
+  border-radius: 999px;
+  color: var(--lake);
+  font-weight: 750;
+}
+
+.repairCodeScroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border-radius: 9px;
+  background: var(--code);
+  color: #dcebe8;
+  overscroll-behavior-inline: contain;
+}
+
+.repairCodeScroll pre {
+  min-width: 480px;
+  margin: 0;
+  padding: 12px;
+}
+
+.repairCodeScroll code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.repairPurpose {
+  min-height: 38px;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.repairAssessment {
+  display: grid;
+  min-height: 80px;
+  gap: 5px;
+  margin: 0;
+  padding: 10px 11px;
+  border-left: 3px solid var(--water);
+  background: color-mix(in srgb, var(--cloud) 52%, white);
+}
+
+.repairBlock[data-safe="false"] .repairAssessment {
+  border-left-color: var(--cinnabar);
+  background: color-mix(in srgb, var(--cinnabar) 6%, white);
+}
+
+.repairAssessment strong {
+  color: #246c5e;
+  font-size: 11px;
+}
+
+.repairBlock[data-safe="false"] .repairAssessment strong {
+  color: #984b42;
+}
+
+.repairAssessment span {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.repairMoveControls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+}
+
+.repairMoveControls button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--jade);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.repairMoveControls button:hover:not(:disabled),
+.repairResetButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--lake) 54%, white);
+  color: var(--lake);
+}
+
+.repairMoveControls button:disabled,
+.repairResetButton:disabled {
+  color: color-mix(in srgb, var(--ink-soft) 55%, white);
+  cursor: not-allowed;
+}
+
+.repairFeedbackSlot {
+  min-height: 82px;
+}
+
+.repairFeedbackSlot p {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--cinnabar) 46%, white);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cinnabar) 7%, white);
+}
+
+.repairFeedbackSlot strong {
+  grid-row: 1 / 3;
+  color: #984b42;
+  font-size: 12px;
+}
+
+.repairFeedbackSlot span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.repairFeedbackSlot small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sealResult {
+  display: grid;
+  width: min(1120px, 100%);
+  min-width: 0;
+  gap: 18px;
+  margin: 22px auto 0;
+}
+
+.sealStatus {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.sealStatus > span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.sealStatus h2 {
+  margin: 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(24px, 3vw, 36px);
+}
+
+.sealStatus p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.sealFormation {
+  position: relative;
+  min-width: 0;
+  padding: 28px clamp(16px, 4vw, 48px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--water) 34%, white);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.82), transparent 50%),
+    linear-gradient(145deg, rgba(225, 239, 235, 0.9), rgba(249, 248, 242, 0.95));
+  box-shadow: var(--shadow);
+}
+
+.sealFormationLines {
+  position: absolute;
+  inset: 18% 5% auto;
+  width: 90%;
+  height: 48%;
+  overflow: visible;
+}
+
+.sealFormationLines path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--lake) 64%, white);
+  stroke-dasharray: 720;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  stroke-width: 6;
+}
+
+.sealFormation ol {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 3vw, 40px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sealFormation li {
+  display: grid;
+  min-width: 0;
+  min-height: 164px;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 14px;
+  border: 2px solid color-mix(in srgb, var(--water) 56%, white);
+  border-radius: 50%;
+  background: rgba(250, 251, 247, 0.94);
+  box-shadow:
+    0 0 0 8px rgba(42, 145, 155, 0.06),
+    0 12px 34px rgba(37, 74, 77, 0.1);
+  text-align: center;
+}
+
+.sealFormation li > strong {
+  color: var(--lake);
+  font-size: 17px;
+}
+
+.sealFormation li > span:not(.sealIndex) {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+.sealIndex {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lake);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.sealConclusions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 0;
+}
+
+.sealConclusions div {
+  min-width: 0;
+  padding: 9px 10px;
+  border-left: 2px solid var(--water);
+  background: rgba(250, 251, 247, 0.8);
+}
+
+.sealConclusions dt {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.sealConclusions dd {
+  margin: 3px 0 0;
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.sealSequence {
+  animation: seal-completion-signal var(--seal-sequence-duration) ease-out both;
+}
+
+.sealSequence .sealFormationLines path {
+  animation: seal-line var(--seal-sequence-duration) ease-out both;
+}
+
+.sealSequence .sealFormation li {
+  animation: seal-light 760ms ease-out both;
+  animation-delay: calc(var(--seal-index) * var(--seal-stagger-duration));
+}
+
+.sealResultComplete .sealFormation {
+  border-color: color-mix(in srgb, var(--gold) 55%, white);
+  box-shadow:
+    0 0 0 1px rgba(166, 130, 65, 0.08),
+    0 18px 38px rgba(123, 98, 48, 0.12);
+}
+
+.repairDiff {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.repairDiff > header {
+  display: grid;
+  gap: 3px;
+  padding: 0 2px;
+}
+
+.repairDiff > header > span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.repairDiff > header h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.repairDiff > header p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.repairDiffGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.repairDiffGrid article {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(250, 251, 247, 0.94);
+}
+
+.repairDiffGrid article > header {
+  display: grid;
+  gap: 2px;
+  padding: 11px 13px;
+}
+
+.repairDiffGrid article > header span {
+  color: var(--lake);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.repairDiffGrid article > header strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.repairDiffGrid article > header small {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+.diffCodeScroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  background: var(--code);
+  color: #dcebe8;
+  overscroll-behavior-inline: contain;
+}
+
+.diffCodeScroll pre {
+  min-width: 620px;
+  margin: 0;
+  padding: 11px 12px;
+}
+
+.diffCodeScroll code {
+  display: grid;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.diffCodeScroll code > span {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 10px;
+  min-width: max-content;
+  padding: 2px 4px;
+}
+
+.diffCodeScroll code > span[data-marker="removed"] {
+  border-left: 3px solid #c46b61;
+  background: rgba(196, 107, 97, 0.13);
+}
+
+.diffCodeScroll code > span[data-marker="added"] {
+  border-left: 3px solid #5fa995;
+  background: rgba(95, 169, 149, 0.13);
+}
+
+.diffMarker {
+  color: #aec4c0;
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.diffCodeScroll [data-marker="removed"] .diffMarker {
+  color: #efaaa2;
+}
+
+.diffCodeScroll [data-marker="added"] .diffMarker {
+  color: #9bd5c4;
+}
+
+@keyframes seal-completion-signal {
+  0% {
+    opacity: 0.78;
+    filter: saturate(0.7);
+  }
+  65% {
+    opacity: 1;
+    filter: saturate(1.18);
+  }
+  100% {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
+@keyframes seal-line {
+  from {
+    opacity: 0.35;
+    stroke-dashoffset: 720;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes seal-light {
+  from {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes replay-path {
   from {
     opacity: 0.4;
@@ -1490,7 +2089,10 @@
 .battlePage[data-reduced-motion="true"] .formationReveal,
 .battlePage[data-reduced-motion="true"] .replayPath,
 .battlePage[data-reduced-motion="true"] .replayActor,
-.battlePage[data-reduced-motion="true"] .replayReason {
+.battlePage[data-reduced-motion="true"] .replayReason,
+.battlePage[data-reduced-motion="true"] .sealSequence,
+.battlePage[data-reduced-motion="true"] .sealFormationLines path,
+.battlePage[data-reduced-motion="true"] .sealFormation li {
   animation: none;
 }
 
@@ -1530,6 +2132,14 @@
   .replayStage {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.64fr);
     gap: 20px;
+  }
+
+  .repairOrderList {
+    gap: 10px;
+  }
+
+  .repairBlock article {
+    padding: 12px;
   }
 }
 
@@ -1573,6 +2183,14 @@
   .replayEvidence > header,
   .replayBalances {
     grid-column: 1 / -1;
+  }
+
+  .repairPuzzle {
+    width: 100%;
+  }
+
+  .repairAssessment {
+    min-height: 92px;
   }
 
   .waterFormation {
@@ -1856,6 +2474,109 @@
     min-height: 48px;
   }
 
+  .repairPuzzle {
+    gap: 13px;
+    margin-top: 18px;
+  }
+
+  .repairPuzzleHeader {
+    display: grid;
+    align-items: start;
+    padding: 13px 14px;
+  }
+
+  .repairResetButton {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .repairOrderList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .repairBlock::after {
+    top: auto;
+    right: 50%;
+    bottom: -10px;
+    width: 0;
+    height: 8px;
+    border-top: 0;
+    border-left: 1px solid color-mix(in srgb, var(--water) 52%, white);
+  }
+
+  .repairBlock article {
+    padding: 14px;
+  }
+
+  .repairCodeScroll pre {
+    min-width: 500px;
+  }
+
+  .repairPurpose,
+  .repairAssessment {
+    min-height: 0;
+  }
+
+  .repairMoveControls button {
+    min-height: 48px;
+  }
+
+  .repairFeedbackSlot {
+    min-height: 112px;
+  }
+
+  .repairFeedbackSlot p {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .repairFeedbackSlot strong {
+    grid-row: auto;
+  }
+
+  .sealResult {
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .sealFormation {
+    padding: 22px 10px;
+    border-radius: 14px;
+  }
+
+  .sealFormation ol {
+    gap: 7px;
+  }
+
+  .sealFormation li {
+    min-height: 104px;
+    padding: 9px 5px;
+    border-radius: 50%;
+  }
+
+  .sealFormation li > strong {
+    font-size: 13px;
+  }
+
+  .sealConclusions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .sealFormationLines {
+    inset: 15% 3% auto;
+    width: 94%;
+  }
+
+  .repairDiffGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .diffCodeScroll pre {
+    min-width: 620px;
+  }
+
   .classificationPuzzle {
     padding: 14px;
     border-radius: 14px;
@@ -1989,5 +2710,22 @@
 
   .replayBalances dd {
     font-size: 11px;
+  }
+
+  .repairBlockHeader {
+    grid-template-columns: minmax(50px, auto) minmax(0, 1fr);
+  }
+
+  .sealFormation {
+    padding-inline: 7px;
+  }
+
+  .sealFormation ol {
+    gap: 4px;
+  }
+
+  .sealFormation li {
+    min-height: 98px;
+    padding-inline: 3px;
   }
 }

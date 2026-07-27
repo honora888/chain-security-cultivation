@@ -3,7 +3,10 @@ import type {
   ClassificationAnswers,
   ClassificationField,
   CodeLine,
+  RepairCodeBlock,
+  RepairDiffLine,
 } from "@/features/quest-1/battle-types";
+import type { RepairBlockId } from "@/features/quest-1/battle-types";
 
 export const QUEST_ONE = {
   id: 1,
@@ -204,6 +207,120 @@ export const QUEST_ONE_REPLAY_TIMING = {
   warningReveal: 600,
 } as const;
 
+export const QUEST_ONE_REPAIR_BLOCKS: RepairCodeBlock[] = [
+  {
+    id: "checks",
+    englishName: "Checks",
+    chineseName: "前置检查",
+    code: [
+      "uint256 amount = balances[msg.sender];",
+      'require(amount > 0, "No balance to withdraw");',
+    ],
+    purpose: "读取并验证调用者余额，确认提款条件成立。",
+  },
+  {
+    id: "effects",
+    englishName: "Effects",
+    chineseName: "内部生效",
+    code: [
+      "balances[msg.sender] = 0;",
+      "emit Withdrawn(msg.sender, amount);",
+    ],
+    purpose: "先清零账面余额，并记录本次状态变化。",
+  },
+  {
+    id: "interactions",
+    englishName: "Interactions",
+    chineseName: "外部交互",
+    code: [
+      '(bool success,) = msg.sender.call{value: amount}("");',
+      'require(success, "Transfer failed");',
+    ],
+    purpose: "最后向外部地址转账，并确认调用成功。",
+  },
+];
+
+export const QUEST_ONE_REPAIR_INITIAL_ORDER: RepairBlockId[] = [
+  "checks",
+  "interactions",
+  "effects",
+];
+
+export const QUEST_ONE_REPAIR_CORRECT_ORDER: RepairBlockId[] = [
+  "checks",
+  "effects",
+  "interactions",
+];
+
+export const QUEST_ONE_REPAIR_DIFF: {
+  vulnerable: RepairDiffLine[];
+  fixed: RepairDiffLine[];
+} = {
+  vulnerable: [
+    {
+      code: "uint256 amount = balances[msg.sender];",
+      marker: "context",
+    },
+    {
+      code: 'require(amount > 0, "No balance to withdraw");',
+      marker: "context",
+    },
+    {
+      code: '(bool success,) = msg.sender.call{value: amount}("");',
+      marker: "context",
+    },
+    {
+      code: 'require(success, "Transfer failed");',
+      marker: "context",
+    },
+    {
+      code: "balances[msg.sender] = 0;",
+      marker: "removed",
+      label: "− 删除/原位置",
+    },
+    {
+      code: "emit Withdrawn(msg.sender, amount);",
+      marker: "removed",
+      label: "− 删除/原位置",
+    },
+  ],
+  fixed: [
+    {
+      code: "uint256 amount = balances[msg.sender];",
+      marker: "context",
+    },
+    {
+      code: 'require(amount > 0, "No balance to withdraw");',
+      marker: "context",
+    },
+    {
+      code: "balances[msg.sender] = 0;",
+      marker: "added",
+      label: "+ 新增/新位置",
+    },
+    {
+      code: "emit Withdrawn(msg.sender, amount);",
+      marker: "added",
+      label: "+ 新增/新位置",
+    },
+    {
+      code: '(bool success,) = msg.sender.call{value: amount}("");',
+      marker: "context",
+    },
+    {
+      code: 'require(success, "Transfer failed");',
+      marker: "context",
+    },
+  ],
+};
+
+export const QUEST_ONE_SEAL_TIMING = {
+  sequence: 2400,
+  sealStagger: 360,
+  diffMove: 650,
+  hpTransition: 700,
+} as const;
+
 export const QUEST_ONE_COPY = {
   act1: {
     eyebrow: "第一幕 · 妖兽现身",
@@ -232,5 +349,14 @@ export const QUEST_ONE_COPY = {
     target: "看清 call、receive 与 withdraw 的回环。",
     action: "看破回环",
     hint: "Foundry 场景复现，不是 Monad 实时攻击。",
+  },
+  act5: {
+    eyebrow: "第五幕 · 布阵封印",
+    dialogue: "先断账本回环，再放灵力出阵。",
+    target: "将余额清零移到外部调用之前。",
+    action: "落阵封印",
+    hint: "Checks → Effects → Interactions。",
+    error: "阵序未成：Effects 必须先于 Interactions。",
+    success: "回环已断，封印成阵。",
   },
 } as const;

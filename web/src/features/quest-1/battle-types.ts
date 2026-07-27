@@ -15,6 +15,7 @@ export type BattlePhase =
   | "ACT5_REPAIR"
   | "ACT5_INVALID_ORDER"
   | "ACT5_SEALING"
+  | "ACT5_COMPLETE"
   | "ACT6_REWARDING"
   | "ACT6_COMPLETE"
   | "BESTIARY_OPEN"
@@ -28,12 +29,17 @@ export type StableCheckpoint =
   | "ACT3_CLASSIFY"
   | "ACT3_FORMATION"
   | "ACT4_REPLAY"
-  | "ACT4_COMPLETE";
+  | "ACT4_COMPLETE"
+  | "ACT5_REPAIR"
+  | "ACT5_COMPLETE";
 
 export type BossHp = 100 | 75 | 50 | 0;
 export type MotionMode = "system" | "full" | "reduced";
 export type CodeVerdict = "wrong" | "partial" | "correct";
 export type ReplayStatus = "idle" | "playing" | "paused" | "complete";
+export type RepairBlockId = "checks" | "effects" | "interactions";
+export type RepairMoveDirection = "up" | "down";
+export type RepairFeedback = "invalid" | null;
 export type ClassificationField = "vulnerability" | "element" | "risk";
 export type VulnerabilityAnswer =
   | "classic-reentrancy"
@@ -73,6 +79,20 @@ export interface AttackReplayStep {
   flow: "deposit" | "read" | "transfer" | "loop" | "drained";
 }
 
+export interface RepairCodeBlock {
+  id: RepairBlockId;
+  englishName: "Checks" | "Effects" | "Interactions";
+  chineseName: string;
+  code: string[];
+  purpose: string;
+}
+
+export interface RepairDiffLine {
+  code: string;
+  marker: "context" | "removed" | "added";
+  label?: string;
+}
+
 export interface CodeLine {
   id: string;
   lineNumber: number;
@@ -92,6 +112,8 @@ export interface BattleState {
   replayStep: number;
   replayStatus: ReplayStatus;
   viewedReplaySteps: number[];
+  repairOrder: RepairBlockId[];
+  repairFeedback: RepairFeedback;
   transitionLocked: boolean;
   hydrated: boolean;
   motionMode: MotionMode;
@@ -104,6 +126,7 @@ export interface HydratedBattleData {
   replayStep: number;
   replayStatus: ReplayStatus;
   viewedReplaySteps: number[];
+  repairOrder: RepairBlockId[];
 }
 
 export type BattleEvent =
@@ -133,5 +156,14 @@ export type BattleEvent =
   | { type: "REPLAY_RESTART" }
   | { type: "REPLAY_STEP_FINISHED" }
   | { type: "CONFIRM_ATTACK_REPLAY" }
+  | { type: "ENTER_REPAIR_STAGE" }
+  | {
+      type: "MOVE_REPAIR_BLOCK";
+      blockId: RepairBlockId;
+      direction: RepairMoveDirection;
+    }
+  | { type: "RESET_REPAIR_ORDER" }
+  | { type: "SUBMIT_REPAIR" }
+  | { type: "SEAL_ANIMATION_FINISHED" }
   | { type: "SET_MOTION_MODE"; mode: MotionMode }
   | { type: "RESET_QUEST" };
