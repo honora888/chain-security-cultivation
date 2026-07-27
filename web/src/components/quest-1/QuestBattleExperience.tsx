@@ -13,8 +13,10 @@ import {
 
 import {
   QUEST_ONE,
+  QUEST_ONE_ATTACK_REPLAY_STEPS,
   QUEST_ONE_CODE_LINES,
   QUEST_ONE_COPY,
+  QUEST_ONE_REPLAY_TIMING,
 } from "@/data/quest-1";
 import {
   battleReducer,
@@ -26,8 +28,13 @@ import {
   saveBattleProgress,
   saveMotionMode,
 } from "@/features/quest-1/persistence";
-import type { MotionMode } from "@/features/quest-1/battle-types";
+import type {
+  BattleEvent,
+  BattleState,
+  MotionMode,
+} from "@/features/quest-1/battle-types";
 
+import { AttackReplay } from "./AttackReplay";
 import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
 import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
@@ -46,10 +53,25 @@ function getLiveMessage(
     case "ACT2_HIT":
     case "ACT3_CLASSIFY":
     case "ACT3_FORMATION":
+    case "ACT4_REPLAY":
+    case "ACT4_COMPLETE":
       return "";
     default:
       return "水灵秘境正在显现。";
   }
+}
+
+function persistBattleState(state: BattleState) {
+  const replayStatus =
+    state.replayStatus === "playing" ? "paused" : state.replayStatus;
+
+  saveBattleProgress({
+    checkpoint: state.checkpoint,
+    classificationAnswers: state.classificationAnswers,
+    replayStep: state.replayStep,
+    replayStatus,
+    viewedReplaySteps: state.viewedReplaySteps,
+  });
 }
 
 export function QuestBattleExperience() {
@@ -68,11 +90,17 @@ export function QuestBattleExperience() {
     (state.motionMode === "system" && systemReduced);
   const isActTwo = state.phase.startsWith("ACT2");
   const isActThree = state.phase.startsWith("ACT3");
-  const copy = isActThree
-    ? QUEST_ONE_COPY.act3
-    : isActTwo
-      ? QUEST_ONE_COPY.act2
-      : QUEST_ONE_COPY.act1;
+  const isActFour = state.phase.startsWith("ACT4");
+  const copy = isActFour
+    ? QUEST_ONE_COPY.act4
+    : isActThree
+      ? QUEST_ONE_COPY.act3
+      : isActTwo
+        ? QUEST_ONE_COPY.act2
+        : QUEST_ONE_COPY.act1;
+  const replayFullyViewed = QUEST_ONE_ATTACK_REPLAY_STEPS.every((step) =>
+    state.viewedReplaySteps.includes(step.id),
+  );
   const liveMessage = useMemo(() => getLiveMessage(state.phase), [state.phase]);
 
   useEffect(() => {
@@ -97,13 +125,44 @@ export function QuestBattleExperience() {
 
   useEffect(() => {
     if (!state.hydrated) return;
-    saveBattleProgress(state.checkpoint, state.classificationAnswers);
-  }, [state.checkpoint, state.classificationAnswers, state.hydrated]);
+    persistBattleState(state);
+  }, [state]);
 
   useEffect(() => {
     if (!state.hydrated) return;
     saveMotionMode(state.motionMode);
   }, [state.hydrated, state.motionMode]);
+
+  useEffect(() => {
+    if (
+      state.phase !== "ACT4_REPLAY" ||
+      state.replayStatus !== "playing"
+    ) {
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => {
+        const event: BattleEvent = { type: "REPLAY_STEP_FINISHED" };
+        const nextState = battleReducer(state, event);
+        persistBattleState(nextState);
+        dispatch(event);
+      },
+      QUEST_ONE_REPLAY_TIMING.autoAdvance,
+    );
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
+  useEffect(() => {
+    const pauseWhenHidden = () => {
+      if (document.visibilityState === "hidden") {
+        dispatch({ type: "REPLAY_PAUSE" });
+      }
+    };
+    document.addEventListener("visibilitychange", pauseWhenHidden);
+    return () =>
+      document.removeEventListener("visibilitychange", pauseWhenHidden);
+  }, []);
 
   useEffect(() => {
     if (state.phase !== "ACT2_WRONG" && state.phase !== "ACT2_PARTIAL") {
@@ -226,6 +285,14 @@ export function QuestBattleExperience() {
     dispatch({ type: "SET_MOTION_MODE", mode });
   }
 
+  function handleReplayEvent(event: BattleEvent) {
+    const nextState = battleReducer(state, event);
+    if (nextState !== state) {
+      persistBattleState(nextState);
+    }
+    dispatch(event);
+  }
+
   function handleReset() {
     clearBattleProgress();
     dispatch({ type: "RESET_QUEST" });
@@ -325,15 +392,33 @@ export function QuestBattleExperience() {
         <div className={styles.stageHeading}>
           <p className={styles.eyebrow}>{copy.eyebrow}</p>
           <h1 id="stage-title">
-            {isActThree
-              ? "识破妖法"
+            {isActFour
+              ? "回环噬灵"
+              : isActThree
+                ? "识破妖法"
               : isActTwo
                 ? "锁定重入窗口"
                 : "噬灵回环兽现身"}
           </h1>
         </div>
 
-        {isActThree ? (
+        {isActFour ? (
+          <AttackReplay
+            complete={state.phase === "ACT4_COMPLETE"}
+            currentStep={state.replayStep}
+            onNext={() => handleReplayEvent({ type: "REPLAY_NEXT" })}
+            onPause={() => handleReplayEvent({ type: "REPLAY_PAUSE" })}
+            onPlay={() => handleReplayEvent({ type: "REPLAY_PLAY" })}
+            onPrevious={() =>
+              handleReplayEvent({ type: "REPLAY_PREVIOUS" })
+            }
+            onRestart={() => handleReplayEvent({ type: "REPLAY_RESTART" })}
+            reducedMotion={reducedMotion}
+            status={state.replayStatus}
+            steps={QUEST_ONE_ATTACK_REPLAY_STEPS}
+            viewedSteps={state.viewedReplaySteps}
+          />
+        ) : isActThree ? (
           <div
             className={`${styles.classificationStage} ${stageAnimationClass}`}
             onAnimationEnd={handleStageAnimationEnd}
@@ -425,15 +510,33 @@ export function QuestBattleExperience() {
           <strong>{copy.target}</strong>
           <small>{copy.hint}</small>
         </div>
-        {isActThree ? (
+        {isActFour ? (
           <button
             className={styles.primaryButton}
             disabled={
-              state.transitionLocked || state.phase === "ACT3_FORMATION"
+              state.phase === "ACT4_COMPLETE" ||
+              state.transitionLocked ||
+              !replayFullyViewed
             }
-            onClick={() => dispatch({ type: "SUBMIT_CLASSIFICATION" })}
+            onClick={() =>
+              handleReplayEvent({ type: "CONFIRM_ATTACK_REPLAY" })
+            }
           >
-            {state.phase === "ACT3_FORMATION" ? "妖法已识破" : copy.action}
+            {state.phase === "ACT4_COMPLETE" ? "回环已看破" : copy.action}
+          </button>
+        ) : isActThree ? (
+          <button
+            className={styles.primaryButton}
+            disabled={state.transitionLocked}
+            onClick={() => {
+              if (state.phase === "ACT3_FORMATION") {
+                handleReplayEvent({ type: "ENTER_ATTACK_REPLAY" });
+              } else {
+                dispatch({ type: "SUBMIT_CLASSIFICATION" });
+              }
+            }}
+          >
+            {state.phase === "ACT3_FORMATION" ? "追溯回环" : copy.action}
           </button>
         ) : isActTwo ? (
           state.phase === "ACT2_HIT" ? (

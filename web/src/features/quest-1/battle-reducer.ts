@@ -1,4 +1,5 @@
 import {
+  QUEST_ONE_ATTACK_REPLAY_STEPS,
   QUEST_ONE_CLASSIFICATION_CORRECT,
   QUEST_ONE_CODE_LINES,
 } from "@/data/quest-1";
@@ -10,7 +11,10 @@ import type {
   ClassificationResults,
   HydratedBattleData,
   MotionMode,
+  ReplayStatus,
 } from "./battle-types";
+
+const LAST_REPLAY_STEP = QUEST_ONE_ATTACK_REPLAY_STEPS.length - 1;
 
 function createEmptyClassificationAnswers(): ClassificationAnswers {
   return {
@@ -28,6 +32,25 @@ function createEmptyClassificationResults(): ClassificationResults {
   };
 }
 
+function addViewedReplayStep(viewedSteps: number[], step: number): number[] {
+  return viewedSteps.includes(step)
+    ? viewedSteps
+    : [...viewedSteps, step].sort((a, b) => a - b);
+}
+
+function replayIsFullyViewed(viewedSteps: number[]): boolean {
+  return QUEST_ONE_ATTACK_REPLAY_STEPS.every((step) =>
+    viewedSteps.includes(step.id),
+  );
+}
+
+function getReplayStatus(
+  viewedSteps: number[],
+  fallback: ReplayStatus,
+): ReplayStatus {
+  return replayIsFullyViewed(viewedSteps) ? "complete" : fallback;
+}
+
 export function createInitialBattleState(
   motionMode: MotionMode = "system",
 ): BattleState {
@@ -40,6 +63,9 @@ export function createInitialBattleState(
     classificationAnswers: createEmptyClassificationAnswers(),
     classificationResults: createEmptyClassificationResults(),
     classificationFeedback: null,
+    replayStep: 0,
+    replayStatus: "idle",
+    viewedReplaySteps: [],
     transitionLocked: false,
     hydrated: false,
     motionMode,
@@ -99,6 +125,44 @@ function restoreCheckpoint(payload: HydratedBattleData): BattleState {
           risk: true,
         },
         classificationFeedback: "correct",
+      };
+    case "ACT4_REPLAY":
+      return {
+        ...base,
+        phase: "ACT4_REPLAY",
+        checkpoint: "ACT4_REPLAY",
+        bossHp: 50,
+        selectedCodeLineId: "external-call",
+        codeFeedback: "correct",
+        classificationAnswers: { ...QUEST_ONE_CLASSIFICATION_CORRECT },
+        classificationResults: {
+          vulnerability: true,
+          element: true,
+          risk: true,
+        },
+        classificationFeedback: "correct",
+        replayStep: payload.replayStep,
+        replayStatus: payload.replayStatus,
+        viewedReplaySteps: payload.viewedReplaySteps,
+      };
+    case "ACT4_COMPLETE":
+      return {
+        ...base,
+        phase: "ACT4_COMPLETE",
+        checkpoint: "ACT4_COMPLETE",
+        bossHp: 50,
+        selectedCodeLineId: "external-call",
+        codeFeedback: "correct",
+        classificationAnswers: { ...QUEST_ONE_CLASSIFICATION_CORRECT },
+        classificationResults: {
+          vulnerability: true,
+          element: true,
+          risk: true,
+        },
+        classificationFeedback: "correct",
+        replayStep: LAST_REPLAY_STEP,
+        replayStatus: "complete",
+        viewedReplaySteps: QUEST_ONE_ATTACK_REPLAY_STEPS.map((step) => step.id),
       };
     case "ENTRY":
     default:
@@ -283,6 +347,166 @@ export function battleReducer(
         ...state,
         checkpoint: "ACT3_FORMATION",
         transitionLocked: false,
+      };
+
+    case "ENTER_ATTACK_REPLAY":
+      if (
+        state.phase !== "ACT3_FORMATION" ||
+        state.checkpoint !== "ACT3_FORMATION" ||
+        state.transitionLocked
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT4_REPLAY",
+        checkpoint: "ACT4_REPLAY",
+        bossHp: 50,
+        replayStep: 0,
+        replayStatus: "idle",
+        viewedReplaySteps: [0],
+      };
+
+    case "REPLAY_PLAY":
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.transitionLocked ||
+        state.replayStatus === "playing" ||
+        state.replayStep >= LAST_REPLAY_STEP
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        bossHp: 50,
+        replayStatus: "playing",
+      };
+
+    case "REPLAY_PAUSE":
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.replayStatus !== "playing"
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        bossHp: 50,
+        replayStatus: "paused",
+      };
+
+    case "REPLAY_NEXT": {
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.transitionLocked ||
+        state.replayStep >= LAST_REPLAY_STEP
+      ) {
+        return state;
+      }
+      const replayStep = state.replayStep + 1;
+      const viewedReplaySteps = addViewedReplayStep(
+        state.viewedReplaySteps,
+        replayStep,
+      );
+      return {
+        ...state,
+        bossHp: 50,
+        replayStep,
+        replayStatus: getReplayStatus(viewedReplaySteps, "paused"),
+        viewedReplaySteps,
+      };
+    }
+
+    case "REPLAY_PREVIOUS": {
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.transitionLocked ||
+        state.replayStep <= 0
+      ) {
+        return state;
+      }
+      const replayStep = state.replayStep - 1;
+      const viewedReplaySteps = addViewedReplayStep(
+        state.viewedReplaySteps,
+        replayStep,
+      );
+      return {
+        ...state,
+        bossHp: 50,
+        replayStep,
+        replayStatus: getReplayStatus(viewedReplaySteps, "paused"),
+        viewedReplaySteps,
+      };
+    }
+
+    case "REPLAY_RESTART":
+      if (state.phase !== "ACT4_REPLAY" || state.transitionLocked) {
+        return state;
+      }
+      return {
+        ...state,
+        bossHp: 50,
+        replayStep: 0,
+        replayStatus: replayIsFullyViewed(state.viewedReplaySteps)
+          ? "complete"
+          : "idle",
+        viewedReplaySteps: addViewedReplayStep(state.viewedReplaySteps, 0),
+      };
+
+    case "REPLAY_STEP_FINISHED": {
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.replayStatus !== "playing"
+      ) {
+        return state;
+      }
+
+      if (state.replayStep >= LAST_REPLAY_STEP) {
+        return {
+          ...state,
+          bossHp: 50,
+          replayStatus: getReplayStatus(
+            state.viewedReplaySteps,
+            "paused",
+          ),
+        };
+      }
+
+      const replayStep = state.replayStep + 1;
+      const viewedReplaySteps = addViewedReplayStep(
+        state.viewedReplaySteps,
+        replayStep,
+      );
+      return {
+        ...state,
+        bossHp: 50,
+        replayStep,
+        replayStatus:
+          replayStep === LAST_REPLAY_STEP
+            ? getReplayStatus(viewedReplaySteps, "paused")
+            : "playing",
+        viewedReplaySteps,
+      };
+    }
+
+    case "CONFIRM_ATTACK_REPLAY":
+      if (
+        state.phase !== "ACT4_REPLAY" ||
+        state.transitionLocked ||
+        !replayIsFullyViewed(state.viewedReplaySteps)
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: "ACT4_COMPLETE",
+        checkpoint: "ACT4_COMPLETE",
+        bossHp: 50,
+        replayStep: LAST_REPLAY_STEP,
+        replayStatus: "complete",
+        viewedReplaySteps: QUEST_ONE_ATTACK_REPLAY_STEPS.map(
+          (step) => step.id,
+        ),
       };
 
     case "SET_MOTION_MODE":

@@ -26,11 +26,14 @@ export type StableCheckpoint =
   | "ACT2_LOCATE"
   | "ACT2_HIT"
   | "ACT3_CLASSIFY"
-  | "ACT3_FORMATION";
+  | "ACT3_FORMATION"
+  | "ACT4_REPLAY"
+  | "ACT4_COMPLETE";
 
 export type BossHp = 100 | 75 | 50 | 0;
 export type MotionMode = "system" | "full" | "reduced";
 export type CodeVerdict = "wrong" | "partial" | "correct";
+export type ReplayStatus = "idle" | "playing" | "paused" | "complete";
 export type ClassificationField = "vulnerability" | "element" | "risk";
 export type VulnerabilityAnswer =
   | "classic-reentrancy"
@@ -55,6 +58,21 @@ export type ClassificationResults = Record<
   boolean | null
 >;
 
+export interface AttackReplayStep {
+  id: number;
+  title: string;
+  actor: string;
+  fn: string;
+  funds: string;
+  vaultBalance: string;
+  attackerBalance: string;
+  ledgerBalance: string;
+  ledgerCleared: boolean;
+  reentryReason: string;
+  callStack: string[];
+  flow: "deposit" | "read" | "transfer" | "loop" | "drained";
+}
+
 export interface CodeLine {
   id: string;
   lineNumber: number;
@@ -71,6 +89,9 @@ export interface BattleState {
   classificationAnswers: ClassificationAnswers;
   classificationResults: ClassificationResults;
   classificationFeedback: ClassificationFeedback;
+  replayStep: number;
+  replayStatus: ReplayStatus;
+  viewedReplaySteps: number[];
   transitionLocked: boolean;
   hydrated: boolean;
   motionMode: MotionMode;
@@ -80,6 +101,9 @@ export interface HydratedBattleData {
   checkpoint: StableCheckpoint;
   motionMode: MotionMode;
   classificationAnswers: ClassificationAnswers;
+  replayStep: number;
+  replayStatus: ReplayStatus;
+  viewedReplaySteps: number[];
 }
 
 export type BattleEvent =
@@ -101,5 +125,13 @@ export type BattleEvent =
     }
   | { type: "SUBMIT_CLASSIFICATION" }
   | { type: "CLASSIFICATION_FEEDBACK_FINISHED" }
+  | { type: "ENTER_ATTACK_REPLAY" }
+  | { type: "REPLAY_PLAY" }
+  | { type: "REPLAY_PAUSE" }
+  | { type: "REPLAY_NEXT" }
+  | { type: "REPLAY_PREVIOUS" }
+  | { type: "REPLAY_RESTART" }
+  | { type: "REPLAY_STEP_FINISHED" }
+  | { type: "CONFIRM_ATTACK_REPLAY" }
   | { type: "SET_MOTION_MODE"; mode: MotionMode }
   | { type: "RESET_QUEST" };
