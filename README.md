@@ -20,6 +20,19 @@
 
 当前版本聚焦 **Quest 1：噬灵回环兽**。前端只实现这一关，不虚构其他关卡。
 
+## 在线体验
+
+- [稳定生产首页](https://chain-security-cultivation-mo.vercel.app/)
+- [Quest 1：噬灵回环兽](https://chain-security-cultivation-mo.vercel.app/quests/1)
+- [生产 API 示例](https://chain-security-cultivation-mo.vercel.app/api/quest-1/chain-status?address=0x000000000000000000000000000000000000dEaD)
+
+生产环境运行于 Vercel，链上查询目标为 Monad Testnet。API 只读，不连接钱包、不请求签名，也不发送交易。
+
+上线记录与链上验收边界：
+
+- [Quest 1 Vercel 生产部署](docs/quest-1-production-deployment.md)
+- [Quest 1 Monad Testnet 只读验收](docs/quest-1-chain-verification.md)
+
 ## 学习闭环
 
 ```text
