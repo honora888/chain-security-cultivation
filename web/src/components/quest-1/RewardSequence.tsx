@@ -12,6 +12,7 @@ import {
 } from "@/data/quest-1";
 
 import { ChainStatusPanel } from "./ChainStatusPanel";
+import { DynamicDefeatedSequence } from "./DynamicDefeatedSequence";
 import styles from "./quest-1.module.css";
 
 interface RewardSequenceProps {
@@ -48,22 +49,28 @@ export function RewardSequence({
       style={rewardTimingStyle}
       aria-labelledby="reward-title"
     >
-      <header
-        className={styles.rewardHeader}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <span className={styles.rewardStamp}>Quest 1 · 已完成</span>
-        <h2 id="reward-title">
-          {complete ? "本地学习结算" : "战利品正在显现"}
-        </h2>
-        <p>
-          {complete
-            ? "噬灵回环兽已封印，本次学习奖励已完整展示。"
-            : "封印余波汇入修为、水属性熟练度与本地徽记。"}
-        </p>
-      </header>
+      <div className={styles.rewardHero}>
+        <DynamicDefeatedSequence
+          reducedMotion={reducedMotion}
+          shouldPlay={!complete}
+        />
+        <header
+          className={styles.rewardHeader}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span className={styles.rewardStamp}>Quest 1 · 已完成</span>
+          <h2 id="reward-title">
+            {complete ? "本地学习结算" : "战利品正在显现"}
+          </h2>
+          <p>
+            {complete
+              ? "噬灵回环兽已封印，本次学习奖励已完整展示。"
+              : "封印余波汇入修为、水属性熟练度与本地徽记。"}
+          </p>
+        </header>
+      </div>
 
       <div className={styles.rewardCards} aria-label="本次本地学习奖励">
         <article className={styles.rewardExpCard}>

@@ -76,6 +76,10 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 | `dormant-3` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-3.webp` | 1448 × 1086 px，WebP RGBA | 是 | 280,834 bytes（约 274.3 KiB） | `2024626767D312E95EEAF5A9239AA3B4C3A3F324739C9031290291248C85C69D` | D3「苏醒前态」：眼睛与外环慢流稍强，仍未进入攻击 |
 | `reentrancy-attack-v1` | `web/public/assets/quest-1/beast/reentry-devourer-reentrancy-attack-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 322,814 bytes（约 315.2 KiB） | `F3C1E073093BC7F5E2120886474A93F80440201A09BB17E6A864D68329AC113D` | ACT4 正式攻击态：裂口递归光纹、逆流内脉与玉扣嵌套方框；衍生自 Canonical Clean Master v1 |
 | `cei-sealed-v1` | `web/public/assets/quest-1/beast/reentry-devourer-cei-sealed-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 334,072 bytes（约 326.2 KiB） | `F20B4137944A9923F6730BC0B749ADAFE179466A474E497F3F3CD229C34E8228` | ACT5 正式封印态：递归裂口收束为封印缝，玉扣三层嵌套锁定，双叶闸片截断回调光路；衍生自 Canonical Clean Master v1 |
+| `defeated-frame-1` | `web/public/assets/quest-1/beast/reentry-devourer-defeated-frame-1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 404,456 bytes（约 395.0 KiB） | `595DF70CC7A306D5E28C7220A5C0DDF784042AE80E2D74885B4600393E380EB5` | ACT6 封印余波关键帧：保留 sealed 姿态，递归余光开始熄灭 |
+| `defeated-frame-2` | `web/public/assets/quest-1/beast/reentry-devourer-defeated-frame-2.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 412,010 bytes（约 402.4 KiB） | `3C49F201DE7E7F1948166D0731459BF2FC0797E9FF93A901D30433CB33F71C6B` | ACT6 收势关键帧：头部降低、眼睛减亮、水脉恢复低强度稳定流 |
+| `defeated-v1` | `web/public/assets/quest-1/beast/reentry-devourer-defeated-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 376,884 bytes（约 368.1 KiB） | `2225AE05CBF0DEB8DCEB2A197D75AFBF2EC1C596BB46FEA3D147105B5E609DDF` | ACT6 最终静态战败态：受控低伏、玉扣锁定、右下断环保留 |
+| `bestiary-portrait-v1` | `web/public/assets/quest-1/beast/reentry-devourer-bestiary-portrait-v1.webp` | 1024 × 1024 px，WebP RGBA | 是；Alpha 范围 0–255 | 372,960 bytes（约 364.2 KiB） | `ED1B0B180E8FE3BE2C4A3459B0BB2ED1E47968BBFBC5AAAA60E9BEC55CD40754` | ACT6 异兽志正式头像；独立方形构图，不由 defeated 全图裁切 |
 
 ### Dormant 与母体一致性核对
 
@@ -122,14 +126,24 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 | 一致性审查图 | `design-sources/quest-1/seal-state-checks/attack-vs-sealed-contact-sheet.png`、`attack-vs-sealed-overlay.png`、`sealed-state-structure-review.png` |
 | 结论 | 保留母版的头部、额甲、鳍冠、实体外环、水脉内环、方形玉扣、双叶闸片与右下缺口；封印态只收束回路，不反向替代母版或充当 defeated / bestiary。 |
 
+### Dynamic Defeated Sequence 与 Bestiary Portrait v1 审查记录
+
+| 项目 | 记录 |
+| --- | --- |
+| 设计源 | `design-sources/quest-1/reentry-devourer-defeated-frame-1.png`、`reentry-devourer-defeated-frame-2.png`、`reentry-devourer-defeated-v1.png`、`reentry-devourer-bestiary-portrait-v1.png` |
+| 关键帧尺寸 | 三张 defeated 设计源与生产图均为 1122 × 1402 px、RGBA；同一画布与透明边距基准 |
+| 头像尺寸 | 设计源与生产图均为 1024 × 1024 px、RGBA |
+| 设计源大小 / SHA-256 | frame-1：2,346,261 bytes / `59EE291E246A75FAABB73F3AF2C21FC0E34B1130EB267F8EC71441BF72CDE92A`；frame-2：2,329,586 bytes / `0DE5FC9FAC248960F795040B7FA617A55833EEF7DEE7361FFC853382A199E8EF`；defeated：2,291,689 bytes / `DEFFADA739F2A449EF8722452A881037C46DF64F20D39C055D7C5FEE32E61A38`；portrait：1,867,453 bytes / `2245AAF236E6C71407869E6D60F77DE98C4779534CC0631425CC58BD8D9B0297` |
+| Alpha | 四项设计源和四项生产 WebP 的 Alpha 范围均为 0–255 |
+| 一致性审查图 | `design-sources/quest-1/act6-state-checks/` 下六张 contact sheet、overlay、structure 与真实尺寸检查图 |
+| 结论 | 三个 defeated 关键帧保留楔形头部、额甲、方形玉扣、双叶闸片与右下断环，只逐步收束姿态和灵力；portrait 是独立方形构图，64 px 仍保留头部、额甲、眼睛和玉扣／断环识别。 |
+
 ## Future Assets
 
 以下资产仅预留，不代表已经生成或接入：
 
 | 标识 | 建议生产路径 | 状态 |
 | --- | --- | --- |
-| `defeated` | `web/public/assets/quest-1/beast/reentry-devourer-defeated.webp` | 待生成、待审核 |
-| `bestiary-portrait` | `web/public/assets/quest-1/bestiary/reentry-devourer-portrait.webp` | 待生成、待审核 |
 | `badge-silhouette` | `web/public/assets/quest-1/badges/reentry-devourer-badge-silhouette.webp` | 待生成、待审核 |
 
 任何 Future Asset 在进入前端前，都必须与 Clean Master 逐项核对 Locked Anatomy，并单独检查透明边缘、移动端裁切、小尺寸轮廓与文件大小。

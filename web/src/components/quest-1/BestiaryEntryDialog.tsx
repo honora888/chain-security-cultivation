@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect } from "react";
 
 import { QUEST_ONE_BESTIARY_ENTRY } from "@/data/quest-1";
 
-import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
 import styles from "./quest-1.module.css";
+import { QUEST_ONE_BEAST_VISUAL_ASSETS } from "./quest-1-beast-visuals";
 
 interface BestiaryEntryDialogProps {
   onClose: () => void;
@@ -14,6 +15,8 @@ interface BestiaryEntryDialogProps {
 export function BestiaryEntryDialog({
   onClose,
 }: BestiaryEntryDialogProps) {
+  const bestiaryVisual = QUEST_ONE_BEAST_VISUAL_ASSETS.bestiary;
+
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -49,8 +52,17 @@ export function BestiaryEntryDialog({
 
         <div className={styles.bestiaryContent}>
           <div className={styles.bestiaryVisual}>
-            <TemporaryVisualPlaceholder compact />
-            <p>正式异兽志水墨画像资产待补充。</p>
+            <div className={styles.bestiaryPortrait}>
+              <Image
+                alt="噬灵回环兽异兽志头像：楔形头部、三片额甲、冷青双眼与方形状态玉扣"
+                height={bestiaryVisual.height}
+                sizes="(max-width: 640px) 72vw, 320px"
+                src={bestiaryVisual.src}
+                unoptimized
+                width={bestiaryVisual.width}
+              />
+            </div>
+            <p>正式异兽志画像 · 本地学习收录</p>
           </div>
 
           <dl className={styles.bestiaryFacts}>
