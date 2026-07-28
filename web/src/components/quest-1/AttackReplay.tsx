@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { QUEST_ONE_REPLAY_TIMING } from "@/data/quest-1";
@@ -9,6 +10,12 @@ import type {
 } from "@/features/quest-1/battle-types";
 
 import styles from "./quest-1.module.css";
+import { QUEST_ONE_BEAST_VISUAL_ASSETS } from "./quest-1-beast-visuals";
+
+const ACT4_ATTACK_VISUAL_TIMING = {
+  reveal: 420,
+  riftPulse: 420,
+} as const;
 
 interface AttackReplayProps {
   steps: AttackReplayStep[];
@@ -29,7 +36,50 @@ const replayTimingStyle = {
   "--replay-transfer-duration": `${QUEST_ONE_REPLAY_TIMING.transferPath}ms`,
   "--replay-loop-duration": `${QUEST_ONE_REPLAY_TIMING.loopPath}ms`,
   "--replay-warning-duration": `${QUEST_ONE_REPLAY_TIMING.warningReveal}ms`,
+  "--replay-attack-reveal-duration": `${ACT4_ATTACK_VISUAL_TIMING.reveal}ms`,
+  "--replay-attack-pulse-duration": `${ACT4_ATTACK_VISUAL_TIMING.riftPulse}ms`,
 } as CSSProperties;
+
+type ReplayFlowLabel = {
+  label: string;
+  detail: string;
+  activeCode: "check" | "call" | "effect";
+};
+
+function getFlowLabel(step: AttackReplayStep): ReplayFlowLabel {
+  switch (step.flow) {
+    case "deposit":
+      return {
+        label: "CALL · 建立余额",
+        detail: "攻击合约先向金库存入 1 ETH。",
+        activeCode: "check",
+      };
+    case "read":
+      return {
+        label: "CHECK · 读取余额",
+        detail: "withdraw() 读取旧账面余额。",
+        activeCode: "check",
+      };
+    case "transfer":
+      return {
+        label: "TRANSFER · 外部调用",
+        detail: "资金先离开金库，账面余额仍为 1 ETH。",
+        activeCode: "call",
+      };
+    case "loop":
+      return {
+        label: "REENTER · 回调重入",
+        detail: "receive() 沿同一路径再次进入 withdraw()。",
+        activeCode: "call",
+      };
+    default:
+      return {
+        label: "RETURN · 调用栈回退",
+        detail: "金库已枯竭，最后才执行余额清零。",
+        activeCode: "effect",
+      };
+  }
+}
 
 function getPlaybackLabel(status: ReplayStatus): string {
   switch (status) {
@@ -62,6 +112,10 @@ export function AttackReplay({
   const atLastStep = currentStep === steps.length - 1;
   const isPlaying = status === "playing";
   const playbackLabel = getPlaybackLabel(status);
+  const flowLabel = getFlowLabel(step);
+  const attackVisual = QUEST_ONE_BEAST_VISUAL_ASSETS["reentrancy-attack"];
+  const shouldShowAttackVisual =
+    step.flow === "transfer" || step.flow === "loop" || step.flow === "drained";
 
   return (
     <section
@@ -121,6 +175,10 @@ export function AttackReplay({
 
       <div className={styles.replayStage} key={step.id}>
         <div className={styles.replayFlowPanel}>
+          <div className={styles.replaySceneMeta}>
+            <span>Simulation / Educational Replay</span>
+            <strong>{flowLabel.label}</strong>
+          </div>
           <svg
             className={styles.replayFlowSvg}
             viewBox="0 0 780 260"
@@ -140,7 +198,7 @@ export function AttackReplay({
               </marker>
             </defs>
             <path
-              className={`${styles.replayPath} ${styles.replayDepositPath}`}
+              className={`${styles.replayPath} ${styles.replayCallPath}`}
               d="M570 166 C500 230 280 230 208 166"
               markerEnd="url(#replay-arrow)"
             />
@@ -154,21 +212,78 @@ export function AttackReplay({
               d="M590 126 C690 76 704 208 596 196 C530 188 520 142 570 122"
               markerEnd="url(#replay-arrow)"
             />
+            <circle
+              className={styles.replayFlowParticle}
+              cx="0"
+              cy="0"
+              r="6"
+              aria-hidden="true"
+            />
           </svg>
 
-          <div className={`${styles.replayActor} ${styles.replayVault}`}>
+          {shouldShowAttackVisual ? (
+            <div
+              className={styles.replayAttackBeast}
+              data-attack-flow={step.flow}
+              aria-hidden="true"
+            >
+              <Image
+                alt=""
+                aria-hidden="true"
+                height={attackVisual.height}
+                sizes="(max-width: 767px) 46vw, 280px"
+                src={attackVisual.src}
+                unoptimized
+                width={attackVisual.width}
+              />
+              {step.flow === "loop" ? (
+                <span className={styles.replayAttackRiftPulse} />
+              ) : null}
+            </div>
+          ) : null}
+
+          <div
+            className={`${styles.replayActor} ${styles.replayVault}`}
+            data-active={
+              step.actor === "漏洞金库" || step.flow === "drained"
+                ? "true"
+                : "false"
+            }
+          >
             <span>公益金库</span>
             <strong>{step.vaultBalance}</strong>
             <small>VulnerableCharityVault</small>
           </div>
-          <div className={`${styles.replayActor} ${styles.replayAttacker}`}>
+          <div
+            className={`${styles.replayActor} ${styles.replayAttacker}`}
+            data-active={step.actor === "攻击合约" ? "true" : "false"}
+          >
             <span>攻击合约</span>
             <strong>{step.attackerBalance}</strong>
             <small>ReentrancyAttacker</small>
           </div>
+          <div className={styles.replayDepthMeter} aria-hidden="true">
+            <span>当前深度</span>
+            <div>
+              {[1, 2, 3, 4].map((depth) => (
+                <i
+                  data-active={depth <= Math.min(step.callStack.length, 4)}
+                  key={depth}
+                />
+              ))}
+            </div>
+            <strong>{step.callStack.length}</strong>
+          </div>
+          {step.flow === "loop" ? (
+            <div className={styles.replayReentryMark} aria-hidden="true">
+              <span>REENTER</span>
+              <i />
+            </div>
+          ) : null}
           <div className={styles.replayFlowCaption}>
             <span>资金流向</span>
             <strong>{step.funds}</strong>
+            <small>{flowLabel.detail}</small>
           </div>
         </div>
 
@@ -201,6 +316,30 @@ export function AttackReplay({
             <p>{step.reentryReason}</p>
           </div>
 
+          <section className={styles.replayCodeOrder} aria-label="漏洞顺序证据">
+            <header>
+              <span>漏洞顺序证据</span>
+              <strong>外部调用发生在状态更新之前</strong>
+            </header>
+            <ol>
+              <li data-active={flowLabel.activeCode === "check" ? "true" : "false"}>
+                <span>1</span>
+                <code>require(amount &gt; 0)</code>
+                <small>检查余额</small>
+              </li>
+              <li data-active={flowLabel.activeCode === "call" ? "true" : "false"} data-danger="true">
+                <span>2</span>
+                <code>msg.sender.call&#123;value: amount&#125;(&quot;&quot;)</code>
+                <small>外部转账</small>
+              </li>
+              <li data-active={flowLabel.activeCode === "effect" ? "true" : "false"}>
+                <span>3</span>
+                <code>balances[msg.sender] = 0</code>
+                <small>最后清零</small>
+              </li>
+            </ol>
+          </section>
+
           <div className={styles.callStack}>
             <span>调用栈</span>
             <ol>
@@ -212,6 +351,23 @@ export function AttackReplay({
               ))}
             </ol>
           </div>
+
+          {step.flow === "drained" ? (
+            <dl className={styles.replayOutcome}>
+              <div>
+                <dt>金库损失</dt>
+                <dd>11 ETH</dd>
+              </div>
+              <div>
+                <dt>攻击合约获得</dt>
+                <dd>11 ETH</dd>
+              </div>
+              <div>
+                <dt>重入次数</dt>
+                <dd>&gt; 1</dd>
+              </div>
+            </dl>
+          ) : null}
         </article>
       </div>
 
@@ -229,12 +385,12 @@ export function AttackReplay({
         </button>
         <button
           className={styles.replayPlayButton}
-          disabled={complete || (!isPlaying && atLastStep)}
+          disabled={complete || reducedMotion || (!isPlaying && atLastStep)}
           onClick={isPlaying ? onPause : onPlay}
           type="button"
           aria-label={isPlaying ? "暂停攻击回放" : "播放攻击回放"}
         >
-          {isPlaying ? "暂停" : "播放"}
+          {reducedMotion ? "逐步查看" : isPlaying ? "暂停" : "播放"}
         </button>
         <button
           disabled={complete || atLastStep}
@@ -251,6 +407,7 @@ export function AttackReplay({
       <p className={styles.replaySourceNote}>
         Foundry 场景复现 · 金库初始 10 ETH · 攻击者存入 1 ETH ·
         重入次数 &gt; 1
+        {reducedMotion ? " · 减少动态：请使用上一步与下一步查看" : ""}
       </p>
     </section>
   );

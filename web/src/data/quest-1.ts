@@ -200,7 +200,7 @@ export const QUEST_ONE_ATTACK_REPLAY_STEPS: AttackReplayStep[] = [
 ];
 
 export const QUEST_ONE_REPLAY_TIMING = {
-  autoAdvance: 3200,
+  autoAdvance: 900,
   balanceTransition: 450,
   transferPath: 900,
   loopPath: 1200,

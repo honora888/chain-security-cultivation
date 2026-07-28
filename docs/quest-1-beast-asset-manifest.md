@@ -74,6 +74,7 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 | `dormant-1` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-1.webp` | 1448 × 1086 px，WebP RGBA | 是 | 201,460 bytes（约 196.7 KiB） | `3CADDD23CB1EAA6D9CB6B59AC57EFEC7642E0B05B9CC43A8A3A5BD188C41CAC6` | D1「深潜收束」：身体最紧凑、头部最低伏、眼睛与水流最低亮 |
 | `dormant-2` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-2.webp` | 1448 × 1086 px，WebP RGBA | 是 | 259,860 bytes（约 253.8 KiB） | `07004338C1F59489259631ACC85A1C0F23311F8D68024045499F5C226CD6444D` | D2「平衡警戒」：收束与警觉程度最均衡 |
 | `dormant-3` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-3.webp` | 1448 × 1086 px，WebP RGBA | 是 | 280,834 bytes（约 274.3 KiB） | `2024626767D312E95EEAF5A9239AA3B4C3A3F324739C9031290291248C85C69D` | D3「苏醒前态」：眼睛与外环慢流稍强，仍未进入攻击 |
+| `reentrancy-attack-v1` | `web/public/assets/quest-1/beast/reentry-devourer-reentrancy-attack-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 322,814 bytes（约 315.2 KiB） | `F3C1E073093BC7F5E2120886474A93F80440201A09BB17E6A864D68329AC113D` | ACT4 正式攻击态：裂口递归光纹、逆流内脉与玉扣嵌套方框；衍生自 Canonical Clean Master v1 |
 
 ### Dormant 与母体一致性核对
 
@@ -92,13 +93,26 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 
 三张图中的递归裂口关闭或低亮是潜伏状态表达，不表示删除该解剖结构。它们仍只能作为 dormant 候选帧使用；后续制作其他状态时必须回到 Canonical Clean Master 校对完整递归裂口、玉扣与断环结构。
 
+### Reentrancy Attack State v1 审查记录
+
+| 项目 | 记录 |
+| --- | --- |
+| 设计源路径 | `design-sources/quest-1/reentry-devourer-reentrancy-attack-v1.png` |
+| 设计源尺寸／格式 | 1122 × 1402 px，PNG RGBA |
+| 设计源大小／SHA-256 | 2,406,604 bytes；`7BC4177A826961AA5E22C2E0C667AF523A71941DEB5F6EA669842F60FDC099BF` |
+| 生产路径 | `web/public/assets/quest-1/beast/reentry-devourer-reentrancy-attack-v1.webp` |
+| 生产尺寸／格式 | 1122 × 1402 px，WebP RGBA |
+| 生产大小／SHA-256 | 322,814 bytes；`F3C1E073093BC7F5E2120886474A93F80440201A09BB17E6A864D68329AC113D` |
+| Alpha 与边缘检查 | Alpha 范围 0–255；未检测到 alpha 大于 16 的洋红背景残留像素 |
+| 一致性检查图 | `design-sources/quest-1/attack-state-checks/master-vs-attack-contact-sheet.png`、`dormant-2-vs-attack-overlay.png`、`attack-state-structure-review.png` |
+| 结论 | 头部、额甲、鳍冠、中央裂口、方形玉扣、双叶闸片与右下缺口均保留。攻击态由母版构图生成；与横构图 dormant-2 的比例差异在网页中通过 `contain` 图层约束，不反向替代母版。 |
+
 ## Future Assets
 
 以下资产仅预留，不代表已经生成或接入：
 
 | 标识 | 建议生产路径 | 状态 |
 | --- | --- | --- |
-| `reentrancy-attack` | `web/public/assets/quest-1/beast/reentry-devourer-reentrancy-attack.webp` | 待生成、待审核 |
 | `cei-seal` | `web/public/assets/quest-1/beast/reentry-devourer-cei-seal.webp` | 待生成、待审核 |
 | `defeated` | `web/public/assets/quest-1/beast/reentry-devourer-defeated.webp` | 待生成、待审核 |
 | `bestiary-portrait` | `web/public/assets/quest-1/bestiary/reentry-devourer-portrait.webp` | 待生成、待审核 |

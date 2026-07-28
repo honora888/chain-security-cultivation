@@ -1202,12 +1202,79 @@
   box-shadow: var(--shadow);
 }
 
+.replaySceneMeta {
+  position: absolute;
+  z-index: 3;
+  top: 16px;
+  left: 7%;
+  display: grid;
+  gap: 3px;
+}
+
+.replaySceneMeta span {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.replaySceneMeta strong {
+  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+}
+
 .replayFlowSvg {
   position: absolute;
   inset: 4% 4% auto;
   width: 92%;
   height: 68%;
   overflow: visible;
+}
+
+.replayAttackBeast {
+  position: absolute;
+  z-index: 1;
+  top: 49%;
+  left: 50%;
+  width: min(72%, 410px);
+  aspect-ratio: 1122 / 1402;
+  pointer-events: none;
+  opacity: 0.46;
+  transform: translate(-50%, -47%);
+}
+
+.replayAttackBeast img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.replayAttackBeast[data-attack-flow="transfer"] {
+  animation: replay-attack-reveal var(--replay-attack-reveal-duration) ease-out both;
+}
+
+.replayAttackBeast[data-attack-flow="loop"] {
+  opacity: 0.82;
+  animation: replay-attack-loop-reveal var(--replay-attack-reveal-duration) ease-out both;
+}
+
+.replayAttackBeast[data-attack-flow="drained"] {
+  opacity: 0.34;
+}
+
+.replayAttackRiftPulse {
+  position: absolute;
+  top: 35%;
+  left: 49%;
+  width: 24%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(123, 223, 229, 0.82);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(152, 243, 246, 0.4), transparent 66%);
+  transform: translate(-50%, -50%);
+  animation: replay-rift-pulse var(--replay-attack-pulse-duration) ease-out both;
 }
 
 .replayFlowSvg marker path {
@@ -1221,7 +1288,7 @@
   stroke-linecap: round;
 }
 
-.replayDepositPath,
+.replayCallPath,
 .replayTransferPath {
   color: var(--lake);
 }
@@ -1231,12 +1298,35 @@
   stroke-dasharray: 8 8;
 }
 
-.replayShell[data-flow="deposit"] .replayDepositPath,
+.replayShell[data-flow="deposit"] .replayCallPath,
+.replayShell[data-flow="read"] .replayCallPath,
 .replayShell[data-flow="transfer"] .replayTransferPath,
 .replayShell[data-flow="loop"] .replayLoopPath {
   stroke: currentcolor;
   stroke-width: 6;
   animation: replay-path var(--replay-transfer-duration) ease-out both;
+}
+
+.replayFlowParticle {
+  display: none;
+  fill: var(--water);
+  filter: drop-shadow(0 0 5px rgba(75, 169, 179, 0.54));
+}
+
+.replayShell[data-flow="deposit"] .replayFlowParticle,
+.replayShell[data-flow="read"] .replayFlowParticle {
+  display: block;
+  animation: replay-particle-call var(--replay-transfer-duration) ease-out both;
+}
+
+.replayShell[data-flow="transfer"] .replayFlowParticle {
+  display: block;
+  animation: replay-particle-transfer var(--replay-transfer-duration) ease-out both;
+}
+
+.replayShell[data-flow="loop"] .replayFlowParticle {
+  display: block;
+  animation: replay-particle-callback var(--replay-loop-duration) ease-out both;
 }
 
 .replayShell[data-flow="loop"] .replayLoopPath {
@@ -1267,6 +1357,11 @@
   background: rgba(250, 251, 247, 0.94);
   box-shadow: 0 14px 32px rgba(37, 74, 77, 0.09);
   animation: replay-balance var(--replay-balance-duration) ease-out both;
+}
+
+.replayActor[data-active="true"] {
+  border-color: color-mix(in srgb, var(--lake) 70%, white);
+  box-shadow: 0 0 0 3px rgba(91, 157, 162, 0.1), 0 14px 32px rgba(37, 74, 77, 0.09);
 }
 
 .replayVault {
@@ -1314,6 +1409,87 @@
   font-size: 12px;
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+.replayFlowCaption small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.replayDepthMeter {
+  position: absolute;
+  z-index: 3;
+  top: 18px;
+  right: 7%;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 5px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 84%, white);
+  border-radius: 9px;
+  background: rgba(250, 251, 247, 0.86);
+}
+
+.replayDepthMeter > span {
+  grid-column: 1 / -1;
+  color: var(--ink-soft);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.replayDepthMeter div {
+  display: flex;
+  gap: 3px;
+}
+
+.replayDepthMeter i {
+  display: block;
+  width: 7px;
+  height: 20px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--line) 72%, white);
+}
+
+.replayDepthMeter i[data-active="true"] {
+  background: var(--lake);
+}
+
+.replayDepthMeter strong {
+  color: var(--lake);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.replayReentryMark {
+  position: absolute;
+  z-index: 3;
+  top: 204px;
+  right: 9%;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 1px dashed color-mix(in srgb, var(--cinnabar) 52%, white);
+  border-radius: 50%;
+  color: var(--cinnabar);
+  background: rgba(250, 251, 247, 0.76);
+}
+
+.replayReentryMark span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.replayReentryMark i {
+  position: absolute;
+  inset: 9px;
+  border: 2px solid currentcolor;
+  border-left-color: transparent;
+  border-radius: 50%;
 }
 
 .replayEvidence {
@@ -1412,6 +1588,84 @@
   animation: replay-warning var(--replay-warning-duration) ease-out both;
 }
 
+.replayCodeOrder {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.replayCodeOrder header {
+  display: grid;
+  gap: 2px;
+}
+
+.replayCodeOrder header span {
+  color: var(--ink-soft);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.replayCodeOrder header strong {
+  color: var(--cinnabar);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.replayCodeOrder ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.replayCodeOrder li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--jade) 70%, white);
+}
+
+.replayCodeOrder li > span {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.replayCodeOrder code {
+  min-width: 0;
+  color: var(--code);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.replayCodeOrder small {
+  color: var(--ink-soft);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.replayCodeOrder li[data-danger="true"] {
+  border-color: color-mix(in srgb, var(--cinnabar) 46%, white);
+}
+
+.replayCodeOrder li[data-active="true"] {
+  border-color: color-mix(in srgb, var(--lake) 68%, white);
+  background: color-mix(in srgb, var(--cloud) 72%, white);
+  box-shadow: inset 3px 0 var(--lake);
+}
+
+.replayCodeOrder li[data-danger="true"][data-active="true"] {
+  border-color: color-mix(in srgb, var(--cinnabar) 72%, white);
+  box-shadow: inset 3px 0 var(--cinnabar);
+}
+
 .callStack {
   min-width: 0;
   overflow: hidden;
@@ -1457,6 +1711,35 @@
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.replayOutcome {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.replayOutcome div {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid color-mix(in srgb, var(--cinnabar) 36%, white);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cinnabar) 5%, white);
+}
+
+.replayOutcome dt {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+.replayOutcome dd {
+  margin: 5px 0 0;
+  color: var(--cinnabar);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
   overflow-wrap: anywhere;
 }
 
@@ -2693,6 +2976,77 @@
   }
 }
 
+@keyframes replay-attack-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.58;
+  }
+}
+
+@keyframes replay-rift-pulse {
+  from {
+    opacity: 0.78;
+    transform: translate(-50%, -50%) scale(0.68);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}
+
+@keyframes replay-attack-loop-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.76;
+  }
+}
+
+@keyframes replay-particle-call {
+  0% {
+    opacity: 0;
+    transform: translate(570px, 166px);
+  }
+  24% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(208px, 166px);
+  }
+}
+
+@keyframes replay-particle-transfer {
+  0% {
+    opacity: 0;
+    transform: translate(210px, 92px);
+  }
+  24% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(570px, 92px);
+  }
+}
+
+@keyframes replay-particle-callback {
+  0% {
+    opacity: 0;
+    transform: translate(590px, 126px);
+  }
+  24% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(570px, 122px);
+  }
+}
+
 @keyframes replay-balance {
   from {
     opacity: 0.78;
@@ -2953,6 +3307,9 @@
 .battlePage[data-reduced-motion="true"] .codeStrike,
 .battlePage[data-reduced-motion="true"] .formationReveal,
 .battlePage[data-reduced-motion="true"] .replayPath,
+.battlePage[data-reduced-motion="true"] .replayFlowParticle,
+.battlePage[data-reduced-motion="true"] .replayAttackBeast,
+.battlePage[data-reduced-motion="true"] .replayAttackRiftPulse,
 .battlePage[data-reduced-motion="true"] .replayActor,
 .battlePage[data-reduced-motion="true"] .replayReason,
 .battlePage[data-reduced-motion="true"] .sealSequence,
@@ -3302,6 +3659,47 @@
     border-radius: 14px;
   }
 
+  .replayAttackBeast {
+    top: 49%;
+    left: 50%;
+    width: min(72%, 248px);
+  }
+
+  .replaySceneMeta strong {
+    max-width: 138px;
+    font-size: 11px;
+  }
+
+  .replayDepthMeter {
+    padding: 6px 7px;
+  }
+
+  .replayDepthMeter i {
+    width: 5px;
+    height: 17px;
+  }
+
+  .replayReentryMark {
+    top: 194px;
+    width: 65px;
+    height: 65px;
+  }
+
+  .replaySceneMeta {
+    top: 14px;
+    left: 4%;
+  }
+
+  .replayDepthMeter {
+    top: 14px;
+    right: 4%;
+  }
+
+  .replayReentryMark {
+    top: 202px;
+    right: 6%;
+  }
+
   .replayActor {
     top: 70px;
     width: 41%;
@@ -3342,6 +3740,14 @@
 
   .replayBalances div {
     padding: 8px;
+  }
+
+  .replayCodeOrder li {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+
+  .replayCodeOrder small {
+    grid-column: 2;
   }
 
   .replayControls {
