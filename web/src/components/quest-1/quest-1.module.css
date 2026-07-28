@@ -198,6 +198,140 @@
   text-transform: uppercase;
 }
 
+.dormantBeastLoop {
+  position: relative;
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  align-self: center;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--water) 16%, transparent);
+  border-radius: 32% 38% 27% 34% / 28% 31% 38% 34%;
+  background:
+    radial-gradient(
+      circle at 48% 52%,
+      rgba(232, 247, 243, 0.84),
+      rgba(220, 238, 236, 0.28) 48%,
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(250, 251, 247, 0.5),
+      rgba(214, 232, 230, 0.2)
+    );
+  isolation: isolate;
+}
+
+.dormantBeastLoop::before {
+  position: absolute;
+  inset: 16% 12%;
+  border-radius: 50%;
+  background: rgba(71, 166, 165, 0.16);
+  content: "";
+  filter: blur(34px);
+}
+
+.dormantBeastLoopCompact {
+  max-height: 340px;
+}
+
+.dormantBeastLayers {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform-origin: 50% 54%;
+}
+
+.dormantBeastFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dormantAwakeningGlow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 11% 8% at 35% 39%,
+      rgba(196, 255, 249, 0.82),
+      rgba(83, 216, 207, 0.2) 42%,
+      transparent 76%
+    ),
+    radial-gradient(
+      ellipse 31% 24% at 49% 54%,
+      rgba(84, 202, 194, 0.18),
+      transparent 72%
+    );
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: dormant-awakening-glow var(--awakening-intro-duration)
+    ease-out both;
+}
+
+.dormantBeastLoop[data-primary-loaded="true"]
+  .dormantBeastFramePrimary {
+  opacity: 1;
+}
+
+.dormantBeastLoop[data-loop-active="true"] .dormantBeastLayers {
+  animation: dormant-beast-breath var(--dormant-breath-duration) ease-in-out
+    infinite;
+}
+
+.dormantBeastLoop[data-loop-active="true"]
+  .dormantBeastFrame[data-frame="dormant-1"] {
+  animation: dormant-frame-one var(--dormant-loop-duration) linear infinite;
+}
+
+.dormantBeastLoop[data-loop-active="true"]
+  .dormantBeastFrame[data-frame="dormant-2"] {
+  animation: dormant-frame-two var(--dormant-loop-duration) linear infinite;
+}
+
+.dormantBeastLoop[data-loop-active="true"]
+  .dormantBeastFrame[data-frame="dormant-3"] {
+  animation: dormant-frame-three var(--dormant-loop-duration) linear infinite;
+}
+
+.dormantBeastLoop[data-dormant-motion="awakening"][data-awakening-state="playing"]
+  .dormantBeastFrame[data-frame="dormant-1"] {
+  animation: beast-awakening-frame-one var(--awakening-intro-duration)
+    cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.dormantBeastLoop[data-dormant-motion="awakening"][data-awakening-state="playing"]
+  .dormantBeastFrame[data-frame="dormant-2"] {
+  animation: beast-awakening-frame-two var(--awakening-intro-duration)
+    cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.dormantBeastLoop[data-dormant-motion="awakening"][data-awakening-state="complete"]
+  .dormantBeastFrame[data-frame="dormant-2"],
+.dormantBeastLoop[data-dormant-motion="static"]
+  .dormantBeastFrame[data-frame="dormant-2"] {
+  opacity: 1;
+}
+
+.dormantBeastLoading {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
 .entryAction {
   display: flex;
   align-items: center;
@@ -2701,6 +2835,120 @@
   }
 }
 
+@keyframes dormant-frame-one {
+  0%,
+  27.073% {
+    opacity: 1;
+  }
+
+  34.687%,
+  92.386% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes dormant-frame-two {
+  0%,
+  27.073% {
+    opacity: 0;
+  }
+
+  34.687%,
+  54.992% {
+    opacity: 1;
+  }
+
+  61.421%,
+  70.728% {
+    opacity: 0;
+  }
+
+  77.157%,
+  92.386% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dormant-frame-three {
+  0%,
+  54.992% {
+    opacity: 0;
+  }
+
+  61.421%,
+  70.728% {
+    opacity: 1;
+  }
+
+  77.157%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dormant-beast-breath {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-3px) scale(1.008);
+  }
+}
+
+@keyframes beast-awakening-frame-one {
+  0%,
+  33.333% {
+    opacity: 1;
+  }
+
+  73.333%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes beast-awakening-frame-two {
+  0%,
+  33.333% {
+    opacity: 0;
+  }
+
+  73.333%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes dormant-awakening-glow {
+  0%,
+  21.667% {
+    opacity: 0;
+  }
+
+  43.333% {
+    opacity: 0.78;
+  }
+
+  60% {
+    opacity: 0.48;
+  }
+
+  83.333%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .battlePage[data-reduced-motion="true"] .beastEntrance,
 .battlePage[data-reduced-motion="true"] .codeStrike,
 .battlePage[data-reduced-motion="true"] .formationReveal,
@@ -2715,7 +2963,9 @@
 .battlePage[data-reduced-motion="true"]
   .rewardSequenceAnimating
   .rewardCards
-  article {
+  article,
+.battlePage[data-reduced-motion="true"] .dormantBeastLayers,
+.battlePage[data-reduced-motion="true"] .dormantBeastFrame {
   animation: none;
 }
 
@@ -2984,6 +3234,11 @@
     width: 100%;
     min-height: 330px;
     margin-top: 20px;
+  }
+
+  .dormantBeastLoop,
+  .dormantBeastLoopCompact {
+    max-height: 330px;
   }
 
   .codeStage {

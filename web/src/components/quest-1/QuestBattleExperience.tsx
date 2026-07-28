@@ -39,10 +39,10 @@ import { AttackReplay } from "./AttackReplay";
 import { BestiaryEntryDialog } from "./BestiaryEntryDialog";
 import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
+import { DormantBeastLoop } from "./DormantBeastLoop";
 import { RepairOrderPuzzle } from "./RepairOrderPuzzle";
 import { RewardSequence } from "./RewardSequence";
 import { SealFormationResult } from "./SealFormationResult";
-import { TemporaryVisualPlaceholder } from "./TemporaryVisualPlaceholder";
 import styles from "./quest-1.module.css";
 
 function getLiveMessage(
@@ -599,7 +599,12 @@ export function QuestBattleExperience() {
               </div>
             </div>
             <div className={styles.beastSide}>
-              <TemporaryVisualPlaceholder compact />
+              <DormantBeastLoop
+                compact
+                motion="static"
+                reducedMotion={reducedMotion}
+                visualState="dormant"
+              />
             </div>
           </div>
         ) : (
@@ -607,7 +612,11 @@ export function QuestBattleExperience() {
             className={`${styles.beastScene} ${stageAnimationClass}`}
             onAnimationEnd={handleStageAnimationEnd}
           >
-            <TemporaryVisualPlaceholder />
+            <DormantBeastLoop
+              motion="awakening"
+              reducedMotion={reducedMotion}
+              visualState="dormant"
+            />
           </div>
         )}
       </section>
