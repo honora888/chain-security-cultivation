@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type {
   AnimationEvent,
   CSSProperties,
@@ -12,6 +13,7 @@ import {
 } from "@/data/quest-1";
 
 import styles from "./quest-1.module.css";
+import { QUEST_ONE_BEAST_VISUAL_ASSETS } from "./quest-1-beast-visuals";
 
 interface SealFormationResultProps {
   complete: boolean;
@@ -48,6 +50,8 @@ export function SealFormationResult({
   reducedMotion,
   onAnimationEnd,
 }: SealFormationResultProps) {
+  const sealedVisual = QUEST_ONE_BEAST_VISUAL_ASSETS.sealed;
+
   return (
     <section
       className={`${styles.sealResult} ${
@@ -75,32 +79,53 @@ export function SealFormationResult({
         </p>
       </div>
 
-      <div className={styles.sealFormation}>
-        <svg
-          className={styles.sealFormationLines}
-          viewBox="0 0 900 180"
+      <div className={styles.sealCeremonyStage}>
+        <div
+          className={styles.sealedBeastVisual}
+          data-complete={complete ? "true" : "false"}
           aria-hidden="true"
-          focusable="false"
         >
-          <path d="M150 90 H450 H750" />
-        </svg>
-        <ol aria-label="Checks、Effects、Interactions 封印顺序">
-          {seals.map((seal, index) => (
-            <li key={seal.english} style={{ "--seal-index": index } as CSSProperties}>
-              <span className={styles.sealIndex}>{index + 1}</span>
-              <strong>{seal.english}</strong>
-              <span>{seal.chinese}</span>
-            </li>
-          ))}
-        </ol>
-        <dl className={styles.sealConclusions}>
-          {seals.map((seal) => (
-            <div key={`${seal.english}-conclusion`}>
-              <dt>{seal.english}</dt>
-              <dd>{seal.conclusion}</dd>
-            </div>
-          ))}
-        </dl>
+          <Image
+            alt=""
+            aria-hidden="true"
+            height={sealedVisual.height}
+            sizes="(max-width: 640px) 72vw, (max-width: 960px) 48vw, 420px"
+            src={sealedVisual.src}
+            unoptimized
+            width={sealedVisual.width}
+          />
+        </div>
+        <div className={styles.sealFormation}>
+          <svg
+            className={styles.sealFormationLines}
+            viewBox="0 0 900 180"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M150 90 H450 H750" />
+          </svg>
+          <ol aria-label="Checks、Effects、Interactions 封印顺序">
+            {seals.map((seal, index) => (
+              <li key={seal.english} style={{ "--seal-index": index } as CSSProperties}>
+                <span className={styles.sealIndex}>{index + 1}</span>
+                <strong>{seal.english}</strong>
+                <span>{seal.chinese}</span>
+              </li>
+            ))}
+          </ol>
+          <dl className={styles.sealConclusions}>
+            {seals.map((seal) => (
+              <div key={`${seal.english}-conclusion`}>
+                <dt>{seal.english}</dt>
+                <dd>{seal.conclusion}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className={styles.sealCodePrinciple}>
+            <code>balances[msg.sender] = 0</code> 先于
+            <code>msg.sender.call&#123;value: amount&#125;(&quot;&quot;)</code> 执行，回调入口因此失效。
+          </p>
+        </div>
       </div>
 
       {complete ? (

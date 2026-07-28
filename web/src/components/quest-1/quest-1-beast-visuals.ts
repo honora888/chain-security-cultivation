@@ -18,6 +18,11 @@ export const QUEST_ONE_BEAST_VISUAL_ASSETS = {
     width: 1122,
     height: 1402,
   },
+  sealed: {
+    src: "/assets/quest-1/beast/reentry-devourer-cei-sealed-v1.webp",
+    width: 1122,
+    height: 1402,
+  },
 } as const satisfies Partial<
   Record<QuestOneBeastVisualState, QuestOneBeastVisualAsset>
 >;

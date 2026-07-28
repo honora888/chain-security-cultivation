@@ -75,6 +75,7 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 | `dormant-2` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-2.webp` | 1448 × 1086 px，WebP RGBA | 是 | 259,860 bytes（约 253.8 KiB） | `07004338C1F59489259631ACC85A1C0F23311F8D68024045499F5C226CD6444D` | D2「平衡警戒」：收束与警觉程度最均衡 |
 | `dormant-3` | `web/public/assets/quest-1/beast/reentry-devourer-dormant-3.webp` | 1448 × 1086 px，WebP RGBA | 是 | 280,834 bytes（约 274.3 KiB） | `2024626767D312E95EEAF5A9239AA3B4C3A3F324739C9031290291248C85C69D` | D3「苏醒前态」：眼睛与外环慢流稍强，仍未进入攻击 |
 | `reentrancy-attack-v1` | `web/public/assets/quest-1/beast/reentry-devourer-reentrancy-attack-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 322,814 bytes（约 315.2 KiB） | `F3C1E073093BC7F5E2120886474A93F80440201A09BB17E6A864D68329AC113D` | ACT4 正式攻击态：裂口递归光纹、逆流内脉与玉扣嵌套方框；衍生自 Canonical Clean Master v1 |
+| `cei-sealed-v1` | `web/public/assets/quest-1/beast/reentry-devourer-cei-sealed-v1.webp` | 1122 × 1402 px，WebP RGBA | 是；Alpha 范围 0–255 | 334,072 bytes（约 326.2 KiB） | `F20B4137944A9923F6730BC0B749ADAFE179466A474E497F3F3CD229C34E8228` | ACT5 正式封印态：递归裂口收束为封印缝，玉扣三层嵌套锁定，双叶闸片截断回调光路；衍生自 Canonical Clean Master v1 |
 
 ### Dormant 与母体一致性核对
 
@@ -107,13 +108,26 @@ Clean Master 只保留完整噬灵回环兽本体，不含中文标注、说明�
 | 一致性检查图 | `design-sources/quest-1/attack-state-checks/master-vs-attack-contact-sheet.png`、`dormant-2-vs-attack-overlay.png`、`attack-state-structure-review.png` |
 | 结论 | 头部、额甲、鳍冠、中央裂口、方形玉扣、双叶闸片与右下缺口均保留。攻击态由母版构图生成；与横构图 dormant-2 的比例差异在网页中通过 `contain` 图层约束，不反向替代母版。 |
 
+### CEI Seal State v1 审查记录
+
+| 项目 | 记录 |
+| --- | --- |
+| 设计源路径 | `design-sources/quest-1/reentry-devourer-cei-sealed-v1.png` |
+| 设计源尺寸 / 格式 | 1122 × 1402 px，PNG RGBA |
+| 设计源大小 / SHA-256 | 2,414,899 bytes / `AD09754C684384FC4463D2323083CC40F607EEA283687046B6B78FF81BDBD08C` |
+| 生产路径 | `web/public/assets/quest-1/beast/reentry-devourer-cei-sealed-v1.webp` |
+| 生产尺寸 / 格式 | 1122 × 1402 px，WebP RGBA |
+| 生产大小 / SHA-256 | 334,072 bytes / `F20B4137944A9923F6730BC0B749ADAFE179466A474E497F3F3CD229C34E8228` |
+| Alpha | 范围 0–255；保留透明背景与半透明水脉边缘。 |
+| 一致性审查图 | `design-sources/quest-1/seal-state-checks/attack-vs-sealed-contact-sheet.png`、`attack-vs-sealed-overlay.png`、`sealed-state-structure-review.png` |
+| 结论 | 保留母版的头部、额甲、鳍冠、实体外环、水脉内环、方形玉扣、双叶闸片与右下缺口；封印态只收束回路，不反向替代母版或充当 defeated / bestiary。 |
+
 ## Future Assets
 
 以下资产仅预留，不代表已经生成或接入：
 
 | 标识 | 建议生产路径 | 状态 |
 | --- | --- | --- |
-| `cei-seal` | `web/public/assets/quest-1/beast/reentry-devourer-cei-seal.webp` | 待生成、待审核 |
 | `defeated` | `web/public/assets/quest-1/beast/reentry-devourer-defeated.webp` | 待生成、待审核 |
 | `bestiary-portrait` | `web/public/assets/quest-1/bestiary/reentry-devourer-portrait.webp` | 待生成、待审核 |
 | `badge-silhouette` | `web/public/assets/quest-1/badges/reentry-devourer-badge-silhouette.webp` | 待生成、待审核 |

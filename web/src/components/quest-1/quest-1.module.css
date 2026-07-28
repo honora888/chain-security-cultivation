@@ -2094,6 +2094,14 @@
   font-size: 12px;
 }
 
+.sealCeremonyStage {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+  align-items: stretch;
+  min-width: 0;
+  gap: 18px;
+}
+
 .sealFormation {
   position: relative;
   min-width: 0;
@@ -2105,6 +2113,37 @@
     radial-gradient(circle at center, rgba(255, 255, 255, 0.82), transparent 50%),
     linear-gradient(145deg, rgba(225, 239, 235, 0.9), rgba(249, 248, 242, 0.95));
   box-shadow: var(--shadow);
+}
+
+.sealedBeastVisual {
+  display: grid;
+  min-width: 0;
+  min-height: 420px;
+  place-items: center;
+  padding: 22px;
+  pointer-events: none;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--water) 34%, white);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 52% 46%, rgba(224, 247, 246, 0.8), transparent 56%),
+    linear-gradient(145deg, rgba(225, 239, 235, 0.9), rgba(249, 248, 242, 0.95));
+  box-shadow: var(--shadow);
+  opacity: 0.9;
+  filter: saturate(0.94) contrast(0.98);
+}
+
+.sealedBeastVisual img {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  max-height: 376px;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.sealedBeastVisual[data-complete="true"] {
+  opacity: 1;
 }
 
 .sealFormationLines {
@@ -2183,6 +2222,28 @@
   margin: 18px 0 0;
 }
 
+.sealCodePrinciple {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  padding: 9px 12px;
+  border-left: 3px solid color-mix(in srgb, var(--lake) 72%, white);
+  background: rgba(249, 252, 248, 0.82);
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sealCodePrinciple code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(35, 89, 93, 0.09);
+  color: var(--lake);
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+}
+
 .sealConclusions div {
   min-width: 0;
   padding: 9px 10px;
@@ -2215,6 +2276,10 @@
 .sealSequence .sealFormation li {
   animation: seal-light 760ms ease-out both;
   animation-delay: calc(var(--seal-index) * var(--seal-stagger-duration));
+}
+
+.sealSequence .sealedBeastVisual {
+  animation: seal-beast-reveal 560ms ease-out 720ms both;
 }
 
 .sealResultComplete .sealFormation {
@@ -2917,6 +2982,17 @@
   }
 }
 
+@keyframes seal-beast-reveal {
+  from {
+    opacity: 0.04;
+    filter: saturate(0.72) brightness(0.94);
+  }
+  to {
+    opacity: 0.9;
+    filter: saturate(0.94) brightness(1);
+  }
+}
+
 @keyframes reward-completion-signal {
   0% {
     opacity: 0.84;
@@ -3315,6 +3391,7 @@
 .battlePage[data-reduced-motion="true"] .sealSequence,
 .battlePage[data-reduced-motion="true"] .sealFormationLines path,
 .battlePage[data-reduced-motion="true"] .sealFormation li,
+.battlePage[data-reduced-motion="true"] .sealedBeastVisual,
 .battlePage[data-reduced-motion="true"] .rewardSequenceAnimating,
 .battlePage[data-reduced-motion="true"] .rewardSequenceAnimating .rewardStamp,
 .battlePage[data-reduced-motion="true"]
@@ -3855,6 +3932,23 @@
   .sealFormationLines {
     inset: 15% 3% auto;
     width: 94%;
+  }
+
+  .sealCeremonyStage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .sealedBeastVisual {
+    min-height: 290px;
+    padding: 14px;
+    border-radius: 14px;
+    opacity: 0.9;
+  }
+
+  .sealedBeastVisual img {
+    width: min(100%, 220px);
+    max-height: 274px;
   }
 
   .repairDiffGrid {
