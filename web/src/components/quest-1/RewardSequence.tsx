@@ -13,6 +13,7 @@ import {
 
 import { ChainStatusPanel } from "./ChainStatusPanel";
 import { DynamicDefeatedSequence } from "./DynamicDefeatedSequence";
+import { WaterGuardianBadge } from "./WaterGuardianBadge";
 import styles from "./quest-1.module.css";
 
 interface RewardSequenceProps {
@@ -86,9 +87,12 @@ export function RewardSequence({
         </article>
 
         <article className={styles.rewardBadgeCard}>
-          <span className={styles.rewardAssetPlaceholder}>
-            Temporary Visual Placeholder
-          </span>
+          <WaterGuardianBadge
+            reducedMotion={reducedMotion}
+            revealDelayMs={QUEST_ONE_REWARD_TIMING.badgeDelay}
+            shouldAnimate={!complete}
+            state="unlocked"
+          />
           <strong>{QUEST_ONE.badge}</strong>
           <small>本地奖励展示 · 已解锁</small>
         </article>
