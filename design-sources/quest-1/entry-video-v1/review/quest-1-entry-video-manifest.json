@@ -1,0 +1,131 @@
+{
+  "version": "Quest 1 Entry Video v1",
+  "source": {
+    "path": "design-sources/quest-1/entry-video-v1/source/噬灵回环兽.mp4",
+    "sha256": "E3C45062922B49B63F87817E3ECBEFF8828CACC4C76405199150BA4311F0DD44",
+    "size_bytes": 860699,
+    "container": "MP4",
+    "video_codec": "HEVC Main (hvc1)",
+    "pixel_format": "yuv420p",
+    "resolution": "960x720",
+    "frame_rate_fps": 30,
+    "duration_seconds": 6.39,
+    "audio": "AAC LC, 44100 Hz, mono"
+  },
+  "production_video": {
+    "path": "web/public/assets/quest-1/video/quest-1-entry-reveal.mp4",
+    "sha256": "B17C5A7E7DBD767F1ADAF0E8DBECD83C4EC40131F1DD660CF92D59BFE28AFAE7",
+    "size_bytes": 1925208,
+    "size_mib": 1.836,
+    "container": "MP4",
+    "video_codec": "H.264 High",
+    "pixel_format": "yuv420p",
+    "resolution": "960x720",
+    "frame_rate_fps": 30,
+    "duration_seconds": 6.366667,
+    "audio_tracks": 0,
+    "faststart": true,
+    "atom_offsets": {
+      "ftyp": 4,
+      "moov": 36,
+      "mdat": 3156
+    }
+  },
+  "posters": [
+    {
+      "role": "loading",
+      "time_seconds": 0.15,
+      "path": "web/public/assets/quest-1/video/quest-1-entry-loading-poster.webp",
+      "resolution": "960x720",
+      "quality": 86,
+      "size_bytes": 63378,
+      "sha256": "AF4EDE729F7DCCE851B24215B588AE469449D4B800C297E383A559469A1893F6"
+    },
+    {
+      "role": "complete-form-and-fallback",
+      "time_seconds": 6.1,
+      "path": "web/public/assets/quest-1/video/quest-1-entry-poster.webp",
+      "resolution": "960x720",
+      "quality": 86,
+      "size_bytes": 59894,
+      "sha256": "956D3C3C8FAFA358B3985481D80D6CFD96CF6FE4DD81647CFD5CEAFDD4C675E4"
+    }
+  ],
+  "contact_sheet": {
+    "path": "design-sources/quest-1/entry-video-v1/review/quest-1-entry-video-frame-contact-sheet.png",
+    "sample_times_seconds": [
+      0.17,
+      1.5,
+      3.0,
+      4.5,
+      5.8,
+      6.1
+    ]
+  },
+  "ffmpeg_command": "ffmpeg -y -i \"design-sources/quest-1/entry-video-v1/source/噬灵回环兽.mp4\" -map 0:v:0 -an -c:v libx264 -preset slow -crf 22.5 -pix_fmt yuv420p -r 30 -movflags +faststart \"web/public/assets/quest-1/video/quest-1-entry-reveal.mp4\"",
+  "metadata_probe": {
+    "requested_tool": "ffprobe",
+    "local_ffprobe_available": false,
+    "fallback": "FFmpeg stream inspection",
+    "note": "The local portable runtime did not include ffprobe; FFmpeg -i stream inspection was used to verify the same container, stream, duration, resolution, frame-rate, codec and audio metadata."
+  },
+  "browser_test_results": {
+    "url": "http://127.0.0.1:3010/",
+    "desktop_background_current_src": "/assets/quest-1/ui/backgrounds/quest-1-act1-background-desktop.webp",
+    "mobile_background_current_src": "/assets/quest-1/ui/backgrounds/quest-1-act1-background-mobile.webp",
+    "video_current_src": "/assets/quest-1/video/quest-1-entry-reveal.mp4",
+    "autoplay_once": true,
+    "loop": false,
+    "ended_on_final_frame": true,
+    "pause": true,
+    "continue": true,
+    "replay": true,
+    "reduced_motion_autoplay": false,
+    "reduced_motion_poster": "/assets/quest-1/video/quest-1-entry-poster.webp",
+    "reduced_motion_manual_play": true,
+    "error_fallback_poster": true,
+    "error_fallback_cta_available": true,
+    "duplicate_static_beast_image_count": 0,
+    "console_errors": 0,
+    "background_404s": 0,
+    "video_404s": 0,
+    "viewports": [
+      {
+        "width": 1920,
+        "height": 1080,
+        "horizontal_overflow": false,
+        "cta_visible_without_scroll": true
+      },
+      {
+        "width": 1440,
+        "height": 1024,
+        "horizontal_overflow": false,
+        "cta_visible_without_scroll": true
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "horizontal_overflow": false,
+        "cta_scroll_distance_px": 31
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "horizontal_overflow": false,
+        "cta_scroll_distance_px": 95
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontal_overflow": false,
+        "cta_scroll_distance_px": 150
+      },
+      {
+        "width": 375,
+        "height": 812,
+        "horizontal_overflow": false,
+        "cta_scroll_distance_px": 168
+      }
+    ]
+  }
+}

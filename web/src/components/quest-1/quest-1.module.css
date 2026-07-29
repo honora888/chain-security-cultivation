@@ -4427,6 +4427,434 @@
   }
 }
 
+/* Quest 1 Phase 4.8 — immersive entry hero. */
+.entryPage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  background: #dcecea;
+}
+
+.entrySceneBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.entrySceneBackground picture,
+.entrySceneBackground img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.entrySceneBackground img {
+  object-fit: cover;
+  object-position: center top;
+}
+
+.entryPage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 78% 88% at 26% 48%,
+    rgba(252, 250, 241, 0.9) 0%,
+    rgba(252, 250, 241, 0.72) 44%,
+    rgba(252, 250, 241, 0.42) 66%,
+    rgba(252, 250, 241, 0.12) 80%,
+    transparent 91%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.entryPage .siteHeader {
+  z-index: 2;
+  width: min(calc(100% - clamp(28px, 5vw, 96px)), 1536px);
+  min-height: 76px;
+  margin: 14px auto 0;
+  padding: 0 clamp(18px, 2.2vw, 34px);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+}
+
+.entryHero {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-areas:
+    "intro video"
+    "intel video"
+    "briefing video"
+    "cta video";
+  grid-template-columns: minmax(340px, 0.78fr) minmax(500px, 1.22fr);
+  grid-template-rows: auto auto auto 1fr;
+  gap: 22px clamp(42px, 5vw, 92px);
+  width: min(calc(100% - clamp(32px, 6vw, 112px)), 1536px);
+  min-height: clamp(560px, 68vh, 760px);
+  margin: 0 auto;
+  padding: clamp(42px, 6vh, 72px) 0 clamp(34px, 5vh, 60px);
+  align-items: start;
+}
+
+.entryHeroIntro {
+  grid-area: intro;
+  align-self: end;
+}
+
+.entryHeroIntro h1 {
+  margin: 0;
+  color: #123f46;
+  font-family: var(--quest-display);
+  font-size: clamp(58px, 6vw, 92px);
+  font-weight: 600;
+  line-height: 0.96;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.entryHeroIntro .entryLead {
+  max-width: 30em;
+  margin: 22px 0 0;
+  color: rgba(18, 63, 70, 0.92);
+  font-size: clamp(17px, 1.15vw, 20px);
+  font-weight: 480;
+  line-height: 1.75;
+  letter-spacing: 0.015em;
+  text-shadow: 0 1px 0 rgba(255, 255, 250, 0.7);
+}
+
+.entryHeroVisual {
+  grid-area: video;
+  align-self: center;
+  min-width: 0;
+}
+
+.entryVideoStage {
+  width: min(100%, 720px);
+  margin: 0 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(127, 204, 201, 0.48);
+  border-radius: 22px;
+  background: rgba(5, 34, 43, 0.94);
+  box-shadow:
+    inset 0 0 0 1px rgba(227, 246, 239, 0.12),
+    0 28px 64px rgba(8, 51, 61, 0.28);
+}
+
+.entryVideoViewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #071f2b;
+}
+
+.entryVideo,
+.entryVideoFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.entryVideoCaption {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 9px 12px 9px 20px;
+  border-top: 1px solid rgba(137, 211, 206, 0.2);
+  color: #edf8f3;
+  background: linear-gradient(90deg, rgba(8, 49, 58, 0.98), rgba(11, 64, 70, 0.96));
+}
+
+.entryVideoCaption > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.entryVideoCaption span {
+  font-family: var(--quest-display);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+
+.entryVideoCaption small {
+  color: rgba(225, 242, 235, 0.72);
+  font-size: 11px;
+}
+
+.entryVideoControl {
+  min-width: 112px;
+  min-height: 44px;
+  padding-inline: 28px;
+  flex: 0 0 auto;
+  font-size: 15px;
+}
+
+.entryVideoUnavailable {
+  padding: 7px 12px;
+  border: 1px solid rgba(202, 228, 216, 0.3);
+  color: rgba(235, 246, 239, 0.76);
+  font-size: 12px !important;
+}
+
+.entryIntelGrid {
+  grid-area: intel;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(26px, 3vw, 48px);
+  row-gap: 0;
+  max-width: 620px;
+  margin: 0;
+}
+
+.entryIntelItem {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: baseline;
+  min-width: 0;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid rgba(37, 105, 108, 0.28);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 250, 0.7);
+}
+
+.entryIntelItem[data-risk="high"] dd {
+  color: #b34842;
+  font-weight: 750;
+}
+
+.entryIntelItem dt,
+.entryBriefingRow h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: rgba(32, 103, 108, 0.88);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+}
+
+.entryIntelItem dt svg,
+.entryBriefingRow h2 svg {
+  width: 16px;
+  height: 16px;
+  color: #2e8589;
+  flex: 0 0 auto;
+}
+
+.entryIntelItem[data-risk="high"] dt svg {
+  color: #9e4d48;
+}
+
+.entryIntelItem dd {
+  min-width: 0;
+  margin: 0;
+  color: #123e44;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.entryBriefing {
+  grid-area: briefing;
+  display: grid;
+  gap: 13px;
+  max-width: 620px;
+  padding: 0 2px;
+}
+
+.entryBriefingRow {
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  text-shadow: 0 1px 0 rgba(255, 255, 250, 0.7);
+}
+
+.entryBriefingRow h2 {
+  color: #237b80;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.entryBriefingRow p {
+  margin: 0;
+  color: rgba(18, 63, 70, 0.92);
+  font-size: 14px;
+  font-weight: 520;
+  line-height: 1.7;
+}
+
+.entryCtaGroup {
+  grid-area: cta;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  align-self: start;
+  padding-top: 2px;
+}
+
+.entryCta {
+  min-width: 188px;
+  min-height: 58px;
+  text-decoration: none;
+}
+
+.entryCtaGroup small {
+  max-width: 230px;
+  color: rgba(18, 63, 70, 0.92);
+  font-size: 12px;
+  font-weight: 520;
+  line-height: 1.55;
+  text-shadow: 0 1px 0 rgba(255, 255, 250, 0.7);
+}
+
+@media (max-width: 900px) {
+  .entryHero {
+    grid-template-columns: minmax(300px, 0.84fr) minmax(400px, 1.16fr);
+    gap: 15px 30px;
+  }
+
+  .entryVideoStage {
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .entryPage {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .entryPage::after {
+    background: radial-gradient(
+      ellipse 115% 88% at 38% 42%,
+      rgba(252, 250, 241, 0.92) 0%,
+      rgba(252, 250, 241, 0.7) 54%,
+      rgba(252, 250, 241, 0.24) 78%,
+      transparent 94%
+    );
+  }
+
+  .entryPage .siteHeader {
+    width: calc(100% - 24px);
+    min-height: 68px;
+    margin-top: 8px;
+    padding-inline: 12px;
+    border-radius: 13px;
+  }
+
+  .entryPage .brand small,
+  .entryPage .headerStatus {
+    display: none;
+  }
+
+  .entryHero {
+    grid-template-areas:
+      "intro"
+      "video"
+      "intel"
+      "briefing"
+      "cta";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 14px;
+    width: calc(100% - 28px);
+    min-height: 0;
+    padding: 26px 0 30px;
+  }
+
+  .entryHeroIntro h1 {
+    font-size: clamp(48px, 16vw, 66px);
+  }
+
+  .entryHeroIntro .entryLead {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .entryVideoStage {
+    width: 100%;
+    margin: 0;
+    border-radius: 15px;
+  }
+
+  .entryVideoCaption {
+    min-height: 58px;
+    padding: 7px 8px 7px 14px;
+  }
+
+  .entryVideoCaption span {
+    font-size: 13px;
+  }
+
+  .entryVideoControl {
+    min-width: 96px;
+    min-height: 44px;
+    padding-inline: 24px;
+  }
+
+  .entryIntelGrid {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+  }
+
+  .entryIntelItem {
+    grid-template-columns: 70px minmax(0, 1fr);
+    padding: 9px 2px;
+  }
+
+  .entryBriefing {
+    gap: 11px;
+  }
+
+  .entryBriefingRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .entryBriefingRow p {
+    font-size: 14px;
+  }
+
+  .entryCtaGroup {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .entryCta {
+    width: 100%;
+    min-height: 56px;
+  }
+
+  .entryCtaGroup small {
+    max-width: none;
+    text-align: center;
+  }
+}
+
 /* ACT5 composition v2: open stage, jade CEI seals, and independent code scrolls. */
 .sealResult,
 .sealCeremonyStage,
@@ -5071,7 +5499,10 @@
   pointer-events: none;
 }
 
-.entryPage .entryLead { max-width: 38ch; color: var(--quest-ink-muted); }
+.entryPage .entryLead {
+  max-width: 38ch;
+  color: rgba(18, 63, 70, 0.92);
+}
 
 .entryPage .questFacts div {
   border-color: rgba(55, 126, 129, 0.2);
@@ -6949,4 +7380,15 @@
         transparent 92%
       );
   }
+}
+
+/* Phase 4.8 final cascade guard for the entry page's single scene layer. */
+.entryPage {
+  background-color: #dcecea;
+  background-image: none;
+}
+
+.entryPage > .entrySceneBackground {
+  position: absolute;
+  z-index: 0;
 }
