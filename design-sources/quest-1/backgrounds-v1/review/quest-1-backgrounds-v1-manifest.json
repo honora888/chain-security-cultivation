@@ -1,0 +1,59 @@
+{
+  "version": "Quest 1 Unified Cultivation Scene Backgrounds v1",
+  "status": "phase-1-and-2-review-only",
+  "production_backgrounds_generated": false,
+  "sources": [
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/sources/quest-1-background-master-desktop.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 2308171,
+      "sha256": "5c0a4cd47958f225eed745ce47372f7f22fdeb112e3c36f3c325adea3470284c"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/sources/quest-1-background-master-mobile.png",
+      "width": 992,
+      "height": 1586,
+      "bytes": 2425251,
+      "sha256": "0f2ee51889b9c39008f3f9de3b78b9af89a304d62fad750fcc592987e47f69b8"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/sources/quest-1-background-six-act-storyboard-source.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 2448617,
+      "sha256": "5ad62e87b7b200b153a42694e23ee236a728c02db884eab1714a5b2f6d311e0a"
+    }
+  ],
+  "review_outputs": [
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/review/quest-1-background-world-bible.png",
+      "width": 2400,
+      "height": 1660,
+      "bytes": 3013234,
+      "sha256": "762f397f724cbdf1611beff23442cb2fe849b903a423bcd2c2fc5e3c285f218d"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/review/quest-1-background-six-act-contact-sheet.png",
+      "width": 2400,
+      "height": 1680,
+      "bytes": 3231203,
+      "sha256": "c95f105598df07248fdbcec9816e0d22591fc9c64d232f65a4def68e12d7788b"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/review/quest-1-background-safe-zone-guide.png",
+      "width": 2400,
+      "height": 1660,
+      "bytes": 657921,
+      "sha256": "0167b3235bb1270369b4cd0428f751f80d6cddc1921a52f1367f6a693b953614"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/review/quest-1-background-color-progression.png",
+      "width": 2400,
+      "height": 1420,
+      "bytes": 1100583,
+      "sha256": "075dd3381d88b9124eb342bb2bb58afcc1d46b0d6692e008f06d80e803f544c2"
+    }
+  ],
+  "next_gate": "Human approval before ACT2, ACT4, and ACT5 production backgrounds."
+}

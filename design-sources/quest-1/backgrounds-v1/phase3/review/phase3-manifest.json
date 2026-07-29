@@ -1,0 +1,271 @@
+{
+  "version": "Quest 1 Backgrounds Phase 3",
+  "status": "review-ready-not-integrated",
+  "generated_acts": [
+    "ACT2",
+    "ACT4",
+    "ACT5"
+  ],
+  "not_generated": [
+    "ACT1",
+    "ACT3",
+    "ACT6"
+  ],
+  "frontend_integrated": false,
+  "webp": {
+    "quality": 88,
+    "method": 6
+  },
+  "assets": [
+    {
+      "act": "ACT2",
+      "mode": "desktop",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act2-background-desktop-master.png",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 2879327,
+      "sha256": "98fa4bb7fd6c6228e7490fb2c8fc9e473fee830a94ff4cd7a739f14e274ff9fa"
+    },
+    {
+      "act": "ACT2",
+      "mode": "desktop",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act2-background-desktop.webp",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 246694,
+      "sha256": "f74f5acfca2f4dcf300d07b9c41fd88cb0a518be376657ba9f22f8e6fe215503"
+    },
+    {
+      "act": "ACT2",
+      "mode": "mobile",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act2-background-mobile-master.png",
+      "width": 750,
+      "height": 1200,
+      "bytes": 1462796,
+      "sha256": "ffd46076ba57768e3776fd605f3312ab90627ae73ddeb729b65ec1c1abf42fda"
+    },
+    {
+      "act": "ACT2",
+      "mode": "mobile",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act2-background-mobile.webp",
+      "width": 750,
+      "height": 1200,
+      "bytes": 174612,
+      "sha256": "551879e3742073f3f60eae85ac2b68f25caca6ffd080c3f3fc3b9b0aa6d5f79d"
+    },
+    {
+      "act": "ACT4",
+      "mode": "desktop",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act4-background-desktop-master.png",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 3238380,
+      "sha256": "b12428357ea2094e6fd11c82cda8504673f065a9c789c99e564f25ce2e60da0b"
+    },
+    {
+      "act": "ACT4",
+      "mode": "desktop",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act4-background-desktop.webp",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 290242,
+      "sha256": "5790f38e9334b58d4bf14f3eb4f9941ea279c869d3d91c5fbe38eec3e6259ec6"
+    },
+    {
+      "act": "ACT4",
+      "mode": "mobile",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act4-background-mobile-master.png",
+      "width": 750,
+      "height": 1200,
+      "bytes": 1433611,
+      "sha256": "e74aae28bf74a1fbf482d2d0299e916b63234c4accb2d347bd9f889f421c1817"
+    },
+    {
+      "act": "ACT4",
+      "mode": "mobile",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act4-background-mobile.webp",
+      "width": 750,
+      "height": 1200,
+      "bytes": 157292,
+      "sha256": "86768fc125e458116633675aacdcfef8bc5845da496485544994b78749d7743e"
+    },
+    {
+      "act": "ACT5",
+      "mode": "desktop",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act5-background-desktop-master.png",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 3115217,
+      "sha256": "cff8593ac61a17791c5f2f4a534206a8112474f07a7202871437ad82728357c6"
+    },
+    {
+      "act": "ACT5",
+      "mode": "desktop",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act5-background-desktop.webp",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 295032,
+      "sha256": "0e16dba8b4d621e8406f8b428a62f0e88bd8083c4d28c5907200237eae65811f"
+    },
+    {
+      "act": "ACT5",
+      "mode": "mobile",
+      "role": "design-master",
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/masters/quest-1-act5-background-mobile-master.png",
+      "width": 750,
+      "height": 1200,
+      "bytes": 1416884,
+      "sha256": "86a2bfd91823d2910bce7237a5e4eb3e579be79efe0c79b67f8055ed226cb29a"
+    },
+    {
+      "act": "ACT5",
+      "mode": "mobile",
+      "role": "production-webp",
+      "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act5-background-mobile.webp",
+      "width": 750,
+      "height": 1200,
+      "bytes": 168926,
+      "sha256": "f6665422a77900df0451c85accd69cd2ab365f33c76e2e2ba5ec2383addcb19c"
+    }
+  ],
+  "statistics": {
+    "act2": {
+      "desktop": {
+        "mean_luminance": 167.84,
+        "luminance_stddev": 59.79,
+        "mean_saturation": 37.98,
+        "edge_density": 0.1086
+      },
+      "mobile": {
+        "mean_luminance": 146.43,
+        "luminance_stddev": 59.52,
+        "mean_saturation": 47.56,
+        "edge_density": 0.2086
+      }
+    },
+    "act4": {
+      "desktop": {
+        "mean_luminance": 116.06,
+        "luminance_stddev": 40.09,
+        "mean_saturation": 48.33,
+        "edge_density": 0.1117
+      },
+      "mobile": {
+        "mean_luminance": 88.89,
+        "luminance_stddev": 35.19,
+        "mean_saturation": 53.9,
+        "edge_density": 0.1561
+      }
+    },
+    "act5": {
+      "desktop": {
+        "mean_luminance": 154.72,
+        "luminance_stddev": 61.06,
+        "mean_saturation": 48.37,
+        "edge_density": 0.1385
+      },
+      "mobile": {
+        "mean_luminance": 153.43,
+        "luminance_stddev": 62.23,
+        "mean_saturation": 43.16,
+        "edge_density": 0.2236
+      }
+    }
+  },
+  "review_outputs": [
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-act2-background-review.png",
+      "width": 2400,
+      "height": 1660,
+      "bytes": 2997034,
+      "sha256": "6df3d6439a2fda6fa0c8eb114fd7b9c4c8dd9773161cdd41a50fceaaa853bbbb"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-act4-background-review.png",
+      "width": 2400,
+      "height": 1660,
+      "bytes": 3193200,
+      "sha256": "b72b6c645717907e70dc21f28d14afa96a12be36e83067ef7b7f67b46a2909ba"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-act5-background-review.png",
+      "width": 2400,
+      "height": 1660,
+      "bytes": 3105881,
+      "sha256": "2cc0599fc64b1d495a4804fb5d7ca33e499a675bf7c090db331024c16525d642"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-desktop-contact-sheet.png",
+      "width": 2400,
+      "height": 1060,
+      "bytes": 1633587,
+      "sha256": "a9c3501f8fde3dca62e50b70fc6e2babb893dcd60cb75df180f6aba9e2101f87"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-mobile-contact-sheet.png",
+      "width": 1900,
+      "height": 1560,
+      "bytes": 2133838,
+      "sha256": "5271f3642c9400a0923d367cc5ff0fb9b83bb6bee207f69dd03242b6e07bd67c"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-safe-zone-overlay.png",
+      "width": 2400,
+      "height": 2200,
+      "bytes": 823158,
+      "sha256": "f492cafadb087d926f62544930e2c4cf0db674f7580d1b25e2acf825d59a7a25"
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/review/phase3-color-comparison.png",
+      "width": 2400,
+      "height": 1200,
+      "bytes": 1636706,
+      "sha256": "f82db71e726ae3303778c06670355e7c9321bc81e9ead875424831ab48045f85"
+    }
+  ],
+  "static_previews": [
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/previews/phase3-act2-page-composite.png",
+      "width": 1440,
+      "height": 1024,
+      "bytes": 1418655,
+      "sha256": "5eebc115564ccf7c4e33febf51cc53e004202aeb8b250a8c153bb16040e0c39d",
+      "production_asset": false
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/previews/phase3-act4-page-composite.png",
+      "width": 1440,
+      "height": 1024,
+      "bytes": 1355361,
+      "sha256": "c30dd87f033ed37e22e447ae5dd47e8c5b380c43e23543e2ff1e46c8666eb504",
+      "production_asset": false
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/previews/phase3-act5-page-composite.png",
+      "width": 1440,
+      "height": 1024,
+      "bytes": 1373456,
+      "sha256": "27a9fc6ccf04951411947defdebb54eafb4a55da21473185cc604bffc0d748b1",
+      "production_asset": false
+    },
+    {
+      "path": "design-sources/quest-1/backgrounds-v1/phase3/previews/phase3-mobile-page-composite-contact-sheet.png",
+      "width": 1480,
+      "height": 1120,
+      "bytes": 998904,
+      "sha256": "e933ecc329887f323e99b2748262e661698c7b80198b228f04319bfd884fd51a",
+      "production_asset": false
+    }
+  ],
+  "next_gate": "Human approval before frontend integration or ACT1/ACT3/ACT6 production generation."
+}
