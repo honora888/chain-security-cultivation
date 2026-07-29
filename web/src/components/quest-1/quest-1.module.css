@@ -4858,12 +4858,12 @@
   pointer-events: none;
 }
 
-.battleStage[data-phase-three-background="true"] .fullScenePlate,
-.battleStage[data-phase-three-background="true"] .stageFogLayer,
-.battleStage[data-phase-three-background="true"] .stageSceneLayer,
-.battleStage[data-phase-three-background="true"] .stageSceneBuilding,
-.battleStage[data-phase-three-background="true"] .stageScenePlatform,
-.battleStage[data-phase-three-background="true"] .stageSceneMist {
+.battleStage[data-formal-background="true"] .fullScenePlate,
+.battleStage[data-formal-background="true"] .stageFogLayer,
+.battleStage[data-formal-background="true"] .stageSceneLayer,
+.battleStage[data-formal-background="true"] .stageSceneBuilding,
+.battleStage[data-formal-background="true"] .stageScenePlatform,
+.battleStage[data-formal-background="true"] .stageSceneMist {
   display: none !important;
 }
 
@@ -6882,6 +6882,30 @@
 .waterFormationActive .waterFormationCorePlate,
 .waterFormationActive .waterFormationBrokenRing {
   filter: drop-shadow(0 0 7px rgba(77, 194, 190, 0.32));
+}
+
+/* ACT3: an empty feedback slot must not blur the continuous scene behind it. */
+.classificationStatus:not(:has(p)) {
+  display: none;
+}
+
+.classificationStatus:has(p) {
+  backdrop-filter: blur(7px);
+}
+
+@media (max-width: 640px) {
+  .classificationOptions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .classificationOption {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    justify-content: flex-start;
+    text-align: left;
+    white-space: normal;
+  }
 }
 
 @media (max-width: 767px) {

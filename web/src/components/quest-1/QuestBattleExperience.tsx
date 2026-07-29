@@ -446,10 +446,7 @@ export function QuestBattleExperience() {
           : isActTwo
             ? "act2"
             : "act1";
-  const phaseThreeBackgroundAct: QuestOneBackgroundAct | null =
-    sceneAct === "act2" || sceneAct === "act4" || sceneAct === "act5"
-      ? sceneAct
-      : null;
+  const formalBackgroundAct: QuestOneBackgroundAct = sceneAct;
 
   return (
     <main
@@ -528,14 +525,10 @@ export function QuestBattleExperience() {
         <section
           className={styles.battleStage}
           data-act={sceneAct}
-          data-phase-three-background={phaseThreeBackgroundAct ? "true" : "false"}
+          data-formal-background="true"
           aria-labelledby="stage-title"
         >
-          {phaseThreeBackgroundAct ? (
-            <QuestOneSceneBackground act={phaseThreeBackgroundAct} />
-          ) : (
-            <div className={styles.fullScenePlate} data-act={sceneAct} aria-hidden="true" />
-          )}
+          <QuestOneSceneBackground act={formalBackgroundAct} />
           <div className={styles.stageDecorations} aria-hidden="true" />
           <div className={styles.stageContent}>
             <QuestOneActHeading eyebrow={copy.eyebrow} title={stageTitle} />
