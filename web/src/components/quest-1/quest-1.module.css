@@ -7061,9 +7061,16 @@
 .classificationConclusion,
 .classificationStatus,
 .replayCompleteBanner,
-.replayLiveStep,
-.repairFeedbackSlot {
+.replayLiveStep {
   backdrop-filter: blur(7px);
+}
+
+/* ACT5 keeps this reserved status space for layout, but it is empty before a
+   repair result exists. A backdrop blur here created a visible rectangular fog
+   band underneath the reordering cards. */
+.repairFeedbackSlot {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .replayFlowPanel {
