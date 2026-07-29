@@ -31,19 +31,48 @@ const seals = [
   {
     english: "Checks",
     chinese: "前置检查",
-    conclusion: "先读取并验证 balances[msg.sender]。",
+    kind: "checks",
   },
   {
     english: "Effects",
-    chinese: "内部生效",
-    conclusion: "在外部调用前清零余额并记录 Withdrawn。",
+    chinese: "先清零状态",
+    kind: "effects",
   },
   {
     english: "Interactions",
-    chinese: "外部交互",
-    conclusion: "最后执行 call；失败时整笔交易回滚。",
+    chinese: "最后外部调用",
+    kind: "interactions",
   },
 ] as const;
+
+function SealGlyph({ kind }: { kind: (typeof seals)[number]["kind"] }) {
+  if (kind === "checks") {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M12 38V15l12-6 12 6v23" />
+        <path d="M17 25l5 5 10-12" />
+      </svg>
+    );
+  }
+
+  if (kind === "effects") {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <rect x="9" y="9" width="30" height="30" rx="2" />
+        <rect x="15" y="15" width="18" height="18" rx="1" />
+        <path d="M19 24h10M24 19v10" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path d="M23 35c-8-1-13-6-13-15 8 0 13 5 13 15Z" />
+      <path d="M25 35c8-1 13-6 13-15-8 0-13 5-13 15Z" />
+      <path d="M24 11v26M19 15l5-5 5 5" />
+    </svg>
+  );
+}
 
 export function SealFormationResult({
   complete,
@@ -98,32 +127,61 @@ export function SealFormationResult({
         <div className={styles.sealFormation}>
           <svg
             className={styles.sealFormationLines}
-            viewBox="0 0 900 180"
+            viewBox="0 0 900 220"
             aria-hidden="true"
             focusable="false"
           >
-            <path d="M150 90 H450 H750" />
+            <defs>
+              <linearGradient id="cei-water-vein" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#80d7d2" stopOpacity=".18" />
+                <stop offset=".5" stopColor="#267f87" stopOpacity=".9" />
+                <stop offset="1" stopColor="#d5c384" stopOpacity=".3" />
+              </linearGradient>
+            </defs>
+            <path
+              className={styles.sealVeinBase}
+              d="M150 110 C245 75 255 145 350 110 S455 75 550 110 S655 145 750 110"
+            />
+            <path
+              className={styles.sealVeinFlow}
+              d="M150 110 C245 75 255 145 350 110 S455 75 550 110 S655 145 750 110"
+            />
+            <path className={styles.sealVeinArrow} d="m332 99 18 11-18 11" />
+            <path className={styles.sealVeinArrow} d="m632 99 18 11-18 11" />
           </svg>
           <ol aria-label="Checks、Effects、Interactions 封印顺序">
             {seals.map((seal, index) => (
-              <li key={seal.english} style={{ "--seal-index": index } as CSSProperties}>
-                <span className={styles.sealIndex}>{index + 1}</span>
-                <strong>{seal.english}</strong>
-                <span>{seal.chinese}</span>
+              <li
+                data-seal={seal.kind}
+                key={seal.english}
+                style={{ "--seal-index": index } as CSSProperties}
+              >
+                <div className={styles.ceiSeal}>
+                  <span className={styles.ceiSealNotch} aria-hidden="true" />
+                  <span className={styles.ceiSealFace}>
+                    <span className={styles.sealIndex}>{index + 1}</span>
+                    <span className={styles.ceiSealGlyph}>
+                      <SealGlyph kind={seal.kind} />
+                    </span>
+                    <strong>{seal.english}</strong>
+                    <span>{seal.chinese}</span>
+                  </span>
+                </div>
               </li>
             ))}
           </ol>
-          <dl className={styles.sealConclusions}>
-            {seals.map((seal) => (
-              <div key={`${seal.english}-conclusion`}>
-                <dt>{seal.english}</dt>
-                <dd>{seal.conclusion}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className={styles.sealCodePrinciple}>
-            <code>balances[msg.sender] = 0</code> 先于
-            <code>msg.sender.call&#123;value: amount&#125;(&quot;&quot;)</code> 执行，回调入口因此失效。
+          <p className={styles.sealPrincipleLine}>
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <path d="M5 7c5-1 8 0 11 3v16c-3-3-6-4-11-3V7Z" />
+              <path d="M27 7c-5-1-8 0-11 3v16c3-3 6-4 11-3V7Z" />
+            </svg>
+            <span>
+              <strong>Checks</strong> 先验条件
+              <b aria-hidden="true">→</b>
+              <strong>Effects</strong> 先清零并记录状态
+              <b aria-hidden="true">→</b>
+              <strong>Interactions</strong> 最后执行外部调用
+            </span>
           </p>
         </div>
       </div>

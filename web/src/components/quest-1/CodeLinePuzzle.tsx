@@ -7,6 +7,7 @@ import {
 
 import type { CodeLine, CodeVerdict } from "@/features/quest-1/battle-types";
 
+import { CodeScroll } from "./CodeScroll";
 import styles from "./quest-1.module.css";
 
 interface CodeLinePuzzleProps {
@@ -59,17 +60,13 @@ export function CodeLinePuzzle({
   }
 
   return (
-    <div className={styles.codeScroll}>
+    <CodeScroll fileName="GuardianVault.sol" functionName="withdraw()">
       <div
         className={styles.codePanel}
         role="radiogroup"
         aria-label="选择最先打开重入窗口的代码行"
         aria-disabled={disabled}
       >
-        <div className={styles.codeHeader}>
-          <span>GuardianVault.sol</span>
-          <span>withdraw()</span>
-        </div>
         <div className={styles.codeLines}>
           {lines.map((line, index) => {
             const selected = selectedLineId === line.id;
@@ -99,6 +96,6 @@ export function CodeLinePuzzle({
           })}
         </div>
       </div>
-    </div>
+    </CodeScroll>
   );
 }

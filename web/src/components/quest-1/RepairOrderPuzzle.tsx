@@ -10,6 +10,8 @@ import type {
   RepairMoveDirection,
 } from "@/features/quest-1/battle-types";
 
+import { JadeActionButton } from "./JadeActionButton";
+
 import styles from "./quest-1.module.css";
 
 interface RepairOrderPuzzleProps {
@@ -101,14 +103,14 @@ export function RepairOrderPuzzle({
           <h2 id="repair-order-title">重排 CEI 阵序</h2>
           <p>使用上移与下移，将三段真实合约代码排成安全执行顺序。</p>
         </div>
-        <button
+        <JadeActionButton
           className={styles.repairResetButton}
           disabled={disabled}
           onClick={onReset}
           type="button"
         >
           恢复初始顺序
-        </button>
+        </JadeActionButton>
       </header>
 
       <ol className={styles.repairOrderList} aria-label="当前修复代码块顺序">

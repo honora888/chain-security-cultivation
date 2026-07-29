@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   type AnimationEvent,
@@ -40,9 +41,14 @@ import { BestiaryEntryDialog } from "./BestiaryEntryDialog";
 import { ClassificationPuzzle } from "./ClassificationPuzzle";
 import { CodeLinePuzzle } from "./CodeLinePuzzle";
 import { DormantBeastLoop } from "./DormantBeastLoop";
+import { QuestOneActHeading } from "./QuestOneActHeading";
+import { QuestOneIcon, type QuestOneIconName } from "./QuestOneIcon";
 import { RepairOrderPuzzle } from "./RepairOrderPuzzle";
 import { RewardSequence } from "./RewardSequence";
 import { SealFormationResult } from "./SealFormationResult";
+import { WaterFormationSigil } from "./WaterFormationSigil";
+import { QuestOneSceneBackground } from "./QuestOneSceneBackground";
+import type { QuestOneBackgroundAct } from "./quest-1-backgrounds";
 import styles from "./quest-1.module.css";
 
 function getLiveMessage(
@@ -407,22 +413,75 @@ export function QuestBattleExperience() {
           ? styles.formationReveal
           : "";
 
+  const stageTitle = isActSix
+    ? "战利品与升级"
+    : isActFive
+      ? "布阵封印"
+      : isActFour
+        ? "回环噬灵"
+        : isActThree
+          ? "识破妖法"
+          : isActTwo
+            ? "锁定重入窗口"
+            : "噬灵回环兽现身";
+  const guidanceIcon: QuestOneIconName = isActSix
+    ? "badge"
+    : isActFive
+      ? "seal"
+      : isActFour
+        ? "reentry-loop"
+        : isActThree
+          ? "target"
+          : isActTwo
+            ? "sword"
+            : "boss";
+  const sceneAct = isActSix
+    ? "act6"
+    : isActFive
+      ? "act5"
+      : isActFour
+        ? "act4"
+        : isActThree
+          ? "act3"
+          : isActTwo
+            ? "act2"
+            : "act1";
+  const phaseThreeBackgroundAct: QuestOneBackgroundAct | null =
+    sceneAct === "act2" || sceneAct === "act4" || sceneAct === "act5"
+      ? sceneAct
+      : null;
+
   return (
     <main
       className={styles.battlePage}
+      data-act={sceneAct}
       data-reduced-motion={reducedMotion ? "true" : "false"}
     >
-      <header className={styles.battleHud}>
+      <div className={styles.contentLayer}>
+        <header className={styles.battleHud}>
         <Link className={styles.backLink} href="/">
           返回山门
         </Link>
 
         <div className={styles.bossIdentity}>
+          <span className={styles.hudBeastMedallion} aria-hidden="true">
+            <Image
+              alt=""
+              height={96}
+              src="/assets/quest-1/beast/reentry-devourer-bestiary-portrait-v1.webp"
+              width={96}
+            />
+          </span>
           <div>
             <span>
               Quest {QUEST_ONE.id} · {QUEST_ONE.realm} · {QUEST_ONE.element}系
             </span>
             <strong>{QUEST_ONE.name}</strong>
+            <div className={styles.hudMedallions} aria-label="关卡属性">
+              <span><QuestOneIcon name="realm-jindan" aria-hidden="true" />{QUEST_ONE.realm}</span>
+              <span><QuestOneIcon name="water-drop" aria-hidden="true" />水</span>
+              <span data-risk="high"><QuestOneIcon name="risk-high" aria-hidden="true" />High</span>
+            </div>
           </div>
           <div className={styles.hpGroup}>
             <div className={styles.hpLabel}>
@@ -464,27 +523,40 @@ export function QuestBattleExperience() {
             </button>
           ) : null}
         </div>
-      </header>
+        </header>
 
-      <section className={styles.battleStage} aria-labelledby="stage-title">
-        <div className={styles.stageHeading}>
-          <p className={styles.eyebrow}>{copy.eyebrow}</p>
-          <h1 id="stage-title">
-            {isActSix
-              ? "战利品与升级"
-              : isActFive
-              ? "布阵封印"
-              : isActFour
-              ? "回环噬灵"
-              : isActThree
-                ? "识破妖法"
-              : isActTwo
-                ? "锁定重入窗口"
-                : "噬灵回环兽现身"}
-          </h1>
-        </div>
+        <section
+          className={styles.battleStage}
+          data-act={sceneAct}
+          data-phase-three-background={phaseThreeBackgroundAct ? "true" : "false"}
+          aria-labelledby="stage-title"
+        >
+          {phaseThreeBackgroundAct ? (
+            <QuestOneSceneBackground act={phaseThreeBackgroundAct} />
+          ) : (
+            <div className={styles.fullScenePlate} data-act={sceneAct} aria-hidden="true" />
+          )}
+          <div className={styles.stageDecorations} aria-hidden="true" />
+          <div className={styles.stageContent}>
+            <QuestOneActHeading eyebrow={copy.eyebrow} title={stageTitle} />
+            <div className={styles.stageHeadingLegacy}>
+              <p className={styles.eyebrow}>{copy.eyebrow}</p>
+              <h1 id="stage-title-legacy">
+                {isActSix
+                  ? "战利品与升级"
+                  : isActFive
+                  ? "布阵封印"
+                  : isActFour
+                  ? "回环噬灵"
+                  : isActThree
+                    ? "识破妖法"
+                  : isActTwo
+                    ? "锁定重入窗口"
+                    : "噬灵回环兽现身"}
+              </h1>
+            </div>
 
-        {isActSix ? (
+            {isActSix ? (
           <RewardSequence
             complete={state.phase !== "ACT6_REWARDING"}
             onAnimationEnd={handleRewardAnimationEnd}
@@ -548,19 +620,7 @@ export function QuestBattleExperience() {
               results={state.classificationResults}
               statusRef={classificationFeedbackRef}
             />
-            <div
-              className={`${styles.waterFormation} ${
-                state.phase === "ACT3_FORMATION"
-                  ? styles.waterFormationActive
-                  : ""
-              }`}
-              aria-hidden="true"
-            >
-              <span />
-              <span />
-              <span />
-              <strong>水</strong>
-            </div>
+            <WaterFormationSigil active={state.phase === "ACT3_FORMATION"} />
           </div>
         ) : isActTwo ? (
           <div
@@ -618,19 +678,30 @@ export function QuestBattleExperience() {
               visualState="dormant"
             />
           </div>
-        )}
-      </section>
+            )}
+          </div>
+        </section>
 
-      <section
-        className={styles.commandBar}
+        <section
+        className={`${styles.commandBar} ${styles.mentorGuidancePanel}`}
         data-final-actions={isActSix ? "true" : "false"}
         aria-label="当前战斗指令"
       >
+        <div className={styles.mentorPortrait}>
+          <Image
+            aria-hidden="true"
+            alt=""
+            height={256}
+            src="/assets/quest-1/ui/reference-skin/mentor-portrait.webp"
+            width={256}
+          />
+        </div>
         <p className={styles.dialogue}>
           <span>守阵长老</span>
           {copy.dialogue}
         </p>
         <div className={styles.objective}>
+          <QuestOneIcon className={styles.objectiveIcon} name={guidanceIcon} aria-hidden="true" />
           <span>当前目标</span>
           <strong>{copy.target}</strong>
           <small>{copy.hint}</small>
@@ -739,17 +810,18 @@ export function QuestBattleExperience() {
             {state.phase === "ACT1_APPEARING" ? "妖兽现身中" : copy.action}
           </button>
         )}
-      </section>
+        </section>
 
-      {state.phase === "BESTIARY_OPEN" ? (
-        <BestiaryEntryDialog
-          onClose={() => dispatch({ type: "CLOSE_BESTIARY" })}
-        />
-      ) : null}
+        {state.phase === "BESTIARY_OPEN" ? (
+          <BestiaryEntryDialog
+            onClose={() => dispatch({ type: "CLOSE_BESTIARY" })}
+          />
+        ) : null}
 
-      <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {liveMessage}
-      </p>
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {liveMessage}
+        </p>
+      </div>
     </main>
   );
 }

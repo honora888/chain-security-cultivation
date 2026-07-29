@@ -4427,6 +4427,459 @@
   }
 }
 
+/* ACT5 composition v2: open stage, jade CEI seals, and independent code scrolls. */
+.sealResult,
+.sealCeremonyStage,
+.sealFormation,
+.sealResultComplete .sealFormation,
+.repairDiff,
+.repairDiffGrid {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sealResult {
+  gap: clamp(22px, 3vw, 36px);
+}
+
+.sealCeremonyStage {
+  align-items: center;
+  gap: clamp(18px, 3vw, 42px);
+}
+
+.sealFormation {
+  isolation: isolate;
+  overflow: visible;
+  padding: 18px 0 8px;
+}
+
+.sealFormation::before,
+.sealFormation::after,
+.sealResult::before,
+.sealResult::after {
+  display: none;
+  content: none;
+}
+
+.sealFormationLines {
+  inset: 22px 2% auto;
+  z-index: 0;
+  width: 96%;
+  height: 220px;
+}
+
+.sealFormationLines path {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+
+.sealVeinBase {
+  stroke: rgba(31, 94, 99, 0.26);
+  stroke-width: 12;
+}
+
+.sealVeinFlow {
+  stroke: url("#cei-water-vein");
+  stroke-width: 4;
+}
+
+.sealVeinArrow {
+  fill: none;
+  stroke: rgba(182, 157, 91, 0.78);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.sealFormation ol {
+  z-index: 1;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: clamp(18px, 3vw, 38px);
+  align-items: center;
+}
+
+.sealFormation li {
+  display: grid;
+  min-height: 180px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ceiSeal {
+  position: relative;
+  display: grid;
+  width: clamp(150px, 14vw, 176px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid rgba(176, 148, 80, 0.72);
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 24deg,
+      #173f45 0deg 82deg,
+      #43898b 82deg 177deg,
+      transparent 177deg 191deg,
+      #2f7277 191deg 286deg,
+      #173f45 286deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 5px rgba(212, 196, 139, 0.2),
+    0 0 0 7px rgba(34, 105, 111, 0.12),
+    0 16px 30px rgba(20, 65, 69, 0.16);
+}
+
+.ceiSeal::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(224, 211, 163, 0.68);
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(
+      circle at 42% 36%,
+      rgba(255, 255, 255, 0.2) 0 2px,
+      transparent 2px 11px
+    ),
+    linear-gradient(145deg, #e9f2e8 0%, #c4dfd7 54%, #8fbeba 100%);
+  box-shadow:
+    inset 0 2px 7px rgba(255, 255, 255, 0.72),
+    inset 0 -8px 18px rgba(34, 103, 107, 0.18);
+}
+
+.ceiSealNotch {
+  position: absolute;
+  right: 13px;
+  bottom: 19px;
+  z-index: 2;
+  width: 18px;
+  height: 12px;
+  transform: rotate(-40deg);
+  background: rgba(242, 244, 229, 0.96);
+  box-shadow: 0 0 10px rgba(121, 207, 201, 0.42);
+}
+
+.ceiSealFace {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 72%;
+  place-items: center;
+  gap: 2px;
+  color: #173f45;
+  text-align: center;
+}
+
+.ceiSealFace strong {
+  color: #174e55;
+  font-family: var(--quest-font-display);
+  font-size: clamp(15px, 1.4vw, 18px);
+  letter-spacing: 0.03em;
+}
+
+.ceiSealFace > span:last-child {
+  color: #315f61;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sealIndex {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(213, 192, 126, 0.82);
+  border-radius: 50%;
+  background: #1a6269;
+  color: #fffdf0;
+  box-shadow: 0 3px 10px rgba(20, 63, 67, 0.2);
+}
+
+.ceiSealGlyph {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: #1c6d72;
+}
+
+.ceiSealGlyph svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.sealFormation li[data-seal="effects"] .ceiSeal {
+  box-shadow:
+    inset 0 0 0 5px rgba(224, 207, 147, 0.24),
+    0 0 0 8px rgba(48, 145, 145, 0.14),
+    0 16px 30px rgba(20, 65, 69, 0.18);
+}
+
+.sealPrincipleLine {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-width: 800px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 22px auto 0;
+  padding: 10px clamp(20px, 4vw, 52px);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 253, 245, 0.78) 14%,
+      rgba(255, 253, 245, 0.78) 86%,
+      transparent
+    );
+  color: #315357;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.sealPrincipleLine svg {
+  flex: 0 0 26px;
+  width: 26px;
+  fill: none;
+  stroke: #256f74;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.sealPrincipleLine strong {
+  color: #175d64;
+}
+
+.sealPrincipleLine b {
+  padding: 0 5px;
+  color: #a37f38;
+  font-weight: 800;
+}
+
+.repairDiffGrid {
+  gap: clamp(18px, 3vw, 34px);
+}
+
+.repairDiffGrid article,
+.repairBlock article {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.repairDiffGrid article > header {
+  padding: 0 24px 10px;
+}
+
+.diffCodeScroll {
+  overflow-x: auto;
+  border: 1px solid rgba(104, 184, 190, 0.34);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.28),
+    0 16px 30px rgba(16, 61, 66, 0.14);
+}
+
+.sealSequence .sealFormationLines .sealVeinBase,
+.sealSequence .sealFormationLines .sealVeinArrow {
+  animation: none;
+}
+
+@media (max-width: 767px) {
+  .sealCeremonyStage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sealFormation {
+    width: 100%;
+    padding-inline: 0;
+  }
+
+  .sealFormationLines {
+    display: none;
+  }
+
+  .sealFormation ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .sealFormation li {
+    min-height: 138px;
+  }
+
+  .ceiSeal {
+    width: clamp(106px, 30vw, 128px);
+  }
+
+  .ceiSealFace strong {
+    font-size: 13px;
+  }
+
+  .ceiSealFace > span:last-child {
+    max-width: 82px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .ceiSealGlyph {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sealIndex {
+    top: -18px;
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  .sealPrincipleLine {
+    align-items: flex-start;
+    padding-inline: 16px;
+    font-size: 11px;
+  }
+
+  .sealPrincipleLine span {
+    max-width: 29em;
+  }
+
+  .repairDiffGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 390px) {
+  .ceiSeal {
+    width: 112px;
+  }
+
+  .sealFormation ol {
+    gap: 2px;
+  }
+}
+
+/* Full Scene Plate Composition v1
+   A single opaque offline-composited plate owns the mountain, sect, mist, and
+   water platform.  Individual scenery DOM layers are deliberately retired. */
+.questBackdrop,
+.stageFogLayer,
+.stageSceneLayer {
+  display: none !important;
+}
+
+.battleStage {
+  background: transparent !important;
+}
+
+.fullScenePlate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+  background-color: #eaf4f1;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* The plate is authored to the whole stage; do not crop its far mountain,
+     sect gate, or water platform with a cover fit. */
+  background-size: 100% 100%;
+  opacity: 1;
+}
+
+.fullScenePlate[data-act="act1"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act1.webp");
+}
+
+.fullScenePlate[data-act="act2"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act2.webp");
+}
+
+.fullScenePlate[data-act="act3"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act3.webp");
+}
+
+.fullScenePlate[data-act="act4"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act4.webp");
+}
+
+.fullScenePlate[data-act="act5"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act5.webp");
+}
+
+.fullScenePlate[data-act="act6"] {
+  background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-act6.webp");
+}
+
+/* Phase 3.5 approved scene assets.  The picture element is the only scenery
+   layer for ACT2, ACT4, and ACT5; text and controls stay in stageContent. */
+.sceneBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sceneBackground picture,
+.sceneBackground img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sceneBackground img {
+  object-fit: cover;
+  object-position: center top;
+  opacity: 1;
+}
+
+.stageDecorations {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.battleStage[data-phase-three-background="true"] .fullScenePlate,
+.battleStage[data-phase-three-background="true"] .stageFogLayer,
+.battleStage[data-phase-three-background="true"] .stageSceneLayer,
+.battleStage[data-phase-three-background="true"] .stageSceneBuilding,
+.battleStage[data-phase-three-background="true"] .stageScenePlatform,
+.battleStage[data-phase-three-background="true"] .stageSceneMist {
+  display: none !important;
+}
+
+.stageContent {
+  z-index: 2;
+}
+
+@media (max-width: 767px) {
+  .fullScenePlate,
+  .fullScenePlate[data-act] {
+    background-image: url("/assets/quest-1/ui/scene-plates/quest-1-scene-mobile.webp");
+    background-position: center top;
+    background-size: 100% 100%;
+  }
+}
+
 @media (max-width: 420px) {
   .entryAction span {
     display: none;
@@ -4481,5 +4934,1995 @@
   .sealFormation li {
     min-height: 98px;
     padding-inline: 3px;
+  }
+}
+
+/* Immersive Cultivation UI Polish v2: presentation-only layer. */
+.entryPage,
+.battlePage {
+  --quest-paper: #fbfaf4;
+  --quest-paper-deep: #edf4ed;
+  --quest-ink: #143b40;
+  --quest-ink-muted: #53767a;
+  --quest-water: #237f89;
+  --quest-water-bright: #7cc9cd;
+  --quest-jade: #1d727b;
+  --quest-jade-deep: #0f5963;
+  --quest-cinnabar: #9d4a43;
+  --quest-gold: #b38b55;
+  --quest-line: rgba(38, 112, 117, 0.26);
+  --quest-display: "STKaiti", "KaiTi", "FangSong", "Microsoft YaHei", serif;
+  --quest-body: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --quest-code: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  position: relative;
+  isolation: isolate;
+  color: var(--quest-ink);
+  font-family: var(--quest-body);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(115, 201, 212, 0.14), transparent 28%),
+    radial-gradient(circle at 16% 74%, rgba(97, 160, 168, 0.08), transparent 32%),
+    linear-gradient(180deg, #fbfaf4 0%, #f5f6ef 45%, #e7f5f3 100%);
+}
+
+.questBackdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.questBackdrop svg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: min(46vw, 500px);
+  opacity: 0.075;
+}
+
+.questBackdrop path:first-child { fill: #236a72; }
+.questBackdrop path:last-child { fill: #4ba9aa; opacity: 0.6; }
+
+.backdropRing {
+  position: absolute;
+  top: min(16vw, 180px);
+  right: min(10vw, 144px);
+  width: min(42vw, 520px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(47, 132, 139, 0.13);
+  border-radius: 50%;
+  box-shadow: 0 0 0 46px rgba(73, 170, 174, 0.022), 0 0 0 94px rgba(73, 170, 174, 0.018);
+}
+
+.backdropCloud {
+  position: absolute;
+  top: 9%;
+  left: -4%;
+  width: min(48vw, 660px);
+  height: 230px;
+  border-top: 1px solid rgba(64, 138, 144, 0.12);
+  border-radius: 50%;
+  box-shadow: 60px 42px 0 -24px rgba(120, 191, 191, 0.08), 160px 0 0 -34px rgba(120, 191, 191, 0.08), 255px 40px 0 -22px rgba(120, 191, 191, 0.07);
+  opacity: 0.75;
+}
+
+.entryPage > *,
+.battlePage > *:not(.questBackdrop) { position: relative; z-index: 1; }
+
+.entryPage .siteHeader,
+.battlePage .battleHud {
+  border: 1px solid rgba(58, 126, 126, 0.24);
+  background: linear-gradient(90deg, rgba(255,255,252,0.88), rgba(232,245,239,0.8));
+  box-shadow: inset 0 1px rgba(255,255,255,0.75), 0 14px 34px rgba(22, 83, 89, 0.07);
+}
+
+.entryPage .brandSeal {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  color: #f7f7ed;
+  border: 1px solid rgba(227, 243, 234, 0.75);
+  background: linear-gradient(145deg, #2f8e93, #154e58);
+  box-shadow: inset 0 0 0 3px rgba(251,250,244,0.16);
+}
+
+.entryPage h1,
+.questActHeading h1,
+.repairPuzzle h2,
+.sealResult h2,
+.rewardSequence h2,
+.classificationConclusion h2 {
+  font-family: var(--quest-display);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+}
+
+.entryPage .entryMain { position: relative; }
+
+.entryPage .entryCopy,
+.entryPage .entryVisual,
+.battlePage .battleStage {
+  border-color: var(--quest-line);
+  background: linear-gradient(145deg, rgba(255,255,251,0.84), rgba(238,247,242,0.72));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.62), 0 20px 42px rgba(30, 91, 94, 0.08);
+}
+
+.entryPage .entryCopy::before,
+.battlePage .battleStage::before,
+.entryPage .entryVisual::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(68, 137, 140, 0.14);
+  pointer-events: none;
+}
+
+.entryPage .entryCopy::after,
+.battlePage .battleStage::after {
+  content: "◇";
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  color: rgba(36, 115, 121, 0.34);
+  font-size: 19px;
+  pointer-events: none;
+}
+
+.entryPage .entryLead { max-width: 38ch; color: var(--quest-ink-muted); }
+
+.entryPage .questFacts div {
+  border-color: rgba(55, 126, 129, 0.2);
+  background: rgba(250, 253, 248, 0.72);
+}
+
+.entryPage .questFacts div[data-danger="true"] { border-color: rgba(157, 74, 67, 0.38); }
+.entryPage .questFacts dt { display: inline-flex; align-items: center; gap: 5px; }
+.entryPage .questFacts dt svg { width: 15px; height: 15px; color: var(--quest-water); }
+.entryPage .questFacts div[data-danger="true"] dt svg { color: var(--quest-cinnabar); }
+
+.entryPortalFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 510px);
+  min-height: min(44vw, 510px);
+  padding: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(43, 129, 133, 0.32);
+  border-radius: 50% 50% 44% 44% / 46% 46% 34% 34%;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(191, 236, 231, 0.55), transparent 49%),
+    linear-gradient(155deg, rgba(248,253,248,0.96), rgba(210,237,230,0.72));
+  box-shadow: inset 0 0 0 10px rgba(20, 97, 105, 0.05), inset 0 0 0 11px rgba(255,255,255,0.8), 0 24px 44px rgba(23,95,102,0.14);
+}
+
+.entryPortalFrame::before,
+.entryPortalFrame::after {
+  content: "";
+  position: absolute;
+  inset: 15%;
+  border: 1px solid rgba(63, 149, 154, 0.2);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.entryPortalFrame::after { inset: 23%; border-style: dashed; opacity: .55; }
+.entryPortalFrame img { position: relative; z-index: 1; width: min(100%, 390px); height: auto; filter: drop-shadow(0 24px 24px rgba(10, 64, 73, .17)); }
+.entryPortalTitle { position: absolute; top: 17px; z-index: 2; color: var(--quest-ink-muted); font-family: var(--quest-display); font-size: 13px; letter-spacing: .12em; }
+
+.entryPage .entryAction {
+  border: 1px solid rgba(49, 126, 128, 0.28);
+  background: linear-gradient(90deg, rgba(252,252,246,0.94), rgba(228,244,237,0.9));
+  box-shadow: inset 0 1px rgba(255,255,255,.8), 0 12px 30px rgba(25,89,95,.09);
+}
+.entryPage .entryAction span,
+.entryPage .entryAction strong { display: inline-flex; align-items: center; gap: 7px; }
+.entryPage .entryAction svg { width: 17px; height: 17px; color: var(--quest-water); }
+
+.primaryButton,
+.jadeActionButton {
+  min-height: 46px;
+  color: #f7fbf7;
+  border: 1px solid rgba(224, 244, 231, 0.78);
+  border-radius: 9px;
+  background: linear-gradient(180deg, #3aa6aa 0%, #167581 52%, #125c68 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 -2px 0 rgba(7,56,63,.34), 0 10px 24px rgba(24,94,102,.18);
+  text-shadow: 0 1px rgba(7,56,63,.4);
+}
+.primaryButton::before,
+.jadeActionButton::before { content: "◇"; margin-right: 7px; color: #d8f1e6; }
+.primaryButton:hover:not(:disabled),
+.jadeActionButton:hover:not(:disabled) { filter: brightness(1.07); transform: none; }
+.primaryButton:active:not(:disabled),
+.jadeActionButton:active:not(:disabled) { transform: translateY(1px); }
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.jadeActionButton:focus-visible,
+.replayControls button:focus-visible,
+.repairMoveControls button:focus-visible,
+.repairResetButton:focus-visible { outline: 3px solid #78cfd0; outline-offset: 3px; }
+
+.secondaryButton,
+.jade_secondary {
+  min-height: 46px;
+  color: var(--quest-jade-deep);
+  border: 1px solid rgba(28, 117, 122, .48);
+  background: linear-gradient(180deg, #fffef7, #e8f4ec);
+  box-shadow: inset 0 1px rgba(255,255,255,.92), 0 8px 18px rgba(26,96,100,.08);
+}
+.jade_danger { background: linear-gradient(180deg, #ae6258, #85443f); }
+.jade_success { background: linear-gradient(180deg, #4f9e82, #256a5c); }
+.jade_ghost { color: var(--quest-jade-deep); background: transparent; box-shadow: none; }
+
+.battlePage .battleHud {
+  padding: 12px 18px;
+  border-radius: 0 0 17px 17px;
+}
+.battlePage .bossIdentity { align-items: center; }
+.hudBeastMedallion {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--quest-water);
+  border: 1px solid rgba(36, 119, 125, .35);
+  border-radius: 50%;
+  background: radial-gradient(circle, #effaf3 0 42%, #c5e6df 43% 48%, #edf7ef 49%);
+}
+.hudBeastMedallion svg { width: 25px; height: 25px; }
+.hudMedallions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.hudMedallions span { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; color: var(--quest-ink-muted); border: 1px solid rgba(44,122,124,.25); border-radius: 999px; background: rgba(255,255,251,.7); font-size: 11px; }
+.hudMedallions span svg { width: 12px; height: 12px; color: var(--quest-water); }
+.hudMedallions span[data-risk="high"] { color: #88433e; border-color: rgba(157,74,67,.32); }
+.hudMedallions span[data-risk="high"] svg { color: var(--quest-cinnabar); }
+.battlePage .hpTrack { overflow: visible; border: 1px solid rgba(77,119,102,.46); border-radius: 999px; background: linear-gradient(180deg, #e2e8dd, #b8cbbd); box-shadow: inset 0 1px 3px rgba(21,61,63,.22), 0 0 0 3px rgba(255,255,249,.62); }
+.battlePage .hpTrack::before,
+.battlePage .hpTrack::after { content: "◇"; position: absolute; top: 50%; color: var(--quest-gold); font-size: 12px; transform: translateY(-50%); }
+.battlePage .hpTrack::before { left: -15px; }
+.battlePage .hpTrack::after { right: -15px; }
+.battlePage .hpFill { background: linear-gradient(90deg, #4aaeb0, #268187 56%, #1b6972); }
+
+.stageHeadingLegacy { display: none; }
+.questActHeading { display: grid; justify-items: center; gap: 5px; margin: 2px 0 20px; text-align: center; }
+.questActHeading p { display: inline-flex; gap: 9px; align-items: center; margin: 0; color: var(--quest-water); font-size: 12px; letter-spacing: .12em; }
+.questActHeading h1 { margin: 0; color: #173d43; font-size: clamp(26px, 3.4vw, 42px); line-height: 1.1; }
+.actHeadingRule { display: inline-grid; grid-template-columns: 72px 24px 72px; align-items: center; color: rgba(45,135,140,.55); }
+.actHeadingRule::before,
+.actHeadingRule::after { content: ""; height: 1px; background: linear-gradient(90deg, transparent, currentColor); }
+.actHeadingRule::after { transform: scaleX(-1); }
+.actHeadingRule svg { width: 17px; height: 17px; justify-self: center; }
+
+.battlePage .battleStage { padding: 28px clamp(18px, 4vw, 48px) 44px; border-radius: 22px; }
+.battlePage[data-act="act1"] .battleStage { background: linear-gradient(150deg, rgba(255,255,251,.92), rgba(220,241,235,.78)); }
+.battlePage[data-act="act2"] .battleStage { background: linear-gradient(150deg, rgba(252,252,248,.92), rgba(230,242,238,.84)); }
+.battlePage[data-act="act3"] .battleStage { background: linear-gradient(150deg, rgba(247,253,249,.92), rgba(216,239,238,.84)); }
+.battlePage[data-act="act4"] .battleStage { background: linear-gradient(150deg, rgba(237,247,244,.95), rgba(206,230,229,.9)); }
+.battlePage[data-act="act5"] .battleStage { background: linear-gradient(150deg, rgba(249,250,241,.95), rgba(226,240,226,.86)); }
+.battlePage[data-act="act6"] .battleStage { background: linear-gradient(150deg, rgba(255,253,245,.94), rgba(231,244,233,.88)); }
+
+.codeScrollFrame { display: grid; grid-template-columns: 15px minmax(0,1fr) 15px; min-width: 0; overflow: hidden; border-radius: 16px; box-shadow: 0 18px 34px rgba(21,63,69,.12); }
+.scrollRod { z-index: 1; min-width: 0; border: 1px solid rgba(107,82,44,.46); background: linear-gradient(90deg, #5d7771, #c6d8c8 44%, #54716c); box-shadow: inset 0 0 0 2px rgba(246,235,204,.24); }
+.codeScrollContent { min-width: 0; border-top: 1px solid rgba(107,188,196,.34); border-bottom: 1px solid rgba(107,188,196,.34); background: linear-gradient(180deg, rgba(8,39,47,.98), rgba(7,31,38,.98)); }
+.codeScrollContent > header { display: flex; justify-content: space-between; gap: 10px; padding: 9px 14px; color: #c0e6de; border-bottom: 1px solid rgba(112,189,192,.23); background: rgba(109,180,175,.08); font-size: 12px; }
+.codeScrollContent > header span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.codeScrollContent > header svg { width: 16px; height: 16px; }
+.codeScrollContent > header code { color: #80c8cc; font-family: var(--quest-code); font-size: 11px; }
+.codeScrollFrame .codePanel { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.codeScrollFrame .codeLines { padding: 8px; }
+.codeScrollFrame .codeLine { font-family: var(--quest-code); border-left: 2px solid transparent; }
+.codeScrollFrame .codeLineSelected { border-left-color: #83d8d1; background: linear-gradient(90deg, rgba(90,202,198,.2), transparent); }
+.codeScrollFrame .line_correct { border-left-color: #89d9b6; }
+.codeScrollFrame .line_wrong { border-left-color: #bd685f; }
+
+.replayShell,
+.repairPuzzle,
+.sealResult,
+.rewardSequence,
+.classificationPuzzle { border: 1px solid rgba(47,128,129,.23); background: rgba(255,255,250,.56); box-shadow: inset 0 0 0 1px rgba(255,255,255,.55); }
+.replayShell::before,
+.repairPuzzle::before,
+.sealResult::before,
+.rewardSequence::before { content: "宗门卷宗"; display: inline-flex; width: max-content; padding: 4px 9px; color: var(--quest-water); border: 1px solid rgba(45,125,128,.25); border-radius: 999px; background: rgba(250,253,247,.76); font-family: var(--quest-display); font-size: 12px; letter-spacing: .08em; }
+.battlePage[data-act="act4"] .replayShell::before { content: "回环取证卷宗"; }
+.battlePage[data-act="act5"] .repairPuzzle::before,
+.battlePage[data-act="act5"] .sealResult::before { content: "CEI 封印玉简"; }
+.battlePage[data-act="act6"] .rewardSequence::before { content: "本地学习结算"; }
+.replayFlowPanel,
+.sealFormation { border-color: rgba(47,128,129,.34); background: linear-gradient(145deg, rgba(233,247,240,.88), rgba(213,234,229,.75)); }
+.replayActor,
+.replayEvidence,
+.replayCodeOrder,
+.repairBlock article,
+.repairDiffGrid article,
+.rewardCards article,
+.chainStatusPanel,
+.completionSummary { border-color: rgba(43,123,126,.23); background: linear-gradient(150deg, rgba(255,255,251,.86), rgba(232,246,238,.7)); box-shadow: inset 0 1px rgba(255,255,255,.74); }
+.replayCodeOrder code,
+.repairCodeScroll,
+.diffCodeScroll { font-family: var(--quest-code); border-color: rgba(90,185,190,.32); background: linear-gradient(180deg, rgba(8,39,47,.98), rgba(7,31,38,.98)); }
+.replayCodeOrder { position: relative; overflow: hidden; }
+.replayCodeOrder::before,
+.replayCodeOrder::after,
+.repairCodeScroll,
+.diffCodeScroll { position: relative; }
+.repairCodeScroll::before,
+.repairCodeScroll::after,
+.diffCodeScroll::before,
+.diffCodeScroll::after,
+.replayCodeOrder::before,
+.replayCodeOrder::after { content: ""; position: absolute; top: 0; bottom: 0; width: 6px; background: linear-gradient(#5e8179, #d3dfc7, #5e8179); opacity: .72; pointer-events: none; }
+.repairCodeScroll::before,
+.diffCodeScroll::before,
+.replayCodeOrder::before { left: 0; }
+.repairCodeScroll::after,
+.diffCodeScroll::after,
+.replayCodeOrder::after { right: 0; }
+.replayControls button,
+.repairMoveControls button,
+.repairResetButton { min-height: 44px; color: #eaf7ef; border-color: rgba(219,241,230,.7); background: linear-gradient(180deg, #3a9a9c, #176f7a); box-shadow: inset 0 1px rgba(255,255,255,.3), inset 0 -2px rgba(7,56,63,.24); }
+.replayControls button:disabled,
+.repairMoveControls button:disabled,
+.repairResetButton:disabled { color: rgba(30,69,73,.56); border-color: rgba(70,116,115,.18); background: rgba(209,222,213,.72); box-shadow: none; }
+.replayLoopPath { stroke: var(--quest-cinnabar); }
+.replayReentryMark,
+.replayShell[data-flow="loop"] .replayActor[data-active="true"] { color: var(--quest-cinnabar); }
+.replayShell[data-flow="transfer"] .replayActor[data-active="true"] { color: var(--quest-water); }
+.repairBlock[data-safe="true"] article { border-color: rgba(50,139,105,.52); box-shadow: inset 0 0 0 1px rgba(136,210,175,.25); }
+.repairBlock[data-safe="false"] article { border-color: rgba(157,74,67,.38); }
+.sealFormation { position: relative; overflow: hidden; }
+.sealFormation::before { content: ""; position: absolute; inset: 18%; border: 1px solid rgba(47,132,139,.17); border-radius: 12px; box-shadow: 0 0 0 14px rgba(47,132,139,.035), 0 0 0 29px rgba(47,132,139,.025); pointer-events: none; }
+.sealFormation > * { position: relative; z-index: 1; }
+.rewardBadgeCard { border-color: rgba(179,139,85,.46) !important; }
+
+.mentorGuidancePanel {
+  grid-template-columns: 112px minmax(180px, .9fr) minmax(220px, 1.15fr) auto;
+  align-items: center;
+  overflow: visible;
+  border: 1px solid rgba(52,125,127,.34) !important;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, rgba(239,248,239,.97), rgba(255,253,244,.98)) !important;
+  box-shadow: 0 -12px 34px rgba(20,79,85,.11), inset 0 1px rgba(255,255,255,.84) !important;
+}
+.mentorGuidancePanel::before { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(52,125,127,.16); border-bottom: 0; pointer-events: none; }
+.mentorPortrait { position: relative; align-self: stretch; min-width: 0; color: #174c54; }
+.mentorPortrait svg { position: absolute; right: 4px; bottom: 0; width: 112px; height: 122px; fill: rgba(19,65,72,.82); stroke: rgba(126,208,206,.62); stroke-width: 1; filter: drop-shadow(0 7px 8px rgba(30,94,98,.2)); }
+.mentorPortrait span { position: absolute; bottom: 4px; left: 0; max-width: 96px; color: rgba(22,73,79,.52); font-size: 8px; line-height: 1.1; }
+.mentorGuidancePanel .dialogue { display: grid; gap: 5px; margin: 0; padding-right: 12px; color: var(--quest-ink-muted); }
+.mentorGuidancePanel .dialogue span { width: max-content; padding: 3px 8px; color: #eaf5ed; border-radius: 999px; background: var(--quest-jade-deep); font-family: var(--quest-display); font-size: 12px; }
+.mentorGuidancePanel .objective { position: relative; padding-left: 38px; }
+.mentorGuidancePanel .objectiveIcon { position: absolute; top: 3px; left: 0; width: 26px; height: 26px; color: var(--quest-water); }
+.mentorGuidancePanel .primaryButton { min-width: 142px; min-height: 48px; }
+
+@media (max-width: 767px) {
+  .questBackdrop svg { height: 300px; opacity: .055; }
+  .backdropRing { top: 160px; right: -90px; width: 330px; opacity: .5; }
+  .backdropCloud { width: 390px; opacity: .42; }
+  .entryPage .entryCopy::before,
+  .battlePage .battleStage::before { inset: 7px; }
+  .entryPortalFrame { min-height: 320px; padding: 28px 20px; }
+  .entryPortalFrame img { width: min(100%, 290px); }
+  .battlePage .battleHud { border-radius: 0 0 13px 13px; }
+  .hudBeastMedallion { display: none; }
+  .hudMedallions { display: none; }
+  .battlePage .battleStage { padding: 22px 14px 36px; border-radius: 15px; }
+  .questActHeading { margin-bottom: 15px; }
+  .questActHeading h1 { font-size: 29px; }
+  .codeScrollFrame { grid-template-columns: 8px minmax(0,1fr) 8px; border-radius: 12px; }
+  .codeScrollContent > header { padding: 8px 10px; }
+  .scrollRod { border-color: rgba(70,109,103,.5); }
+  .replayShell::before,
+  .repairPuzzle::before,
+  .sealResult::before,
+  .rewardSequence::before { margin-bottom: 4px; }
+  .mentorGuidancePanel {
+    position: static !important;
+    grid-template-columns: 68px minmax(0,1fr) !important;
+    gap: 8px !important;
+    min-height: 116px !important;
+    margin-top: 16px !important;
+    padding: 10px 13px max(10px, env(safe-area-inset-bottom)) !important;
+  }
+  .mentorPortrait { grid-row: span 2; min-height: 86px; }
+  .mentorPortrait svg { right: 0; width: 74px; height: 88px; }
+  .mentorPortrait span { display: none; }
+  .mentorGuidancePanel .dialogue { display: grid; padding: 0; font-size: 12px; }
+  .mentorGuidancePanel .objective { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 7px; padding: 0; }
+  .mentorGuidancePanel .objectiveIcon { position: static; align-self: start; }
+  .mentorGuidancePanel .objective > span { display: none; }
+  .mentorGuidancePanel .objective strong { font-size: 12px; }
+  .mentorGuidancePanel .objective small { display: none; }
+  .mentorGuidancePanel .primaryButton { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 48px; }
+  .mentorGuidancePanel .completionActions { grid-column: 1 / -1; }
+}
+
+/* Reference Skin Integration Repair v1
+   Layer 0: page atmosphere
+   Layer 1: non-interactive decoration
+   Layer 2: real HTML content and controls */
+.entryPage,
+.battlePage {
+  background-color: #f4f1e8;
+  background-image:
+    radial-gradient(circle at 78% 18%, rgba(115, 201, 212, 0.11), transparent 28%),
+    radial-gradient(circle at 16% 74%, rgba(97, 160, 168, 0.07), transparent 32%),
+    linear-gradient(180deg, rgba(251, 249, 242, 0.94), rgba(229, 242, 239, 0.95)),
+    url("/assets/quest-1/ui/reference-skin/paper-texture.webp");
+  background-position: center, center, center, left top;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: cover, cover, cover, 256px 256px;
+}
+
+.nineSliceFrame {
+  --frame-safe-top: 12px;
+  --frame-safe-right: 16px;
+  --frame-safe-bottom: 12px;
+  --frame-safe-left: 16px;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  padding:
+    var(--frame-safe-top)
+    var(--frame-safe-right)
+    var(--frame-safe-bottom)
+    var(--frame-safe-left);
+  border: 0;
+  overflow: visible;
+}
+
+.nineSliceDecoration {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-style: solid;
+  border-color: transparent;
+  border-image-source: var(--nine-slice-image);
+  border-image-slice: var(--nine-slice-slice);
+  border-image-width: var(--nine-slice-width);
+  border-image-repeat: var(--nine-slice-repeat);
+  pointer-events: none;
+}
+
+.nineSliceFrame > :not(.nineSliceDecoration) {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.battlePage .battleHud {
+  --frame-safe-top: 14px;
+  --frame-safe-right: 20px;
+  --frame-safe-bottom: 14px;
+  --frame-safe-left: 20px;
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(86px, auto) minmax(0, 1fr) auto;
+  gap: 16px;
+  min-height: 104px;
+  margin-top: 10px;
+  padding:
+    var(--frame-safe-top)
+    var(--frame-safe-right)
+    var(--frame-safe-bottom)
+    var(--frame-safe-left);
+  border: 1px solid rgba(75, 132, 128, 0.25);
+  border-radius: 16px;
+  overflow: visible;
+  background:
+    linear-gradient(90deg, rgba(253, 251, 244, 0.94), rgba(230, 242, 239, 0.92));
+  box-shadow: 0 10px 28px rgba(32, 78, 82, 0.08);
+}
+
+.battlePage .battleHud::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 0;
+  border: 1px solid rgba(75, 132, 128, 0.13);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.battlePage .battleHud > * {
+  position: relative;
+  z-index: 1;
+}
+
+.battlePage .bossIdentity {
+  grid-template-columns: 64px minmax(170px, auto) minmax(220px, 1fr);
+  gap: 14px;
+}
+
+.hudBeastMedallion {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  overflow: visible;
+  padding: 3px;
+  border: 1px solid rgba(190, 155, 86, 0.55);
+  border-radius: 50%;
+  background: #e8f3ef;
+  box-shadow:
+    inset 0 0 0 2px rgba(250, 245, 222, 0.9),
+    0 3px 10px rgba(18, 62, 69, 0.18);
+}
+
+.hudBeastMedallion img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.battlePage .hpTrack {
+  position: relative;
+  margin-inline: 20px;
+  overflow: visible;
+}
+
+.battlePage .hpTrack::before,
+.battlePage .hpTrack::after {
+  width: 24px;
+  height: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.battlePage .hpTrack::before {
+  left: -20px;
+  background-image: url("/assets/quest-1/ui/reference-skin/hp-bar-cap-left.webp?v=2");
+}
+
+.battlePage .hpTrack::after {
+  right: -20px;
+  background-image: url("/assets/quest-1/ui/reference-skin/hp-bar-cap-right.webp?v=2");
+}
+
+.questActHeading {
+  position: relative;
+  isolation: isolate;
+  margin: 4px 0 24px;
+}
+
+.questActHeading h1 {
+  position: relative;
+  z-index: 1;
+  min-width: min(100%, 360px);
+  margin: 0;
+  padding: 9px 34px 11px;
+  border: 1px solid rgba(56, 128, 130, 0.28);
+  border-radius: 8px 18px;
+  background:
+    linear-gradient(90deg, rgba(246, 243, 232, 0.78), rgba(224, 241, 236, 0.9), rgba(246, 243, 232, 0.78));
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.36),
+    0 8px 20px rgba(40, 89, 92, 0.07);
+}
+
+.questActHeading h1::before,
+.questActHeading h1::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 1px;
+  background: rgba(43, 122, 126, 0.45);
+  pointer-events: none;
+}
+
+.questActHeading h1::before {
+  left: 8px;
+}
+
+.questActHeading h1::after {
+  right: 8px;
+}
+
+.mentorGuidancePanel {
+  --frame-safe-top: 18px;
+  --frame-safe-right: 20px;
+  --frame-safe-bottom: 18px;
+  --frame-safe-left: 20px;
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: 96px minmax(220px, 1fr) minmax(260px, 1fr) auto;
+  gap: 16px 20px;
+  min-height: 0;
+  padding:
+    var(--frame-safe-top)
+    var(--frame-safe-right)
+    var(--frame-safe-bottom)
+    var(--frame-safe-left);
+  border: 1px solid rgba(53, 125, 127, 0.28);
+  border-radius: 16px;
+  overflow: visible;
+  background:
+    linear-gradient(90deg, rgba(251, 249, 241, 0.97), rgba(235, 245, 241, 0.96));
+  box-shadow: 0 -8px 28px rgba(26, 75, 81, 0.09);
+}
+
+.mentorGuidancePanel::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: 0;
+  display: block;
+  border: 1px solid rgba(52, 125, 127, 0.13);
+  border-radius: 11px;
+  pointer-events: none;
+}
+
+.mentorGuidancePanel > * {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.mentorPortrait {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  overflow: visible;
+  align-self: center;
+}
+
+.mentorPortrait img {
+  position: static;
+  display: block;
+  width: 96px;
+  height: 96px;
+  border: 1px solid rgba(61, 127, 128, 0.25);
+  border-radius: 50%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(29, 81, 87, 0.16));
+}
+
+.mentorGuidancePanel .dialogue {
+  align-self: center;
+  min-height: 54px;
+  padding: 0;
+  overflow: visible;
+  line-height: 1.65;
+}
+
+.mentorGuidancePanel .objective {
+  align-self: center;
+  overflow: visible;
+}
+
+.mentorGuidancePanel .completionActions,
+.mentorGuidancePanel > .primaryButton,
+.mentorGuidancePanel > .secondaryButton {
+  align-self: center;
+}
+
+.codeScrollFrame {
+  --frame-safe-top: 12px;
+  --frame-safe-right: 16px;
+  --frame-safe-bottom: 12px;
+  --frame-safe-left: 16px;
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: 12px minmax(0, 1fr) 12px;
+  overflow: visible;
+}
+
+.codeScrollFrame .nineSliceDecoration {
+  opacity: 0.58;
+}
+
+.codeScrollContent {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.scrollRod {
+  z-index: 1;
+  min-width: 0;
+  border: 0;
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.scrollRod[data-side="left"] {
+  background-image: url("/assets/quest-1/ui/reference-skin/scroll-rod-left.webp");
+}
+
+.scrollRod[data-side="right"] {
+  background-image: url("/assets/quest-1/ui/reference-skin/scroll-rod-right.webp?v=2");
+}
+
+.replayCodeOrder,
+.repairCodeScroll,
+.diffCodeScroll {
+  position: relative;
+  isolation: isolate;
+  max-width: 100%;
+  padding-inline: 16px;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.replayCodeOrder > *,
+.repairCodeScroll > *,
+.diffCodeScroll > * {
+  position: relative;
+  z-index: 1;
+}
+
+.replayCodeOrder::before,
+.repairCodeScroll::before,
+.diffCodeScroll::before,
+.replayCodeOrder::after,
+.repairCodeScroll::after,
+.diffCodeScroll::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 6px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  opacity: 0.64;
+  pointer-events: none;
+}
+
+.replayCodeOrder::before,
+.repairCodeScroll::before,
+.diffCodeScroll::before {
+  left: 2px;
+  background-image: url("/assets/quest-1/ui/reference-skin/scroll-rod-left.webp?v=2");
+}
+
+.replayCodeOrder::after,
+.repairCodeScroll::after,
+.diffCodeScroll::after {
+  right: 2px;
+  background-image: url("/assets/quest-1/ui/reference-skin/scroll-rod-right.webp?v=2");
+}
+
+.replayCodeOrder code,
+.repairCodeScroll code,
+.diffCodeScroll code {
+  font-size: max(13px, 0.8125rem);
+  line-height: 1.55;
+}
+
+.primaryButton,
+.jadeActionButton,
+.secondaryButton,
+.jade_secondary,
+.repairResetButton,
+.replayControls button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 22px;
+  border-style: solid;
+  border-width: 1px;
+  border-image: none;
+  border-radius: 9px 16px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -2px 0 rgba(7, 55, 61, 0.24),
+    0 8px 18px rgba(25, 88, 96, 0.14);
+}
+
+.primaryButton::before,
+.primaryButton::after,
+.jadeActionButton::before,
+.jadeActionButton::after,
+.secondaryButton::before,
+.secondaryButton::after,
+.replayControls button::before,
+.replayControls button::after {
+  display: none;
+}
+
+.primaryButton,
+.jade_primary,
+.jade_success,
+.replayControls .replayPlayButton {
+  border-color: rgba(210, 230, 205, 0.82);
+  background:
+    linear-gradient(180deg, #42aeb2 0%, #21838d 52%, #155f69 100%);
+  color: #f8fbf3;
+}
+
+.secondaryButton,
+.jade_secondary,
+.jade_ghost,
+.repairResetButton,
+.replayControls button:not(.replayPlayButton) {
+  border-color: rgba(45, 125, 128, 0.4);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 245, 0.99), rgba(231, 239, 228, 0.99));
+  color: #185d65;
+}
+
+.jade_danger {
+  border-color: rgba(162, 73, 64, 0.48);
+  background: linear-gradient(180deg, #b66055, #8f453e);
+  color: #fffaf3;
+}
+
+.primaryButton:hover:not(:disabled),
+.jadeActionButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled),
+.repairResetButton:hover:not(:disabled),
+.replayControls button:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: none;
+}
+
+.primaryButton:active:not(:disabled),
+.jadeActionButton:active:not(:disabled),
+.secondaryButton:active:not(:disabled),
+.repairResetButton:active:not(:disabled),
+.replayControls button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.primaryButton:focus-visible,
+.jadeActionButton:focus-visible,
+.secondaryButton:focus-visible,
+.repairResetButton:focus-visible,
+.replayControls button:focus-visible {
+  outline: 3px solid rgba(39, 128, 137, 0.34);
+  outline-offset: 3px;
+}
+
+.replayControls {
+  align-items: stretch;
+}
+
+.replayControls button {
+  flex: 1 1 118px;
+  min-width: 0;
+}
+
+.rewardSequence,
+.chainStatusPanel,
+.bestiaryDialog {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(61, 128, 128, 0.25);
+  border-image: none;
+  border-radius: 16px;
+  overflow: visible;
+  background:
+    linear-gradient(145deg, rgba(251, 249, 241, 0.97), rgba(232, 244, 240, 0.96));
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.28),
+    0 14px 34px rgba(26, 72, 78, 0.08);
+}
+
+.rewardSequence {
+  padding: 28px;
+}
+
+.chainStatusPanel {
+  padding: 20px;
+}
+
+.bestiaryDialog::after {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .battlePage .battleHud {
+    grid-template-columns: 86px minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .battlePage .bossIdentity {
+    grid-template-columns: 58px minmax(160px, auto) minmax(200px, 1fr);
+  }
+
+  .hudActions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .mentorGuidancePanel {
+    grid-template-columns: 82px minmax(180px, 1fr) minmax(220px, 1fr);
+  }
+
+  .mentorPortrait,
+  .mentorPortrait img {
+    width: 82px;
+    height: 82px;
+  }
+
+  .mentorGuidancePanel > .primaryButton,
+  .mentorGuidancePanel .completionActions {
+    grid-column: 2 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .entryPage,
+  .battlePage {
+    background-image:
+      radial-gradient(circle at 78% 18%, rgba(115, 201, 212, 0.07), transparent 28%),
+      linear-gradient(180deg, rgba(251, 249, 242, 0.97), rgba(229, 242, 239, 0.97)),
+      url("/assets/quest-1/ui/reference-skin/paper-texture.webp");
+    background-position: center, center, left top;
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-size: cover, cover, 192px 192px;
+  }
+
+  .battlePage .battleHud {
+    --frame-safe-top: 12px;
+    --frame-safe-right: 12px;
+    --frame-safe-bottom: 12px;
+    --frame-safe-left: 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    margin-top: 8px;
+    border-radius: 12px;
+  }
+
+  .battlePage .bossIdentity {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .hudBeastMedallion {
+    display: grid;
+    width: 52px;
+    height: 52px;
+  }
+
+  .battlePage .hpGroup {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+  }
+
+  .hudActions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .questActHeading {
+    margin-bottom: 18px;
+  }
+
+  .questActHeading h1 {
+    min-width: 0;
+    width: 100%;
+    padding: 7px 16px 9px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 29px;
+  }
+
+  .questActHeading h1::before,
+  .questActHeading h1::after {
+    display: none;
+  }
+
+  .mentorGuidancePanel {
+    --frame-safe-top: 14px;
+    --frame-safe-right: 14px;
+    --frame-safe-bottom: 14px;
+    --frame-safe-left: 14px;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .mentorPortrait,
+  .mentorPortrait img {
+    width: 68px;
+    height: 68px;
+  }
+
+  .mentorGuidancePanel .mentorPortrait {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mentorGuidancePanel .dialogue {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    font-size: 13px;
+  }
+
+  .mentorGuidancePanel .objective {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .mentorGuidancePanel[data-final-actions="true"] .objective {
+    display: grid;
+  }
+
+  .mentorGuidancePanel > .primaryButton,
+  .mentorGuidancePanel > .secondaryButton,
+  .mentorGuidancePanel .completionActions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .primaryButton,
+  .jadeActionButton,
+  .secondaryButton,
+  .jade_secondary,
+  .repairResetButton,
+  .replayControls button {
+    min-height: 48px;
+    padding: 11px 16px;
+  }
+
+  .replayControls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .replayControls button {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .codeScrollFrame {
+    --frame-safe-top: 8px;
+    --frame-safe-right: 8px;
+    --frame-safe-bottom: 8px;
+    --frame-safe-left: 8px;
+    grid-template-columns: 7px minmax(0, 1fr) 7px;
+  }
+
+  .codeScrollFrame .nineSliceDecoration {
+    display: none;
+  }
+
+  .replayCodeOrder,
+  .repairCodeScroll,
+  .diffCodeScroll {
+    padding-inline: 12px;
+  }
+
+  .replayCodeOrder code,
+  .repairCodeScroll code,
+  .diffCodeScroll code {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .rewardSequence,
+  .chainStatusPanel,
+  .bestiaryDialog {
+    border-radius: 12px;
+  }
+
+  .rewardSequence {
+    padding: 18px 14px;
+  }
+
+  .chainStatusPanel {
+    padding: 16px 12px;
+  }
+}
+
+/* Reference Fidelity Repair v2 — P0: evidence code must remain visible. */
+.replayCodeOrder li {
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-color: rgba(49, 125, 132, 0.2);
+  background: rgba(250, 252, 247, 0.92);
+}
+
+.replayCodeOrder code {
+  position: relative;
+  z-index: 2;
+  display: block;
+  min-width: 0;
+  overflow: visible;
+  color: #0d3941;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.replayCodeOrder li[data-danger="true"] {
+  border-left: 3px solid #b66055;
+  background: rgba(255, 247, 242, 0.94);
+}
+
+.replayCodeOrder li:not([data-danger="true"]) {
+  border-left: 3px solid #56a99f;
+}
+
+@media (max-width: 767px) {
+  .replayCodeOrder code {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+/* Reference Fidelity Repair v2 — P1: a readable, content-safe code scroll. */
+.codeScrollFrame {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 16px 28px rgba(16, 52, 58, 0.16));
+  isolation: isolate;
+}
+
+.codeScrollContent {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  border-block: 1px solid rgba(180, 211, 198, 0.28);
+  background: linear-gradient(180deg, #103c43, #092d34);
+  box-shadow:
+    inset 16px 0 18px -18px rgba(215, 196, 133, 0.8),
+    inset -16px 0 18px -18px rgba(215, 196, 133, 0.8),
+    inset 0 0 30px rgba(0, 0, 0, 0.28);
+}
+
+.scrollRod {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  border: 1px solid rgba(101, 80, 40, 0.55);
+  background: linear-gradient(90deg, #214d50 0%, #8e7a4b 24%, #d1b875 48%, #496f68 72%, #183f43 100%);
+  box-shadow: inset 0 0 0 1px rgba(239, 222, 162, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+}
+
+.scrollRodLeft { border-radius: 14px 0 0 14px; }
+.scrollRodRight { border-radius: 0 14px 14px 0; }
+
+.scrollRod::before,
+.scrollRod::after {
+  position: absolute;
+  left: 50%;
+  width: 34px;
+  height: 14px;
+  content: "";
+  transform: translateX(-50%);
+  border: 1px solid #766338;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #d8c58a, #4f6256);
+  box-shadow: 0 2px 5px rgba(7, 31, 34, 0.32);
+}
+
+.scrollRod::before { top: -7px; }
+.scrollRod::after { bottom: -7px; }
+
+.codeScrollFrame .codePanel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.codeScrollFrame .codeLines { padding: 14px 16px 16px; }
+.codeScrollFrame .codeLine { min-width: max-content; font-family: var(--quest-code); }
+
+/* Reference Fidelity Repair v2 — P2: shared jade plaque geometry. */
+.primaryButton,
+.jadeActionButton {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-width: 160px;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 42px;
+  overflow: visible;
+  border: 1px solid rgba(210, 230, 205, 0.82);
+  border-radius: 0;
+  color: #fffdf0;
+  font-family: var(--quest-display);
+  font-size: clamp(18px, 1.35vw, 21px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #54bbb8 0%, #238b91 45%, #12616b 100%);
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+  box-shadow:
+    inset 0 0 0 2px rgba(229, 241, 210, 0.72),
+    inset 0 0 0 5px rgba(38, 108, 103, 0.58),
+    0 10px 20px rgba(16, 76, 82, 0.2);
+}
+
+.primaryButton::before,
+.primaryButton::after {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: block;
+  width: 7px;
+  height: 7px;
+  content: "";
+  transform: translateY(-50%) rotate(45deg);
+  border: 1px solid #ddcf9a;
+  background: rgba(221, 207, 154, 0.28);
+}
+
+.primaryButton::before { left: 16px; }
+.primaryButton::after { right: 16px; }
+
+.jadeButtonLabel { position: relative; z-index: 2; }
+.jadeButtonCap {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  transform: translateY(-50%) rotate(45deg);
+  border: 1px solid #ddcf9a;
+  background: rgba(221, 207, 154, 0.28);
+  pointer-events: none;
+}
+.jadeButtonCapStart { left: 16px; }
+.jadeButtonCapEnd { right: 16px; }
+
+.jade_secondary,
+.jade_ghost,
+.secondaryButton,
+.repairResetButton {
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%);
+  border-radius: 0;
+}
+
+.replayControls button {
+  min-width: 108px;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-family: var(--quest-body);
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  clip-path: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(11, 73, 77, 0.18), 0 5px 12px rgba(17, 67, 72, 0.1);
+}
+
+.replayControls .replayPlayButton {
+  border-color: rgba(210, 230, 205, 0.82);
+  background: linear-gradient(180deg, #42aeb2, #155f69);
+  color: #fffdf0;
+}
+
+/* Reference Fidelity Repair v2 — P3: static water formation, no looping motion. */
+.waterFormation {
+  display: grid;
+  width: min(332px, 100%);
+  min-width: 0;
+  margin: 0 auto;
+  color: #4b9da0;
+  text-align: center;
+}
+
+.waterFormationLabel {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 8px;
+  color: #155f69;
+  font-family: var(--quest-display);
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+}
+
+.waterFormationLabel span {
+  position: static;
+  border: 0;
+  border-radius: 0;
+  color: #6d8785;
+  font-family: var(--quest-body);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.waterFormation svg { display: block; width: 100%; height: auto; overflow: visible; }
+.waterFormationAura { opacity: 0.56; }
+.waterFormationOuter,
+.waterFormationBrokenRing,
+.waterFormationRuneRing,
+.waterFormationRipple { fill: none; stroke: currentcolor; }
+.waterFormationOuter { stroke-width: 1; opacity: 0.44; }
+.waterFormationBrokenRing { stroke: #2a7e84; stroke-width: 3; stroke-linecap: round; }
+.waterFormationRuneRing { stroke-width: 1.5; stroke-dasharray: 4 7; opacity: 0.74; }
+.waterFormationRipple { stroke-width: 1; stroke-dasharray: 16 5 3 5; opacity: 0.8; }
+.waterFormationTick { stroke: #2a7e84; stroke-width: 2; opacity: 0.78; }
+.waterFormationFlow,
+.waterFormationFlowSecondary { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.waterFormationFlow { stroke: #63b9b7; stroke-width: 4; opacity: 0.72; }
+.waterFormationFlowSecondary { stroke: #9bded6; stroke-width: 2; stroke-dasharray: 5 7; opacity: 0.86; }
+.waterFormationSeal rect,
+.waterFormationSeal path { fill: none; stroke: #2d7f85; stroke-width: 1.5; }
+.waterFormationSeal { opacity: 0.88; }
+.waterFormationCore rect { fill: rgba(232, 251, 247, 0.08); stroke: #2b8589; stroke-width: 1.5; }
+.waterFormationCore path { fill: rgba(152, 221, 215, 0.46); stroke: #daf8f2; stroke-width: 1; }
+.waterFormationCore text { fill: #166e77; font-family: var(--quest-display); font-size: 25px; font-weight: 700; text-anchor: middle; }
+.waterFormationActive { color: #3aa2a4; filter: drop-shadow(0 10px 18px rgba(45, 139, 145, 0.16)); }
+.waterFormationActive .waterFormationBrokenRing,
+.waterFormationActive .waterFormationCore rect { stroke: #65c4bd; }
+
+/* Reference Fidelity Repair v2 — P4: four static, source-derived scene layers. */
+.questBackdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sceneMountains,
+.sceneGate,
+.sceneMist,
+.scenePlatform {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+.sceneMountains {
+  inset: 0 0 auto;
+  height: min(40vw, 480px);
+  background-image: url("/assets/quest-1/ui/scenes/mountains-far.webp");
+  background-position: center top;
+  background-size: cover;
+  opacity: 0.24;
+}
+
+.sceneGate {
+  top: min(14vw, 176px);
+  right: 7%;
+  width: min(36vw, 520px);
+  aspect-ratio: 19 / 12;
+  background-image: url("/assets/quest-1/ui/scenes/sect-gate-mid.webp");
+  background-position: center;
+  background-size: contain;
+  opacity: 0.22;
+}
+
+.sceneMist {
+  right: 0;
+  bottom: 18%;
+  left: 0;
+  height: min(25vw, 300px);
+  background-image: url("/assets/quest-1/ui/scenes/cloud-mist-front.webp");
+  background-position: center bottom;
+  background-size: cover;
+  opacity: 0.28;
+}
+
+.scenePlatform {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: min(19vw, 250px);
+  background-image: url("/assets/quest-1/ui/scenes/water-platform.webp");
+  background-position: center bottom;
+  background-size: cover;
+  opacity: 0.2;
+}
+
+.battlePage[data-act="act4"] .sceneMountains { opacity: 0.2; filter: saturate(1.08) brightness(0.88); }
+.battlePage[data-act="act4"] .sceneGate { opacity: 0.26; filter: saturate(1.08) brightness(0.82); }
+.battlePage[data-act="act5"] .scenePlatform { opacity: 0.25; }
+.battlePage[data-act="act6"] .sceneMountains { opacity: 0.28; filter: brightness(1.1) saturate(0.9); }
+.battlePage[data-act="act6"] .sceneGate { opacity: 0.24; filter: sepia(0.12) brightness(1.08); }
+
+@media (max-width: 767px) {
+  .codeScrollFrame { grid-template-columns: 12px minmax(0, 1fr) 12px; }
+  .scrollRod::before,
+  .scrollRod::after { width: 20px; height: 10px; }
+  .scrollRod::before { top: -5px; }
+  .scrollRod::after { bottom: -5px; }
+  .codeScrollFrame .codeLines { padding: 10px 12px 13px; }
+  .primaryButton,
+  .jadeActionButton { min-height: 52px; min-width: 0; padding-inline: 34px; font-size: 18px; }
+  .replayControls button { min-height: 46px; flex: 1 1 calc(50% - 4px); }
+  .waterFormation { width: min(252px, 100%); }
+  .waterFormationLabel { font-size: 18px; }
+  .sceneMountains { height: 280px; opacity: 0.18; }
+  .sceneGate { display: none; }
+  .sceneMist { bottom: 21%; height: 190px; opacity: 0.22; }
+  .scenePlatform { height: 160px; opacity: 0.16; }
+}
+
+/* Quest 1 Scene Layer Recomposition v1.
+   The page owns distant atmosphere; the stage owns its local building, platform,
+   and mist. Real controls remain above both decorative layers. */
+.battlePage {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+
+.questBackdrop {
+  z-index: 0;
+}
+
+.contentLayer {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(470px, 1fr) auto;
+  min-width: 0;
+  min-height: 100svh;
+}
+
+.battleStage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.battleStage::before,
+.battleStage::after {
+  display: none;
+}
+
+.stageFogLayer,
+.stageSceneLayer,
+.stageContent {
+  min-width: 0;
+}
+
+.stageFogLayer {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 255, 250, 0.86), rgba(255, 255, 250, 0.62) 66%, rgba(255, 255, 250, 0.36) 100%),
+    linear-gradient(145deg, rgba(239, 249, 246, 0.52), rgba(226, 243, 239, 0.58));
+}
+
+.stageSceneLayer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.stageSceneBuilding,
+.stageScenePlatform,
+.stageSceneMist {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+.stageSceneBuilding {
+  top: 8%;
+  right: 2%;
+  width: min(36vw, 520px);
+  height: 58%;
+  background-image: url("/assets/quest-1/ui/scenes/sect-gate-mid.webp");
+  background-position: right center;
+  background-size: contain;
+  opacity: 0.28;
+  mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+}
+
+.stageScenePlatform {
+  right: 15%;
+  bottom: -4%;
+  left: 15%;
+  height: 42%;
+  background-image: url("/assets/quest-1/ui/scenes/water-platform.webp");
+  background-position: center bottom;
+  background-size: contain;
+  opacity: 0.3;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 78%, transparent 100%);
+}
+
+.stageSceneMist {
+  right: -4%;
+  bottom: -6%;
+  left: -4%;
+  height: 46%;
+  background-image: url("/assets/quest-1/ui/scenes/cloud-mist-front.webp");
+  background-position: center bottom;
+  background-size: 110% auto;
+  opacity: 0.3;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 32%, #000 78%, transparent 100%);
+}
+
+.stageContent {
+  position: relative;
+  z-index: 2;
+  min-height: 100%;
+}
+
+.sceneMountains {
+  opacity: 0.27;
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.85) 55%, transparent 94%);
+}
+
+.sceneGate,
+.scenePlatform {
+  display: none;
+}
+
+.sceneMist {
+  right: -4%;
+  bottom: 0;
+  left: -4%;
+  height: min(22vw, 260px);
+  background-size: 110% auto;
+  opacity: 0.24;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 35%, #000 76%, transparent 100%);
+}
+
+.battlePage[data-act="act2"] .stageSceneBuilding { right: 1%; opacity: 0.25; }
+.battlePage[data-act="act3"] .stageSceneBuilding { opacity: 0.12; }
+.battlePage[data-act="act3"] .stageScenePlatform { right: 4%; left: auto; width: min(45%, 420px); opacity: 0.28; }
+.battlePage[data-act="act4"] .stageSceneBuilding { right: auto; left: 0; opacity: 0.24; filter: saturate(1.08) brightness(0.82); }
+.battlePage[data-act="act4"] .stageScenePlatform { opacity: 0.26; }
+.battlePage[data-act="act5"] .stageScenePlatform { right: 22%; left: 22%; opacity: 0.32; }
+.battlePage[data-act="act6"] .stageSceneBuilding { opacity: 0.3; filter: sepia(0.12) brightness(1.08); }
+.battlePage[data-act="act6"] .stageScenePlatform { opacity: 0.24; }
+
+.bestiaryDialog {
+  position: relative;
+  z-index: 20;
+}
+
+@media (max-width: 767px) {
+  .contentLayer {
+    display: block;
+    min-height: 0;
+  }
+
+  .battleStage {
+    overflow: hidden;
+  }
+
+  .stageFogLayer {
+    background:
+      radial-gradient(ellipse at center, rgba(255, 255, 250, 0.9), rgba(255, 255, 250, 0.68) 66%, rgba(255, 255, 250, 0.42) 100%),
+      linear-gradient(145deg, rgba(239, 249, 246, 0.54), rgba(226, 243, 239, 0.58));
+  }
+
+  .stageSceneBuilding { display: none; }
+  .stageScenePlatform { right: 8%; left: 8%; height: 30%; opacity: 0.18; }
+  .stageSceneMist { height: 34%; opacity: 0.24; }
+  .sceneMountains { height: 280px; opacity: 0.22; }
+  .sceneMist { height: 175px; opacity: 0.2; }
+}
+
+/* Open Scene Composition Repair v1
+   HUD and mentor guidance remain the only full-width framed surfaces. */
+.battleStage,
+.classificationPuzzle,
+.replayShell,
+.repairPuzzle,
+.sealResult,
+.rewardSequence {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.battleStage {
+  padding-inline: clamp(8px, 1.4vw, 22px);
+}
+
+.stageFogLayer {
+  background: transparent;
+}
+
+.stageSceneBuilding {
+  opacity: 0.36;
+  mask-image: radial-gradient(
+    ellipse at 58% 48%,
+    #000 28%,
+    rgba(0, 0, 0, 0.82) 54%,
+    transparent 84%
+  );
+}
+
+.stageScenePlatform {
+  opacity: 0.4;
+  mask-image: radial-gradient(
+    ellipse at center,
+    #000 34%,
+    rgba(0, 0, 0, 0.8) 61%,
+    transparent 90%
+  );
+}
+
+.stageSceneMist {
+  opacity: 0.34;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.82) 30%,
+    #000 62%,
+    transparent 100%
+  );
+}
+
+.battlePage[data-act="act3"] .stageSceneBuilding {
+  opacity: 0.24;
+}
+
+.battlePage[data-act="act3"] .stageScenePlatform {
+  right: 0;
+  bottom: 2%;
+  width: min(46%, 440px);
+  height: 40%;
+  opacity: 0.44;
+}
+
+.battlePage[data-act="act5"] .stageSceneBuilding {
+  top: 12%;
+  opacity: 0.27;
+}
+
+.battlePage[data-act="act5"] .stageScenePlatform {
+  right: 7%;
+  bottom: 0;
+  left: 7%;
+  height: 48%;
+  opacity: 0.42;
+}
+
+.classificationPuzzle {
+  padding: 0;
+}
+
+.classificationGroup {
+  border-color: rgba(48, 121, 124, 0.28);
+  background:
+    linear-gradient(145deg, rgba(253, 252, 244, 0.9), rgba(226, 242, 236, 0.8));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 10px 26px rgba(33, 82, 84, 0.08);
+}
+
+.classificationConclusion,
+.classificationStatus,
+.replayCompleteBanner,
+.replayLiveStep,
+.repairFeedbackSlot {
+  backdrop-filter: blur(7px);
+}
+
+.replayFlowPanel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.repairPuzzleHeader {
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(
+      ellipse at 24% 50%,
+      rgba(255, 255, 249, 0.92),
+      rgba(255, 255, 249, 0.6) 56%,
+      transparent 86%
+    );
+  box-shadow: none;
+}
+
+.repairResetButton {
+  border: 1px solid rgba(204, 211, 164, 0.86) !important;
+  background:
+    linear-gradient(180deg, #42aeb2 0%, #21838d 52%, #155f69 100%) !important;
+  color: #fffdf0 !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 1px rgba(7, 56, 63, 0.66) !important;
+}
+
+.repairResetButton:disabled {
+  border-color: rgba(77, 119, 113, 0.48) !important;
+  background:
+    linear-gradient(180deg, #d4e1d8 0%, #b9ccc4 100%) !important;
+  color: #35575a !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.66) !important;
+}
+
+.repairPuzzleHeader .repairResetButton .jadeButtonLabel {
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+.sealFormation,
+.sealedBeastVisual,
+.defeatedSequenceStage {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sealFormation {
+  overflow: visible;
+}
+
+.sealedBeastVisual {
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(232, 252, 248, 0.58),
+      rgba(232, 252, 248, 0.22) 52%,
+      transparent 78%
+    );
+}
+
+.rewardSequence {
+  padding: 0;
+}
+
+.dormantBeastLoop {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ACT3: complete, static water formation with a jade broken ring and platform. */
+.waterFormation {
+  display: grid;
+  width: min(370px, 100%);
+  aspect-ratio: auto;
+  margin: 0 auto;
+  color: #3e9294;
+  filter: drop-shadow(0 18px 25px rgba(23, 82, 86, 0.14));
+}
+
+.waterFormation svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.waterFormationAura {
+  opacity: 0.68;
+}
+
+.waterFormationWaterFilm {
+  fill: rgba(133, 212, 207, 0.1);
+  stroke: rgba(115, 194, 191, 0.48);
+  stroke-width: 1.5;
+}
+
+.waterFormationBrokenRingShadow,
+.waterFormationBrokenRing {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.waterFormationBrokenRingShadow {
+  stroke: rgba(8, 52, 60, 0.28);
+  stroke-width: 17;
+}
+
+.waterFormationBrokenRing {
+  stroke-width: 11;
+}
+
+.waterFormationTick path {
+  fill: none;
+  stroke: #276d73;
+  stroke-linecap: round;
+  stroke-width: 2.4;
+}
+
+.waterFormationJadeRingOuter,
+.waterFormationJadeRingInner {
+  fill: none;
+  stroke: rgba(41, 116, 121, 0.76);
+}
+
+.waterFormationJadeRingOuter {
+  stroke-width: 4;
+}
+
+.waterFormationJadeRingInner {
+  stroke-dasharray: 5 7;
+  stroke-width: 2;
+}
+
+.waterFormationVeins path {
+  fill: none;
+  stroke: rgba(100, 190, 187, 0.72);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.waterFormationSeal rect,
+.waterFormationSeal path {
+  fill: rgba(226, 249, 243, 0.68);
+  stroke: #2b7479;
+  stroke-width: 1.8;
+}
+
+.waterFormationRune path {
+  fill: none;
+  stroke: rgba(38, 120, 126, 0.78);
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.waterFormationFlow,
+.waterFormationFlowSecondary {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.waterFormationFlow {
+  stroke: rgba(83, 184, 181, 0.86);
+  stroke-width: 5;
+}
+
+.waterFormationFlowSecondary {
+  stroke: rgba(160, 229, 220, 0.92);
+  stroke-dasharray: 8 7;
+  stroke-width: 2.5;
+}
+
+.waterFormationCore rect {
+  fill: rgba(225, 249, 243, 0.46);
+  stroke: #286f75;
+  stroke-width: 2;
+}
+
+.waterFormationCore .waterFormationCorePlate {
+  fill: rgba(195, 231, 222, 0.76);
+  stroke-width: 3.5;
+}
+
+.waterFormationValve {
+  fill: rgba(87, 168, 163, 0.5);
+  stroke: #246b72;
+  stroke-width: 2.5;
+}
+
+.waterFormationSealLine {
+  fill: none;
+  stroke: #f0fffa;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+.waterFormationDrop {
+  fill: rgba(115, 213, 207, 0.72);
+  stroke: #ecfffb;
+  stroke-width: 1.4;
+}
+
+.waterFormationWaterGlyph {
+  fill: #155f69;
+  font-family: var(--quest-display);
+  font-size: 30px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.waterFormationSupport > ellipse {
+  fill: none;
+  stroke: rgba(75, 164, 163, 0.4);
+  stroke-width: 2;
+}
+
+.waterFormationSupport > path {
+  stroke: rgba(43, 111, 116, 0.52);
+  stroke-width: 1.5;
+}
+
+.waterFormationSupport g path {
+  fill: rgba(67, 133, 132, 0.56);
+  stroke: #2e7075;
+  stroke-width: 1.2;
+}
+
+.waterFormationSupport g rect {
+  fill: #9ed0c7;
+  stroke: #316f73;
+  stroke-width: 1.1;
+}
+
+.waterFormationActive .waterFormationCorePlate,
+.waterFormationActive .waterFormationBrokenRing {
+  filter: drop-shadow(0 0 7px rgba(77, 194, 190, 0.32));
+}
+
+@media (max-width: 767px) {
+  .battleStage {
+    padding-inline: 0;
+  }
+
+  .stageFogLayer {
+    background: transparent;
+  }
+
+  .stageScenePlatform {
+    right: 1%;
+    left: 1%;
+    height: 30%;
+    opacity: 0.3;
+  }
+
+  .stageSceneMist {
+    opacity: 0.28;
+  }
+
+  .classificationPuzzle,
+  .replayShell,
+  .repairPuzzle,
+  .sealResult,
+  .rewardSequence {
+    padding-inline: 0;
+  }
+
+  .waterFormation {
+    width: min(250px, 100%);
+  }
+
+  .repairPuzzleHeader {
+    background:
+      radial-gradient(
+        ellipse at 32% 42%,
+        rgba(255, 255, 249, 0.94),
+        rgba(255, 255, 249, 0.6) 60%,
+        transparent 92%
+      );
   }
 }
