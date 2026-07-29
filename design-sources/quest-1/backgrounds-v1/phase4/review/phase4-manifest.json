@@ -1,0 +1,258 @@
+{
+  "title": "Quest 1 Backgrounds Phase 4",
+  "version": 1,
+  "production_scope": [
+    "ACT1",
+    "ACT3",
+    "ACT6"
+  ],
+  "generation_mode": "OpenAI built-in image generation with locked local master references",
+  "webp_quality": 88,
+  "desktop_size": [
+    1920,
+    1200
+  ],
+  "mobile_size": [
+    750,
+    1200
+  ],
+  "front_end_integration": false,
+  "phase3_assets_modified": false,
+  "generation_prompts": "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-generation-prompts.md",
+  "assets": {
+    "act1": {
+      "design_intent": "清晨薄雾、弱冷青异光、克制宗门灯火，给妖兽苏醒留出呼吸空间。",
+      "desktop_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act1-background-desktop-master.png",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 2876892,
+        "sha256": "41f63b6ca3509848577e40bdb122e64f745790c975a2a29c462f32dfd05b0575",
+        "statistics": {
+          "mean_luminance": 164.47,
+          "luminance_stddev": 58.61,
+          "mean_saturation": 40.79
+        }
+      },
+      "desktop_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act1-background-desktop.webp",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 237018,
+        "sha256": "72fea2cf20117570a072992f81dfcb6e68aa7d406996e3f7f224558551bae4bb",
+        "statistics": {
+          "mean_luminance": 164.58,
+          "luminance_stddev": 58.65,
+          "mean_saturation": 40.82
+        }
+      },
+      "mobile_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act1-background-mobile-master.png",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 1385640,
+        "sha256": "a5c55286fbae4c50c659916c8a6946b18c955e68452e4e0d475e5c4c88d02579",
+        "statistics": {
+          "mean_luminance": 149.52,
+          "luminance_stddev": 59.11,
+          "mean_saturation": 40.43
+        }
+      },
+      "mobile_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act1-background-mobile.webp",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 150398,
+        "sha256": "9e2248bcb0f4cca44af942b48395769048bc126ac63935c003e090db04e87609",
+        "statistics": {
+          "mean_luminance": 149.6,
+          "luminance_stddev": 59.13,
+          "mean_saturation": 40.38
+        }
+      },
+      "review": "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act1-background-review.png",
+      "page_composite": "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act1-page-composite.png"
+    },
+    "act3": {
+      "design_intent": "右侧水台形成鉴阵承托，冷青水脉与玉石刻线响应，左侧题面区域保持安静。",
+      "desktop_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act3-background-desktop-master.png",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 2887934,
+        "sha256": "911254d14f89a641648385dc8412e21c2527ae55239be809a2fe392137e6e46b",
+        "statistics": {
+          "mean_luminance": 161.84,
+          "luminance_stddev": 59.43,
+          "mean_saturation": 39.64
+        }
+      },
+      "desktop_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act3-background-desktop.webp",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 253430,
+        "sha256": "83cbdd5527d3c7f1e6a3dece15626de7da5a7f32b19e998faa2b09ae46afcfd2",
+        "statistics": {
+          "mean_luminance": 161.96,
+          "luminance_stddev": 59.48,
+          "mean_saturation": 39.61
+        }
+      },
+      "mobile_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act3-background-mobile-master.png",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 1514172,
+        "sha256": "062704a4b2b623cf036534be7d7dee62f84dcfb68bc1c61e6858a5ea1fa79959",
+        "statistics": {
+          "mean_luminance": 153.03,
+          "luminance_stddev": 63.09,
+          "mean_saturation": 61.5
+        }
+      },
+      "mobile_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act3-background-mobile.webp",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 201150,
+        "sha256": "ef7f9ca60a01ba64427201612e823d9b00e82a92d329102789332fea15845da1",
+        "statistics": {
+          "mean_luminance": 153.14,
+          "luminance_stddev": 63.13,
+          "mean_saturation": 61.62
+        }
+      },
+      "review": "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act3-background-review.png",
+      "page_composite": "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act3-page-composite.png"
+    },
+    "act6": {
+      "design_intent": "云开雾散、宗门灯火温润、水台恢复秩序，以克制金青高光完成收束。",
+      "desktop_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act6-background-desktop-master.png",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 3268376,
+        "sha256": "00be2bdef0fffeaa8dc1041aa86332ea8dc7b5ba23de4df7b505fe25792b1d59",
+        "statistics": {
+          "mean_luminance": 168.95,
+          "luminance_stddev": 53.43,
+          "mean_saturation": 39.78
+        }
+      },
+      "desktop_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act6-background-desktop.webp",
+        "dimensions": [
+          1920,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 349696,
+        "sha256": "cee0f752cee5c18bafa6cd8b547d198b8f93b75cd2f8eaf2118d1c2facdcf03a",
+        "statistics": {
+          "mean_luminance": 169.07,
+          "luminance_stddev": 53.45,
+          "mean_saturation": 39.71
+        }
+      },
+      "mobile_master": {
+        "path": "design-sources/quest-1/backgrounds-v1/phase4/masters/quest-1-act6-background-mobile-master.png",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "PNG",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 1467099,
+        "sha256": "7cd8cba8c20f2152e41370786a33cfa8082fa2d0a7455e5efd594ae5dc2d9259",
+        "statistics": {
+          "mean_luminance": 160.44,
+          "luminance_stddev": 58.21,
+          "mean_saturation": 34.75
+        }
+      },
+      "mobile_production": {
+        "path": "web/public/assets/quest-1/ui/backgrounds/quest-1-act6-background-mobile.webp",
+        "dimensions": [
+          750,
+          1200
+        ],
+        "format": "WEBP",
+        "mode": "RGB",
+        "alpha": "opaque",
+        "bytes": 191442,
+        "sha256": "5b440364a9828b46f125cd53446d7c19c81095f7051aecf27afa1f9617314863",
+        "statistics": {
+          "mean_luminance": 160.55,
+          "luminance_stddev": 58.22,
+          "mean_saturation": 34.41
+        }
+      },
+      "review": "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act6-background-review.png",
+      "page_composite": "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act6-page-composite.png"
+    }
+  },
+  "review_assets": [
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act1-background-review.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act3-background-review.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-act6-background-review.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-color-progression.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-desktop-contact-sheet.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-mobile-contact-sheet.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/review/phase4-safe-zone-guide.png"
+  ],
+  "preview_assets": [
+    "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act1-page-composite.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act3-page-composite.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-act6-page-composite.png",
+    "design-sources/quest-1/backgrounds-v1/phase4/previews/phase4-mobile-page-composite-contact-sheet.png"
+  ]
+}
