@@ -28,16 +28,26 @@ type PanelState =
   | "rpc-error"
   | "chain-mismatch";
 
-const PANEL_STATE_BY_ERROR: Record<
+const PANEL_STATE_BY_ERROR: Partial<Record<
   ChainStatusErrorCode,
   Exclude<PanelState, "idle" | "loading" | "completed" | "not-completed">
-> = {
+>> = {
   INVALID_ADDRESS: "invalid-address",
   CHAIN_NOT_CONFIGURED: "not-configured",
   RPC_UNAVAILABLE: "rpc-error",
   CHAIN_ID_MISMATCH: "chain-mismatch",
   CONTRACT_CALL_FAILED: "rpc-error",
   INTERNAL_ERROR: "rpc-error",
+  INVALID_QUERY: "rpc-error",
+  RPC_TIMEOUT: "rpc-error",
+  RPC_HTTP_ERROR: "rpc-error",
+  RPC_CONTENT_TYPE_ERROR: "rpc-error",
+  RPC_JSON_PARSE_ERROR: "rpc-error",
+  RPC_PROTOCOL_ERROR: "rpc-error",
+  RPC_REMOTE_ERROR: "rpc-error",
+  CONTRACT_NOT_DEPLOYED: "rpc-error",
+  MALFORMED_RESULT: "rpc-error",
+  ABI_DECODE_ERROR: "rpc-error",
 };
 
 const FALLBACK_MESSAGES: Record<
@@ -113,7 +123,7 @@ export function ChainStatusPanel() {
       }
 
       if (!payload.ok) {
-        const nextState = PANEL_STATE_BY_ERROR[payload.error.code];
+        const nextState = PANEL_STATE_BY_ERROR[payload.error.code] ?? "rpc-error";
         setPanelState(nextState);
         setMessage(payload.error.message || FALLBACK_MESSAGES[nextState]);
         setResult(null);

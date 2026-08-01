@@ -3,7 +3,17 @@ import "server-only";
 import type {
   ChainStatusErrorCode,
   ChainStatusSuccess,
-} from "@/features/quest-1/chain-status-types";
+} from "../features/quest-1/chain-status-types";
+import {
+  decodeBoolean,
+  decodeBytes32,
+  decodeCode,
+  decodeQuantity,
+  decodeUint256,
+  parseRpcEnvelope,
+  RpcProtocolError,
+  isValidEvmAddress as isValidEvmAddressValue,
+} from "./quest-1-json-rpc";
 
 export const QUEST_ONE_CHAIN = {
   chainId: 10143,
@@ -13,21 +23,13 @@ export const QUEST_ONE_CHAIN = {
 } as const;
 
 const RPC_TIMEOUT_MS = 10_000;
-const HEX_WORD_PATTERN = /^0x[0-9a-fA-F]{64}$/;
-const EVM_ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
-
-/*
- * These selectors come from out/GuardianQuest.sol/GuardianQuest.json
- * methodIdentifiers. The helper intentionally implements only the fixed view
- * calls required by the Quest 1 verification panel.
- */
 const METHOD_SELECTORS = {
   completed: "ffc4ed25",
   reportHashes: "67ac1437",
   balanceOf: "00fdd58e",
 } as const;
 
-type RpcMethod = "eth_chainId" | "eth_blockNumber" | "eth_call";
+type RpcMethod = "eth_chainId" | "eth_blockNumber" | "eth_getCode" | "eth_call";
 type Fetcher = typeof fetch;
 
 interface ChainEnvironment {
@@ -42,43 +44,38 @@ interface QueryOptions {
   timeoutMs?: number;
 }
 
-interface RpcResponse {
-  jsonrpc?: string;
-  id?: number;
-  result?: unknown;
-  error?: unknown;
-}
-
 export class ChainStatusQueryError extends Error {
-  constructor(
-    public readonly code: Exclude<
-      ChainStatusErrorCode,
-      "INVALID_ADDRESS" | "INTERNAL_ERROR"
-    >,
-  ) {
+  public readonly code: ChainStatusErrorCode;
+
+  constructor(code: ChainStatusErrorCode) {
     super(publicMessageForCode(code));
+    this.code = code;
     this.name = "ChainStatusQueryError";
   }
 }
 
 export function isValidEvmAddress(value: unknown): value is string {
-  return typeof value === "string" && EVM_ADDRESS_PATTERN.test(value);
+  return isValidEvmAddressValue(value);
 }
 
 export function publicMessageForCode(code: ChainStatusErrorCode): string {
   switch (code) {
-    case "INVALID_ADDRESS":
-      return "请输入 0x 开头、包含 40 个十六进制字符的 EVM 地址。";
-    case "CHAIN_NOT_CONFIGURED":
-      return "链上验证尚未配置，本地学习结果不受影响。";
-    case "RPC_UNAVAILABLE":
-      return "Monad Testnet 暂时无法访问，请稍后手动重试。";
-    case "CHAIN_ID_MISMATCH":
-      return "RPC 返回的网络不是已核验的 Monad Testnet，查询已停止。";
-    case "CONTRACT_CALL_FAILED":
-      return "GuardianQuest 只读合约查询失败，请稍后手动重试。";
-    case "INTERNAL_ERROR":
-      return "链上验证暂时不可用，本地学习结果不受影响。";
+    case "INVALID_ADDRESS": return "请输入有效的 EVM 地址。";
+    case "INVALID_QUERY": return "查询参数无效。";
+    case "CHAIN_NOT_CONFIGURED": return "链上验证尚未配置，本地学习结果不受影响。";
+    case "RPC_TIMEOUT": return "Monad Testnet 请求超时，请稍后手动重试。";
+    case "RPC_UNAVAILABLE": return "Monad Testnet 暂时无法访问，请稍后手动重试。";
+    case "RPC_HTTP_ERROR": return "Monad Testnet 返回了暂时不可用的响应。";
+    case "RPC_CONTENT_TYPE_ERROR": return "链上验证返回了无法识别的响应格式。";
+    case "RPC_JSON_PARSE_ERROR": return "链上验证返回了无法解析的响应。";
+    case "RPC_PROTOCOL_ERROR": return "链上验证返回了无效的 JSON-RPC 响应。";
+    case "RPC_REMOTE_ERROR": return "Monad Testnet 拒绝了只读查询。";
+    case "CHAIN_ID_MISMATCH": return "RPC 返回的网络不是已核验的 Monad Testnet，查询已停止。";
+    case "CONTRACT_NOT_DEPLOYED": return "GuardianQuest 合约未在目标网络部署。";
+    case "MALFORMED_RESULT": return "链上验证返回了格式错误的结果。";
+    case "ABI_DECODE_ERROR": return "GuardianQuest 只读结果无法按 ABI 解码。";
+    case "CONTRACT_CALL_FAILED": return "GuardianQuest 只读合约查询失败，请稍后重试。";
+    case "INTERNAL_ERROR": return "链上验证暂时不可用，本地学习结果不受影响。";
   }
 }
 
@@ -93,21 +90,16 @@ function readEnvironment(env?: ChainEnvironment) {
   const chainId = Number(source.MONAD_CHAIN_ID);
 
   if (
-    !rpcUrl ||
-    !isValidEvmAddress(contractAddress) ||
-    contractAddress.toLowerCase() !==
-      QUEST_ONE_CHAIN.contractAddress.toLowerCase() ||
-    !Number.isInteger(chainId) ||
-    chainId !== QUEST_ONE_CHAIN.chainId
+    !rpcUrl || !isValidEvmAddress(contractAddress) ||
+    contractAddress.toLowerCase() !== QUEST_ONE_CHAIN.contractAddress.toLowerCase() ||
+    !Number.isInteger(chainId) || chainId !== QUEST_ONE_CHAIN.chainId
   ) {
     throw new ChainStatusQueryError("CHAIN_NOT_CONFIGURED");
   }
 
   try {
     const parsedUrl = new URL(rpcUrl);
-    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
-      throw new Error("Unsupported RPC protocol");
-    }
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") throw new Error();
   } catch {
     throw new ChainStatusQueryError("CHAIN_NOT_CONFIGURED");
   }
@@ -123,47 +115,8 @@ function encodeAddress(address: string): string {
   return address.slice(2).toLowerCase().padStart(64, "0");
 }
 
-function makeCallData(
-  method: keyof typeof METHOD_SELECTORS,
-  parameters: readonly string[],
-): string {
+function makeCallData(method: keyof typeof METHOD_SELECTORS, parameters: readonly string[]): string {
   return `0x${METHOD_SELECTORS[method]}${parameters.join("")}`;
-}
-
-function decodeBoolean(value: unknown): boolean {
-  if (
-    typeof value !== "string" ||
-    !HEX_WORD_PATTERN.test(value) ||
-    (value !== `0x${"0".repeat(64)}` &&
-      value !== `0x${"0".repeat(63)}1`)
-  ) {
-    throw new ChainStatusQueryError("CONTRACT_CALL_FAILED");
-  }
-  return value.endsWith("1");
-}
-
-function decodeBytes32(value: unknown): string {
-  if (typeof value !== "string" || !HEX_WORD_PATTERN.test(value)) {
-    throw new ChainStatusQueryError("CONTRACT_CALL_FAILED");
-  }
-  return value.toLowerCase();
-}
-
-function decodeUint256(value: unknown): string {
-  if (typeof value !== "string" || !HEX_WORD_PATTERN.test(value)) {
-    throw new ChainStatusQueryError("CONTRACT_CALL_FAILED");
-  }
-  return BigInt(value).toString(10);
-}
-
-function decodeQuantity(value: unknown): bigint {
-  if (
-    typeof value !== "string" ||
-    !/^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/.test(value)
-  ) {
-    throw new ChainStatusQueryError("RPC_UNAVAILABLE");
-  }
-  return BigInt(value);
 }
 
 export async function queryQuestOneChainStatus(
@@ -171,101 +124,86 @@ export async function queryQuestOneChainStatus(
   options: QueryOptions = {},
 ): Promise<ChainStatusSuccess> {
   if (!isValidEvmAddress(learnerAddress)) {
-    throw new TypeError("A valid EVM address is required.");
+    throw new ChainStatusQueryError("INVALID_ADDRESS");
   }
 
   const { contractAddress, rpcUrl } = readEnvironment(options.env);
   const fetcher = options.fetcher ?? fetch;
   const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    options.timeoutMs ?? RPC_TIMEOUT_MS,
-  );
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, options.timeoutMs ?? RPC_TIMEOUT_MS);
   let requestId = 0;
 
   async function rpc(method: RpcMethod, params: unknown[]): Promise<unknown> {
+    const id = ++requestId;
     let response: Response;
     try {
       response = await fetcher(rpcUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: ++requestId,
-          method,
-          params,
-        }),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
         cache: "no-store",
         signal: controller.signal,
       });
-    } catch {
+    } catch (error) {
+      if (timedOut || (error instanceof DOMException && error.name === "AbortError")) {
+        throw new ChainStatusQueryError("RPC_TIMEOUT");
+      }
       throw new ChainStatusQueryError("RPC_UNAVAILABLE");
     }
 
-    if (!response.ok) {
-      throw new ChainStatusQueryError("RPC_UNAVAILABLE");
+    if (!response.ok) throw new ChainStatusQueryError("RPC_HTTP_ERROR");
+    const contentType = response.headers.get("content-type");
+    if (!contentType || (!contentType.toLowerCase().includes("application/json") && !contentType.toLowerCase().includes("+json"))) {
+      throw new ChainStatusQueryError("RPC_CONTENT_TYPE_ERROR");
     }
 
-    let payload: RpcResponse;
+    let payload: unknown;
     try {
-      payload = (await response.json()) as RpcResponse;
+      payload = await response.json();
     } catch {
-      throw new ChainStatusQueryError("RPC_UNAVAILABLE");
+      throw new ChainStatusQueryError("RPC_JSON_PARSE_ERROR");
     }
 
-    if (payload.error !== undefined || payload.result === undefined) {
-      throw new ChainStatusQueryError(
-        method === "eth_call"
-          ? "CONTRACT_CALL_FAILED"
-          : "RPC_UNAVAILABLE",
-      );
+    try {
+      const envelope = parseRpcEnvelope(payload, id);
+      if ("error" in envelope) throw new ChainStatusQueryError("RPC_REMOTE_ERROR");
+      return envelope.result;
+    } catch (error) {
+      if (error instanceof ChainStatusQueryError) throw error;
+      if (error instanceof RpcProtocolError) throw new ChainStatusQueryError(error.code);
+      throw new ChainStatusQueryError("RPC_PROTOCOL_ERROR");
     }
-    return payload.result;
   }
 
   try {
     const chainId = decodeQuantity(await rpc("eth_chainId", []));
-    if (chainId !== BigInt(QUEST_ONE_CHAIN.chainId)) {
-      throw new ChainStatusQueryError("CHAIN_ID_MISMATCH");
-    }
+    if (chainId !== BigInt(QUEST_ONE_CHAIN.chainId)) throw new ChainStatusQueryError("CHAIN_ID_MISMATCH");
 
-    const blockNumber = decodeQuantity(
-      await rpc("eth_blockNumber", []),
-    );
+    const blockNumber = decodeQuantity(await rpc("eth_blockNumber", []));
     const blockTag = `0x${blockNumber.toString(16)}`;
+    decodeCode(await rpc("eth_getCode", [contractAddress, blockTag]));
+
     const questWord = encodeUint256(QUEST_ONE_CHAIN.questId);
     const addressWord = encodeAddress(learnerAddress);
-    const call = (data: string) => [
-      { to: contractAddress, data },
-      blockTag,
-    ];
-
+    const call = (data: string) => [{ to: contractAddress, data }, blockTag];
     const [completed, reportHash, badgeBalance] = await Promise.all([
-      rpc(
-        "eth_call",
-        call(makeCallData("completed", [questWord, addressWord])),
-      ),
-      rpc(
-        "eth_call",
-        call(makeCallData("reportHashes", [questWord, addressWord])),
-      ),
-      rpc(
-        "eth_call",
-        call(makeCallData("balanceOf", [addressWord, questWord])),
-      ),
+      rpc("eth_call", call(makeCallData("completed", [questWord, addressWord]))),
+      rpc("eth_call", call(makeCallData("reportHashes", [questWord, addressWord]))),
+      rpc("eth_call", call(makeCallData("balanceOf", [addressWord, questWord]))),
     ]);
 
     return {
       ok: true,
-      network: {
-        name: QUEST_ONE_CHAIN.name,
-        chainId: QUEST_ONE_CHAIN.chainId,
-      },
+      schemaVersion: "quest-1-chain-status-v1",
+      dataSource: "monad-testnet-rpc",
+      queriedAt: new Date().toISOString(),
+      network: { name: QUEST_ONE_CHAIN.name, chainId: QUEST_ONE_CHAIN.chainId },
       contract: { address: contractAddress },
-      query: {
-        address: learnerAddress,
-        questId: QUEST_ONE_CHAIN.questId,
-      },
+      query: { address: learnerAddress, questId: QUEST_ONE_CHAIN.questId },
       status: {
         completed: decodeBoolean(completed),
         reportHash: decodeBytes32(reportHash),
@@ -273,6 +211,10 @@ export async function queryQuestOneChainStatus(
       },
       blockNumber: blockNumber.toString(10),
     };
+  } catch (error) {
+    if (error instanceof ChainStatusQueryError) throw error;
+    if (error instanceof RpcProtocolError) throw new ChainStatusQueryError(error.code);
+    throw error;
   } finally {
     controller.abort();
     clearTimeout(timeout);
