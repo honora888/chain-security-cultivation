@@ -6233,8 +6233,7 @@
 }
 
 .rewardSequence,
-.chainStatusPanel,
-.bestiaryDialog {
+.chainStatusPanel {
   position: relative;
   isolation: isolate;
   border: 1px solid rgba(61, 128, 128, 0.25);
