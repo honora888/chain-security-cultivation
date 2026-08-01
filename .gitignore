@@ -33,3 +33,5 @@ broadcast/
 docs/
 !/docs/
 !/docs/**
+.vercel
+.env*
