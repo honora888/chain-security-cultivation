@@ -2862,7 +2862,10 @@
   border-left-color: var(--water);
 }
 
-.chainStatusResult[data-state="not-completed"],
+.chainStatusResult[data-state="not-completed"] {
+  border-left-color: var(--gold);
+}
+
 .chainStatusResult[data-state="invalid-address"],
 .chainStatusResult[data-state="rpc-error"],
 .chainStatusResult[data-state="chain-mismatch"],
@@ -2870,7 +2873,8 @@
   border-left-color: var(--cinnabar);
 }
 
-.chainStatusResult[data-state="loading"] {
+.chainStatusResult[data-state="loading"],
+.chainStatusResult[data-state="refreshing"] {
   border-left-color: var(--gold);
 }
 
@@ -2889,6 +2893,18 @@
   font-size: 12px;
   line-height: 1.6;
   overflow-wrap: anywhere;
+}
+
+.chainStatusFreshness {
+  margin: 0;
+  color: var(--lake);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.chainStatusFreshness[data-stale="true"] {
+  color: color-mix(in srgb, var(--cinnabar) 76%, var(--ink));
 }
 
 .chainStatusFacts {

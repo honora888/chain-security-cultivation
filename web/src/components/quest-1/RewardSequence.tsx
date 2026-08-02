@@ -120,7 +120,11 @@ export function RewardSequence({
         EXP、水属性熟练度与徽记均为本地学习结算，不写入链上。
       </p>
 
-      {complete && showChainStatus ? <ChainStatusPanel /> : null}
+      {complete ? (
+        <div hidden={!showChainStatus}>
+          <ChainStatusPanel />
+        </div>
+      ) : null}
     </section>
   );
 }
