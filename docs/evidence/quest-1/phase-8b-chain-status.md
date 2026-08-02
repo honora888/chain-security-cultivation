@@ -73,6 +73,43 @@ Extracted values:
 
 Conclusion: **PASS — completed=true learner status, reportHash and badgeBalance were read through the Preview API from Monad Testnet, according to the supplied browser observation.**
 
+## Completed learner response-header verification
+
+Evidence source: **Chrome DevTools → Network → Headers, observed and supplied by the user.**
+
+This header capture is a separate browser observation from the previously recorded `completed=true` JSON body. It must not be combined with that body's `queriedAt` or `blockNumber` as though they came from one request.
+
+Request URL:
+
+```text
+https://chain-security-cultivation-i6piztofm-honora888888.vercel.app/api/quest-1/chain-status?address=0x0A31d11Fd14029c12Ef07c2c200085aE622c1541
+```
+
+| Field | Observed value |
+|---|---|
+| Request method | `GET` |
+| Status code | `200 OK` |
+| `content-type` | `application/json` |
+| `cache-control` | `no-store` |
+| `x-content-type-options` | **NOT OBSERVED** |
+| `age` | `0` (optional auxiliary header) |
+| `content-encoding` | `br` (optional auxiliary header) |
+| `server` | `Vercel` (optional auxiliary header) |
+| `date` | `Sun, 02 Aug 2026 12:51:30 GMT` (optional auxiliary header) |
+| Screenshot | `docs/evidence/quest-1/assets/phase-8b-completed-response-headers.png` |
+
+The screenshot exists in the repository. Cookie, authentication headers, bypass tokens and the local Remote Address are intentionally not recorded.
+
+Conclusion:
+
+- completed learner HTTP success response: **PASS**
+- JSON content type: **PASS**
+- no-store cache policy: **PASS**
+- browser Network evidence: **PASS**
+- x-content-type-options: **NOT OBSERVED**
+
+This evidence does not establish the response body, block number, or queriedAt timestamp for the earlier `completed=true` JSON record.
+
 ## Non-completed learner live-chain verification
 
 Evidence source: **Browser-observed Preview API JSON response supplied by the user.**
@@ -157,12 +194,21 @@ Conclusion:
 - x-content-type-options: **NOT OBSERVED**
 - Browser Network evidence: **PASS**
 
-This evidence does not establish the response body, block number, or queriedAt timestamp for the earlier `completed=false` JSON record. The completed learner response headers remain **NOT RECORDED**.
+This evidence does not establish the response body, block number, or queriedAt timestamp for the earlier `completed=false` JSON record.
 
 ## Updated verification summary
 
 - completed=true live-chain path: **PASS** (browser-observed Preview response supplied by user)
 - completed=false live-chain path: **PASS** (browser-observed Preview response supplied by user)
+- completed learner HTTP 200: **PASS**
+- non-completed learner HTTP 200: **PASS**
+- completed learner application/json: **PASS**
+- non-completed learner application/json: **PASS**
+- completed learner cache-control no-store: **PASS**
+- non-completed learner cache-control no-store: **PASS**
+- completed learner browser Network screenshot: **PASS**
+- non-completed learner browser Network screenshot: **PASS**
+- x-content-type-options: **NOT OBSERVED**
 - reportHash decoding: **PASS**
 - ERC-1155 badge balance decoding: **PASS**
 - blockNumber evidence: **PASS**
@@ -247,8 +293,6 @@ Classification: **BLOCKED — LOCAL NETWORK / DNS / HTTPS ROUTING**. This discre
 
 The following remain explicitly **NOT RECORDED** and must not be inferred:
 
-- Completed learner HTTP status/header capture, including `content-type`, `Cache-Control`, and `X-Content-Type-Options`;
-- Completed learner response-header Network screenshot;
 - Raw Node 6/6 test log;
 - Raw lint log;
 - Raw TypeScript log;
@@ -258,7 +302,7 @@ The following remain explicitly **NOT RECORDED** and must not be inferred:
 - Explorer link;
 - Completion transaction hash.
 
-The non-completed learner response-header capture is now recorded above. Its `x-content-type-options` value remains **NOT OBSERVED**.
+Both learner response-header captures are recorded above. In both captures, `x-content-type-options` remains **NOT OBSERVED**.
 
 ## Repository cross-checks
 
@@ -274,7 +318,7 @@ Existing related records include:
 
 **Phase 8B Preview chain-status evidence: PASS (browser-observed responses supplied by the user, with evidence gaps).**
 
-The supplied responses are internally consistent with the fixed chain, contract, Quest ID and response schema. The record is not a complete production certification because HTTP status/header captures, raw test/build logs, screenshots, Explorer data, and post-merge Production verification were not supplied.
+The supplied responses and both header captures are internally consistent with the fixed chain, contract, Quest ID and response schema. The record is not a complete production certification because raw test/build logs, ACT6 UI screenshots, Explorer data, and post-merge Production verification were not supplied.
 
 Known warnings:
 
