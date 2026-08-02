@@ -8,12 +8,13 @@
 | Environment | Local implementation and automated verification |
 | Branch | `feat/quest1-chain-evidence-ui-v2` |
 | Phase 8C implementation commit | `550ac81ff3d4e95248bcb55b2803310c1242581c` |
+| Repository HEAD at Preview verification | `e033e35e2badd9cf7c375aceb748216e5ddb14ef` |
 | Baseline commit | `adb03cfe17c3853bd82a2a44a5d1f76070ab654c` |
 | Record date | 2026-08-03 (Asia/Shanghai) |
-| Browser screenshots | NOT RECORDED |
+| Browser screenshots | One completed desktop screenshot recorded; remaining scenarios NOT RECORDED |
 | Browser Network capture | NOT RECORDED |
 
-This record documents implementation and automated checks only. It does not claim a Preview or Production deployment result.
+This record documents implementation, automated checks, and the single manual Preview scenario recorded below. It does not claim Production verification.
 
 ## Modified files
 
@@ -108,21 +109,60 @@ Explorer URL generation was not tested because Explorer support is intentionally
 - API success schema, ABI selectors, chain constants, and `no-store` response behavior are unchanged: PASS by diff review.
 - Wallet connection, account discovery, signing, and write transactions were not added: PASS by diff review.
 
+## Manual browser regression supplement
+
+### completed=true desktop Preview
+
+| Field | Value |
+|---|---|
+| Result | **PASS — completed=true desktop Preview browser regression** |
+| Environment | Vercel Preview |
+| Branch | `feat/quest1-chain-evidence-ui-v2` |
+| Preview URL | `https://chain-security-cultivation-bz7wmf8f1-honora888888.vercel.app` |
+| Observed at | 2026-08-03 02:56 UTC+8 |
+| Viewport | 1440 × 1024 |
+| Learner address | `0x0A31d11Fd14029c12Ef07c2c200085aE622c1541` |
+| Evidence source | User-observed browser session on the real Vercel Preview page |
+| Screenshot | [completed desktop screenshot](assets/phase-8c-act6-completed-desktop-1440x1024.png) |
+
+Observed:
+
+- ACT6 rendered normally.
+- The chain-status address query succeeded.
+- `completed=true` was displayed.
+- `reportHash` displayed a non-zero value.
+- `badgeBalance=1` was displayed.
+- `blockNumber` was visible.
+- `queriedAt` was displayed in local time.
+- `dataSource` displayed as “Monad Testnet RPC”.
+- “刷新链上证据” was visible.
+- No horizontal overflow or obvious layout breakage was observed.
+- API/RPC error state was not exercised in this scenario.
+
+No specific `blockNumber`, `queriedAt`, or `reportHash` value from this UI request is added here; earlier API response values are not reused as this screenshot's request values.
+
+The screenshot file was checked and exists at `docs/evidence/quest-1/assets/phase-8c-act6-completed-desktop-1440x1024.png`.
+
+The previously reported PowerShell `curl` local-network limitation remains separate from this browser-observed Preview result and is not classified as an application failure.
+
 ## Browser verification still required
 
 The following are **NOT RECORDED** and require manual browser verification:
 
-1. 1440×1024 completed and non-completed queries.
-2. 390×844 wrapping, full-width action, and absence of horizontal overflow.
-3. Refresh label and old-result disclosure during a deliberately delayed request.
-4. Twelve-second timeout message under a safely simulated stalled same-origin request.
-5. Five-minute stale transition and visibility-return recalculation.
-6. Keyboard Tab order, visible focus, submit, and refresh.
-7. Screen-reader announcement behavior for status changes.
-8. Bestiary open/close preserving the current address and result.
-9. Preview and Production deployment behavior.
+1. completed=true mobile.
+2. completed=false desktop.
+3. completed=false mobile.
+4. Invalid-address UI.
+5. API/network failure.
+6. Refresh/requery result replacement.
+7. Twelve-second timeout message under a safely simulated stalled same-origin request.
+8. Five-minute stale transition and visibility-return recalculation.
+9. Bestiary open/close preserving the current address and result.
+10. Keyboard Tab order, visible focus, submit, and refresh.
+11. Reduced-motion behavior.
+12. Production deployment behavior.
 
-No browser manual regression, responsive screenshot, keyboard, stale-transition, or bestiary open/close verification is marked PASS by this record.
+Completed=true desktop Preview is the only browser scenario marked PASS by this record. No other manual regression, responsive screenshot, keyboard, stale-transition, or bestiary open/close verification is marked PASS.
 
 ## Known gaps
 
