@@ -122,6 +122,43 @@ Extracted values:
 
 Conclusion: **PASS — the legal but incomplete Quest 1 address returned completed=false, zero reportHash and zero badge balance through the Preview API, according to the supplied browser observation. This is not an RPC-failure fallback.**
 
+## Non-completed learner response-header verification
+
+Evidence source: **Chrome DevTools → Network → Headers, observed and supplied by the user.**
+
+This header capture is a separate browser observation from the previously recorded `completed=false` JSON body. It must not be combined with that body's `queriedAt` or `blockNumber` as though they came from one request.
+
+Request URL:
+
+```text
+https://chain-security-cultivation-i6piztofm-honora888888.vercel.app/api/quest-1/chain-status?address=0x000000000000000000000000000000000000dEaD
+```
+
+| Field | Observed value |
+|---|---|
+| Request method | `GET` |
+| Status code | `200 OK` |
+| `content-type` | `application/json` |
+| `cache-control` | `no-store` |
+| `x-content-type-options` | **NOT OBSERVED** |
+| `age` | `0` (optional auxiliary header) |
+| `content-encoding` | `br` (optional auxiliary header) |
+| `server` | `Vercel` (optional auxiliary header) |
+| `date` | `Sun, 02 Aug 2026 11:01:33 GMT` (optional auxiliary header) |
+| Screenshot | `docs/evidence/quest-1/assets/phase-8b-non-completed-response-headers.png` |
+
+The screenshot exists in the repository. The local Remote Address shown in the screenshot is intentionally not recorded.
+
+Conclusion:
+
+- HTTP success response: **PASS**
+- JSON content type: **PASS**
+- no-store cache policy: **PASS**
+- x-content-type-options: **NOT OBSERVED**
+- Browser Network evidence: **PASS**
+
+This evidence does not establish the response body, block number, or queriedAt timestamp for the earlier `completed=false` JSON record. The completed learner response headers remain **NOT RECORDED**.
+
 ## Updated verification summary
 
 - completed=true live-chain path: **PASS** (browser-observed Preview response supplied by user)
@@ -210,9 +247,8 @@ Classification: **BLOCKED — LOCAL NETWORK / DNS / HTTPS ROUTING**. This discre
 
 The following remain explicitly **NOT RECORDED** and must not be inferred:
 
-- HTTP status code DevTools capture or raw record;
-- Response-header capture, including `content-type`, `Cache-Control`, and `X-Content-Type-Options`;
-- Browser Network panel screenshot;
+- Completed learner HTTP status/header capture, including `content-type`, `Cache-Control`, and `X-Content-Type-Options`;
+- Completed learner response-header Network screenshot;
 - Raw Node 6/6 test log;
 - Raw lint log;
 - Raw TypeScript log;
@@ -221,6 +257,8 @@ The following remain explicitly **NOT RECORDED** and must not be inferred:
 - Post-merge Production verification;
 - Explorer link;
 - Completion transaction hash.
+
+The non-completed learner response-header capture is now recorded above. Its `x-content-type-options` value remains **NOT OBSERVED**.
 
 ## Repository cross-checks
 
