@@ -145,6 +145,35 @@ The screenshot file was checked and exists at `docs/evidence/quest-1/assets/phas
 
 The previously reported PowerShell `curl` local-network limitation remains separate from this browser-observed Preview result and is not classified as an application failure.
 
+### completed=false desktop Preview
+
+| Field | Value |
+|---|---|
+| Result | **PASS — completed=false desktop Preview browser regression** |
+| Environment | Vercel Preview |
+| Branch | `feat/quest1-chain-evidence-ui-v2` |
+| Viewport | 1440 × 1024 |
+| Learner address | `0x000000000000000000000000000000000000dEaD` |
+| Evidence source | User observation on the real Vercel Preview page using Chrome DevTools Responsive viewport |
+| Screenshot | [completed=false desktop screenshot](assets/phase-8c-act6-non-completed-desktop-1440x1024.png) |
+
+Observed:
+
+- ACT6 chain-status query succeeded.
+- `completed=false · 尚未登记` was displayed.
+- `reportHash` was the all-zero bytes32 value.
+- `badgeBalance=0` was displayed.
+- `blockNumber=50340004` was visible.
+- `queriedAt` was displayed in local time as `2026/8/3 上午4:40:43`.
+- `dataSource` displayed as “Monad Testnet RPC”.
+- Network displayed as “Monad Testnet”.
+- `Chain ID=10143` was visible.
+- GuardianQuest contract and learner addresses were visible.
+- “刷新链上证据” was visible.
+- No horizontal overflow or obvious layout breakage was observed.
+
+This is a legitimate non-completed chain-read result, not an API, RPC, network, or failure fallback state. The screenshot file was checked and exists at `docs/evidence/quest-1/assets/phase-8c-act6-non-completed-desktop-1440x1024.png`.
+
 ## Browser verification still required
 
 The following are **NOT RECORDED** and require manual browser verification:
@@ -162,7 +191,7 @@ The following are **NOT RECORDED** and require manual browser verification:
 11. Reduced-motion behavior.
 12. Production deployment behavior.
 
-Completed=true desktop Preview is the only browser scenario marked PASS by this record. No other manual regression, responsive screenshot, keyboard, stale-transition, or bestiary open/close verification is marked PASS.
+Completed=true desktop and completed=false desktop Preview are the only browser scenarios marked PASS by this record. No mobile, error-state, refresh, timeout, stale, bestiary, keyboard, reduced-motion, or Production verification is marked PASS.
 
 ## Known gaps
 
