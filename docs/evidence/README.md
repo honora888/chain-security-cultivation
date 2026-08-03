@@ -62,3 +62,5 @@ Never store RPC URLs, `.env` contents, tokens, bypass tokens, private keys, cred
 3. Keep source provenance beside externally supplied values.
 4. Do not call a local mock, local completion flag, or screenshot proof of a live chain result.
 5. Do not turn a missing response header, screenshot, or transaction hash into a positive claim.
+
+The Quest 1 Phase 8D final release regression is documented in [quest-1/phase-8d-release-regression.md](quest-1/phase-8d-release-regression.md). The Phase 8D deterministic baseline passed the JSON-RPC validator suite, ACT6 panel suite, TypeScript check, ESLint, and Production build. User-observed Production browser regression passed invalid-address handling, trim normalization, requery replacement, refresh loading-state preservation, bestiary state preservation, safe network-failure handling and recovery, keyboard operation, visible focus, and reduced-motion behavior. No application-code change was required. Real-time browser timeout and five-minute stale waits remain unrecorded because those boundaries were verified deterministically; Explorer support remains a documented GAP.
