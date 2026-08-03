@@ -33,3 +33,7 @@ broadcast/
 docs/
 !/docs/
 !/docs/**
+.vercel
+.env*
+!.env.example
+!.env.*.example
