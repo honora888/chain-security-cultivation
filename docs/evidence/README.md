@@ -9,9 +9,11 @@ This directory is the maintained index for verifiable project evidence. It recor
 - `deployments/monad-testnet.md`, `deployments/quest-1.md`, and `deployments/quest-1-completion.md` — deployment and completion records already present in the repository.
 - `README.md` — project scope, public routes, learner/demo references, and the distinction between local completion and chain completion.
 - `design-sources/quest-1/freeze-v1/` — Phase 7 security freeze reports, Phase 8A chain API audit, Phase 8B hardening evidence, mobile QA, release-candidate QA, and final-main verification artifacts.
-- Git history — Phase 8B hardening commit `37becb7f27a00b6a9cf278020ed276e388bcccb0` exists and is the current HEAD on `fix/quest1-chain-api-hardening`.
+- Git history — Phase 8B hardening commit `37becb7f27a00b6a9cf278020ed276e388bcccb0` is a historical hardening commit on `fix/quest1-chain-api-hardening`; the Phase 8C implementation record identifies its own branch and commit.
 
 The Phase 8B Preview record is documented in [quest-1/phase-8b-chain-status.md](quest-1/phase-8b-chain-status.md). Values supplied directly in the release handoff are labeled as such; they are not presented as independently recovered from an unavailable network capture.
+
+The Phase 8C ACT6 evidence-panel implementation and verification record is documented in [quest-1/phase-8c-act6-chain-panel.md](quest-1/phase-8c-act6-chain-panel.md). Its current repository branch is `feat/quest1-chain-evidence-ui-v2` at HEAD `559e09ab59ba638b568c2e01add06708a9f0dc1d`. The correct Preview automated browser supplement records completed=true and completed=false desktop and mobile core scenarios as PASS. The earlier `https://chain-security-cultivation-bz7wmf8f1-honora888888.vercel.app` automated BLOCKED result is invalid and excluded from certification. Explorer support remains a GAP until a verified Monad Testnet Explorer base URL is recorded in the repository; the remaining browser and Production checks stay `NOT RECORDED` as listed in the phase record.
 
 ## Evidence status vocabulary
 
