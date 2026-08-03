@@ -9,17 +9,26 @@ This directory is the maintained index for verifiable project evidence. It recor
 - `deployments/monad-testnet.md`, `deployments/quest-1.md`, and `deployments/quest-1-completion.md` — deployment and completion records already present in the repository.
 - `README.md` — project scope, public routes, learner/demo references, and the distinction between local completion and chain completion.
 - `design-sources/quest-1/freeze-v1/` — Phase 7 security freeze reports, Phase 8A chain API audit, Phase 8B hardening evidence, mobile QA, release-candidate QA, and final-main verification artifacts.
-- Git history — Phase 8B hardening commit `37becb7f27a00b6a9cf278020ed276e388bcccb0` is a historical hardening commit on `fix/quest1-chain-api-hardening`; the Phase 8C implementation record identifies its own branch and commit.
+- Git history — Phase 8B hardening commit `37becb7f27a00b6a9cf278020ed276e388bcccb0` was merged into `main` through pull request #3 at merge commit `8198485a12287b40c9c3ab003dea54cbdc991591`. The Phase 8C implementation commit `550ac81ff3d4e95248bcb55b2803310c1242581c` was merged into `main` through pull request #4 at merge commit `d0fa2378b14380726c42e1c0b3ceb4e692e715ec`.
+
+- User-observed Production browser smoke verification — the Vercel Production deployment of merge commit `d0fa2378b14380726c42e1c0b3ceb4e692e715ec` was checked with one completed learner and one non-completed learner. No Production screenshot, exact block number, query timestamp, or full report hash was recorded.
 
 The Phase 8B Preview record is documented in [quest-1/phase-8b-chain-status.md](quest-1/phase-8b-chain-status.md). Values supplied directly in the release handoff are labeled as such; they are not presented as independently recovered from an unavailable network capture.
 
-The Phase 8C ACT6 evidence-panel implementation and verification record is documented in [quest-1/phase-8c-act6-chain-panel.md](quest-1/phase-8c-act6-chain-panel.md). Its current repository branch is `feat/quest1-chain-evidence-ui-v2` at HEAD `559e09ab59ba638b568c2e01add06708a9f0dc1d`. The correct Preview automated browser supplement records completed=true and completed=false desktop and mobile core scenarios as PASS. The earlier `https://chain-security-cultivation-bz7wmf8f1-honora888888.vercel.app` automated BLOCKED result is invalid and excluded from certification. Explorer support remains a GAP until a verified Monad Testnet Explorer base URL is recorded in the repository; the remaining browser and Production checks stay `NOT RECORDED` as listed in the phase record.
+The Phase 8C ACT6 evidence-panel implementation and verification record is documented in [quest-1/phase-8c-act6-chain-panel.md](quest-1/phase-8c-act6-chain-panel.md). The Phase 8C implementation commit `550ac81ff3d4e95248bcb55b2803310c1242581c` was merged into `main` through pull request #4 at merge commit `d0fa2378b14380726c42e1c0b3ceb4e692e715ec`.
+
+The correct Preview automated browser supplement records completed=true and completed=false desktop and mobile core scenarios as PASS. The earlier automated BLOCKED result against `https://chain-security-cultivation-bz7wmf8f1-honora888888.vercel.app` used an incorrect deployment target and is marked `INVALID TARGET — excluded from certification`.
+
+A user-observed Production browser smoke verification against the deployment of merge commit `d0fa2378b14380726c42e1c0b3ceb4e692e715ec` records both the completed learner and non-completed learner queries as PASS. No Production screenshot, exact Production block number, query timestamp, or full report hash was recorded, and this smoke verification is not presented as a complete Production regression suite.
+
+Explorer support remains a GAP until a verified Monad Testnet Explorer base URL is recorded in the repository. Invalid-address browser regression, trim normalization, refresh/requery, loading-state preservation, API/network failure, client timeout, real-time stale transition, bestiary state preservation, keyboard behavior, reduced-motion behavior, and a complete Production regression suite remain `NOT RECORDED`.
 
 ## Evidence status vocabulary
 
 - **PASS** — directly supported by a repository artifact, Git object, or attached record with enough context to reproduce the claim.
 - **NOT RECORDED** — the requested evidence was not found and is not reconstructed.
 - **BLOCKED — LOCAL NETWORK / DNS / HTTPS ROUTING** — a local network path failed while the same operation was reported successful in a browser or external environment; this is not classified as an application failure without additional evidence.
+- **INVALID TARGET — excluded from certification** — an observation was made against the wrong deployment, branch, commit, or environment and is retained only as historical context; it does not contribute to release certification.
 - **Known warning** — a limitation that does not prove a product failure but must remain visible to reviewers.
 
 ## Unified record template
