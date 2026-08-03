@@ -4,17 +4,17 @@
 
 | Field | Value |
 |---|---|
-| Phase | Quest 1 Phase 8C |
-| Environment | Local implementation and automated verification |
+| Phase | Quest 1 Phase 8C | Production deployment commit | `d0fa2378b14380726c42e1c0b3ceb4e692e715ec` |
+| Environment | Local implementation, Preview verification, and Production smoke verification |
 | Branch | `feat/quest1-chain-evidence-ui-v2` |
 | Phase 8C implementation commit | `550ac81ff3d4e95248bcb55b2803310c1242581c` |
 | Repository HEAD at Preview verification | `e033e35e2badd9cf7c375aceb748216e5ddb14ef` |
 | Baseline commit | `adb03cfe17c3853bd82a2a44a5d1f76070ab654c` |
-| Record date | 2026-08-03 (Asia/Shanghai) |
-| Browser screenshots | One historical completed desktop screenshot recorded; this automated supplement saved no screenshots |
+| Record date | 2026-08-03; last updated 2026-08-04 (Asia/Shanghai) |
+| Browser screenshots | Two user-observed desktop screenshots are recorded; no screenshot was captured for the automated supplement or Production smoke verification |
 | Browser Network capture | NOT RECORDED |
 
-This record documents implementation, automated checks, the historical user-provided desktop scenarios, and the separate automated Preview supplement below. It does not claim Production verification.
+This record documents implementation, automated checks, the historical user-provided desktop scenarios, the automated Preview supplement, and a user-observed Production smoke verification. It does not claim a complete Production regression suite.
 
 ## Modified files
 
@@ -173,6 +173,60 @@ Observed:
 - No horizontal overflow or obvious layout breakage was observed.
 
 This is a legitimate non-completed chain-read result, not an API, RPC, network, or failure fallback state. The screenshot file was checked and exists at `docs/evidence/quest-1/assets/phase-8c-act6-non-completed-desktop-1440x1024.png`.
+## Production smoke verification
+
+| Field | Value |
+|---|---|
+| Result | **PASS — Production browser smoke verification** |
+| Environment | Vercel Production |
+| Deployment commit | `d0fa2378b14380726c42e1c0b3ceb4e692e715ec` |
+| Verified date | 2026-08-04 (Asia/Shanghai) |
+| Evidence source | User-observed Production browser smoke verification |
+| Screenshot | NOT RECORDED |
+
+This was a minimal Production smoke verification after deploying the Phase 8C merge commit. It was not a complete Production regression suite.
+
+### Completed learner
+
+Learner address:
+
+`0x0A31d11Fd14029c12Ef07c2c200085aE622c1541`
+
+Observed:
+
+- The Quest 1 Production page loaded successfully.
+- The chain-status query completed successfully.
+- `completed=true` was displayed.
+- A non-zero `reportHash` was displayed.
+- Quest 1 badge balance was `1`.
+- `dataSource` displayed as “Monad Testnet RPC”.
+- The refresh-chain-evidence action was available.
+- No obvious layout breakage was observed.
+- No product Console error was observed during the smoke verification.
+
+### Non-completed learner
+
+Learner address:
+
+`0x000000000000000000000000000000000000dEaD`
+
+Observed:
+
+- The chain-status query completed successfully.
+- `completed=false` was displayed.
+- The all-zero bytes32 `reportHash` was displayed.
+- Quest 1 badge balance was `0`.
+- The result was presented as a valid non-completed chain state, not as an API, RPC, or network failure.
+- `dataSource` displayed as “Monad Testnet RPC”.
+- No obvious layout breakage was observed.
+- No product Console error was observed during the smoke verification.
+
+### Production evidence limitations
+
+- No Production screenshot was recorded.
+- No exact Production `blockNumber`, `queriedAt`, or full `reportHash` value is claimed.
+- Invalid-address, timeout, stale, keyboard, reduced-motion, and failure-path scenarios were not repeated in Production.
+- Explorer links remain a documented GAP.
 
 ## Browser verification still required
 
@@ -187,16 +241,18 @@ The following remain **NOT RECORDED** and require future browser verification:
 7. Bestiary open/close preserving the current address and result.
 8. Keyboard Tab order, visible focus, submit, and refresh.
 9. Reduced-motion behavior.
-10. Production deployment behavior.
 
-The historical user-provided desktop sections remain unchanged. The correct Preview automated supplement below additionally marks the four core completed=true/completed=false desktop and mobile scenarios PASS. No error-state, refresh, timeout, stale, bestiary, keyboard, reduced-motion, or Production verification is marked PASS.
+The historical user-provided desktop sections remain unchanged. The correct Preview automated supplement below marks the four core completed=true/completed=false desktop and mobile scenarios PASS. Production has a separate user-observed smoke-verification PASS, but no complete Production regression suite is claimed. Error-state, refresh, timeout, stale, bestiary, keyboard, and reduced-motion browser verification remain NOT RECORDED.
 
 ## Known gaps
 
 - Explorer links: GAP — no verified base URL in the repository.
-- Browser and responsive screenshots: NOT RECORDED.
-- Preview deployment verification: NOT RECORDED.
-- Production verification: NOT RECORDED.
+- User-observed desktop screenshots: RECORDED for completed=true and completed=false Preview scenarios.
+- Automated Preview screenshots: NOT RECORDED.
+- Production screenshot: NOT RECORDED.
+- Preview core browser matrix: PASS.
+- Production smoke verification: PASS.
+- Complete Production regression suite: NOT RECORDED.
 - Full-page refresh persistence: intentionally not implemented.
 
 ## Correct Preview automated browser certification supplement
@@ -295,6 +351,8 @@ Repository identity at record time:
 - completed=false and failure separation: **PASS**
 - Product Console cleanliness in all four core scenarios: **PASS**
 
-Explorer links remain **GAP** because no verified Explorer base URL is available in the repository. The following remain **NOT RECORDED**: invalid-address browser regression, trim normalization browser regression, refresh/requery, refresh loading-state preservation, API/network failure, twelve-second client timeout, five-minute real-time browser stale transition, bestiary state preservation, keyboard, reduced motion, and Production.
+Explorer links remain **GAP** because no verified Explorer base URL is available in the repository. The following remain **NOT RECORDED**: invalid-address browser regression, trim normalization browser regression, refresh/requery, refresh loading-state preservation, API/network failure, twelve-second client timeout, five-minute real-time browser stale transition, bestiary state preservation, keyboard, and reduced motion.
 
-No screenshot was saved by this supplement.
+The separate user-observed Production smoke verification is **PASS**, but it does not constitute a complete Production regression suite.
+
+No screenshot was saved by this automated supplement or by the Production smoke verification.
