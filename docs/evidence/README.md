@@ -13,7 +13,7 @@ This directory is the maintained index for verifiable project evidence. It recor
 
 The Phase 8B Preview record is documented in [quest-1/phase-8b-chain-status.md](quest-1/phase-8b-chain-status.md). Values supplied directly in the release handoff are labeled as such; they are not presented as independently recovered from an unavailable network capture.
 
-The Phase 8C ACT6 evidence-panel implementation and verification record is documented in [quest-1/phase-8c-act6-chain-panel.md](quest-1/phase-8c-act6-chain-panel.md). Its recorded branch is `feat/quest1-chain-evidence-ui-v2`, implementation commit is `550ac81ff3d4e95248bcb55b2803310c1242581c`, and completed=true plus completed=false desktop Preview browser regressions are recorded. Explorer support remains a GAP until a verified Monad Testnet Explorer base URL is recorded in the repository; all other browser and deployment checks remain `NOT RECORDED` until captured.
+The Phase 8C ACT6 evidence-panel implementation and verification record is documented in [quest-1/phase-8c-act6-chain-panel.md](quest-1/phase-8c-act6-chain-panel.md). Its current repository branch is `feat/quest1-chain-evidence-ui-v2` at HEAD `559e09ab59ba638b568c2e01add06708a9f0dc1d`. The correct Preview automated browser supplement records completed=true and completed=false desktop and mobile core scenarios as PASS. The earlier `https://chain-security-cultivation-bz7wmf8f1-honora888888.vercel.app` automated BLOCKED result is invalid and excluded from certification. Explorer support remains a GAP until a verified Monad Testnet Explorer base URL is recorded in the repository; the remaining browser and Production checks stay `NOT RECORDED` as listed in the phase record.
 
 ## Evidence status vocabulary
 

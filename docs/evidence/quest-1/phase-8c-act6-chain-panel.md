@@ -11,10 +11,10 @@
 | Repository HEAD at Preview verification | `e033e35e2badd9cf7c375aceb748216e5ddb14ef` |
 | Baseline commit | `adb03cfe17c3853bd82a2a44a5d1f76070ab654c` |
 | Record date | 2026-08-03 (Asia/Shanghai) |
-| Browser screenshots | One completed desktop screenshot recorded; remaining scenarios NOT RECORDED |
+| Browser screenshots | One historical completed desktop screenshot recorded; this automated supplement saved no screenshots |
 | Browser Network capture | NOT RECORDED |
 
-This record documents implementation, automated checks, and the single manual Preview scenario recorded below. It does not claim Production verification.
+This record documents implementation, automated checks, the historical user-provided desktop scenarios, and the separate automated Preview supplement below. It does not claim Production verification.
 
 ## Modified files
 
@@ -176,22 +176,20 @@ This is a legitimate non-completed chain-read result, not an API, RPC, network, 
 
 ## Browser verification still required
 
-The following are **NOT RECORDED** and require manual browser verification:
+The following remain **NOT RECORDED** and require future browser verification:
 
-1. completed=true mobile.
-2. completed=false desktop.
-3. completed=false mobile.
-4. Invalid-address UI.
-5. API/network failure.
-6. Refresh/requery result replacement.
-7. Twelve-second timeout message under a safely simulated stalled same-origin request.
-8. Five-minute stale transition and visibility-return recalculation.
-9. Bestiary open/close preserving the current address and result.
-10. Keyboard Tab order, visible focus, submit, and refresh.
-11. Reduced-motion behavior.
-12. Production deployment behavior.
+1. Invalid-address UI.
+2. Trim normalization browser regression.
+3. API/network failure.
+4. Refresh/requery result replacement.
+5. Twelve-second timeout message under a safely simulated stalled same-origin request.
+6. Five-minute stale transition and visibility-return recalculation.
+7. Bestiary open/close preserving the current address and result.
+8. Keyboard Tab order, visible focus, submit, and refresh.
+9. Reduced-motion behavior.
+10. Production deployment behavior.
 
-Completed=true desktop and completed=false desktop Preview are the only browser scenarios marked PASS by this record. No mobile, error-state, refresh, timeout, stale, bestiary, keyboard, reduced-motion, or Production verification is marked PASS.
+The historical user-provided desktop sections remain unchanged. The correct Preview automated supplement below additionally marks the four core completed=true/completed=false desktop and mobile scenarios PASS. No error-state, refresh, timeout, stale, bestiary, keyboard, reduced-motion, or Production verification is marked PASS.
 
 ## Known gaps
 
@@ -200,3 +198,103 @@ Completed=true desktop and completed=false desktop Preview are the only browser 
 - Preview deployment verification: NOT RECORDED.
 - Production verification: NOT RECORDED.
 - Full-page refresh persistence: intentionally not implemented.
+
+## Correct Preview automated browser certification supplement
+
+This supplement supersedes any earlier automated result against the `bz7wmf8f1` deployment. That target is explicitly excluded from certification:
+
+`INVALID TARGET — excluded from certification`
+
+Evidence source: **Codex automated browser observation against the real Vercel Preview**. No screenshots were saved in this run.
+
+Actual tested page:
+
+`https://chain-security-cultivation-git-feat-quest1-4d6bbe-honora888888.vercel.app/quests/1`
+
+Repository identity at record time:
+
+| Field | Value |
+|---|---|
+| Branch | `feat/quest1-chain-evidence-ui-v2` |
+| HEAD | `559e09ab59ba638b568c2e01add06708a9f0dc1d` |
+| Staged files | None |
+
+### completed=true desktop
+
+| Field | Observed value |
+|---|---|
+| Status | **AUTOMATED BROWSER PASS** |
+| Viewport | 1440 × 1024 |
+| Learner | `0x0A31d11Fd14029c12Ef07c2c200085aE622c1541` |
+| Chain state | `completed=true · 已登记`; 页面显示“链上已登记” |
+| reportHash | Non-zero: `0xef3b…306c` |
+| Quest 1 徽记余额 | `1` |
+| blockNumber | `50370227` |
+| queriedAt | `2026/8/3 07:12:46` |
+| dataSource | `Monad Testnet RPC` |
+| Layout | `innerWidth=1440`, `clientWidth=1425`, `scrollWidth=1425`, `overflow=false` |
+| Product Console errors | `0` |
+
+### completed=false desktop
+
+| Field | Observed value |
+|---|---|
+| Status | **AUTOMATED BROWSER PASS** |
+| Viewport | 1440 × 1024 |
+| Learner | `0x000000000000000000000000000000000000dEaD` |
+| Chain state | `completed=false · 尚未登记`; 页面显示“链上尚未登记” |
+| reportHash | All-zero bytes32 |
+| Quest 1 徽记余额 | `0` |
+| blockNumber | `50371068` |
+| queriedAt | `2026/8/3 07:17:00` |
+| dataSource | `Monad Testnet RPC` |
+| Layout | `innerWidth=1440`, `clientWidth=1425`, `scrollWidth=1425`, `overflow=false` |
+| Product Console errors | `0` |
+| Interpretation | 合法的成功链上未完成状态，不是错误降级 |
+
+### completed=true mobile
+
+| Field | Observed value |
+|---|---|
+| Status | **AUTOMATED BROWSER PASS** |
+| Viewport | 390 × 844 |
+| Learner | `0x0A31d11Fd14029c12Ef07c2c200085aE622c1541` |
+| Chain state | `completed=true · 已登记`; 页面显示“链上已登记” |
+| reportHash | Non-zero: `0xef3b…306c` |
+| Quest 1 徽记余额 | `1` |
+| blockNumber | `50371832` |
+| queriedAt | `2026/8/3 07:20:51` |
+| dataSource | `Monad Testnet RPC` |
+| Layout | `innerWidth=390`, `clientWidth=375`, `scrollWidth=375`, `overflow=false` |
+| Product Console errors | `0` |
+
+### completed=false mobile
+
+| Field | Observed value |
+|---|---|
+| Status | **AUTOMATED BROWSER PASS** |
+| Viewport | 390 × 844 |
+| Learner | `0x000000000000000000000000000000000000dEaD` |
+| Chain state | `completed=false · 尚未登记`; 页面显示“链上尚未登记” |
+| reportHash | All-zero bytes32 |
+| Quest 1 徽记余额 | `0` |
+| blockNumber | `50372329` |
+| queriedAt | `2026/8/3 07:23:21` |
+| dataSource | `Monad Testnet RPC` |
+| Layout | `innerWidth=390`, `clientWidth=375`, `scrollWidth=375`, `overflow=false` |
+| Product Console errors | `0` |
+
+### Automated certification conclusion
+
+- Real Preview completed=true desktop: **PASS**
+- Real Preview completed=false desktop: **PASS**
+- Real Preview completed=true mobile: **PASS**
+- Real Preview completed=false mobile: **PASS**
+- Successful-result desktop overflow: **PASS**
+- Successful-result mobile overflow: **PASS**
+- completed=false and failure separation: **PASS**
+- Product Console cleanliness in all four core scenarios: **PASS**
+
+Explorer links remain **GAP** because no verified Explorer base URL is available in the repository. The following remain **NOT RECORDED**: invalid-address browser regression, trim normalization browser regression, refresh/requery, refresh loading-state preservation, API/network failure, twelve-second client timeout, five-minute real-time browser stale transition, bestiary state preservation, keyboard, reduced motion, and Production.
+
+No screenshot was saved by this supplement.
