@@ -1,0 +1,30 @@
+slither : 'forge clean' running (wd: C:\dev\chain-security-cultivation)
+所在位置 行:1 字符: 1
++ slither src/VulnerableCharityVault.sol `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ('forge clean' r...ty-cultivation):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+'forge config --json' running
+'forge build --build-info src\VulnerableCharityVault.sol' running (wd: C:\dev\chain-security-cultivation)
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36):
+	External calls:
+	- (success,None) = msg.sender.call{value: amount}() (src/VulnerableCharityVault.sol#29)
+	Event emitted after the call(s):
+	- Withdrawn(msg.sender,amount) (src/VulnerableCharityVault.sol#35)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: reentrancy-eth
+Reentrancy in VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36):
+	External calls:
+	- (success,None) = msg.sender.call{value: amount}() (src/VulnerableCharityVault.sol#29)
+	State variables written after the call(s):
+	- balances[msg.sender] = 0 (src/VulnerableCharityVault.sol#33)
+	VulnerableCharityVault.balances (src/VulnerableCharityVault.sol#7) can be used in cross function reentrancies:
+	- VulnerableCharityVault.balances (src/VulnerableCharityVault.sol#7)
+	- VulnerableCharityVault.donate() (src/VulnerableCharityVault.sol#13-19)
+	- VulnerableCharityVault.withdraw() (src/VulnerableCharityVault.sol#23-36)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
+INFO:Slither:src/VulnerableCharityVault.sol analyzed (1 contracts with 2 detectors), 2 result(s) found

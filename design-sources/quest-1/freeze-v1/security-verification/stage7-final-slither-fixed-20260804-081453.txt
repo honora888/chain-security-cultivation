@@ -1,0 +1,10 @@
+slither : 'forge clean' running (wd: C:\dev\chain-security-cultivation)
+所在位置 行:1 字符: 1
++ slither src/FixedCharityVault.sol `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ('forge clean' r...ty-cultivation):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+'forge config --json' running
+'forge build --build-info src\FixedCharityVault.sol' running (wd: C:\dev\chain-security-cultivation)
+INFO:Slither:src/FixedCharityVault.sol analyzed (1 contracts with 2 detectors), 0 result(s) found

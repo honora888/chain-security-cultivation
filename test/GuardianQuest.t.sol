@@ -3,6 +3,69 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {GuardianQuest} from "../src/GuardianQuest.sol";
+import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+
+/// @notice 模拟获得 VERIFIER_ROLE 的 ERC-1155 接收合约。
+/// @dev 收到 Badge 时尝试再次验证同一学习者，验证完成状态是否已在回调前写入。
+contract ReentrantGuardianReceiver is IERC1155Receiver {
+    GuardianQuest internal immutable guardian;
+    uint256 internal immutable questId;
+    bytes32 internal immutable initialReportHash;
+    bytes32 internal immutable reentryReportHash;
+
+    bool public reentryAttempted;
+    bool public reentryBlocked;
+    bytes4 public reentryRevertSelector;
+
+    constructor(GuardianQuest guardian_, uint256 questId_, bytes32 initialReportHash_, bytes32 reentryReportHash_) {
+        guardian = guardian_;
+        questId = questId_;
+        initialReportHash = initialReportHash_;
+        reentryReportHash = reentryReportHash_;
+    }
+
+    /// @notice 以当前 Receiver 身份发起第一次合法验证。
+    function completeQuest() external {
+        guardian.verifyCompletion(address(this), questId, initialReportHash);
+    }
+
+    /// @notice ERC-1155 铸造回调中尝试重复完成同一 Quest。
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external override returns (bytes4) {
+        reentryAttempted = true;
+
+        try guardian.verifyCompletion(address(this), questId, reentryReportHash) {
+            reentryBlocked = false;
+        } catch (bytes memory reason) {
+            reentryBlocked = true;
+
+            if (reason.length >= 4) {
+                bytes4 selector;
+
+                assembly ("memory-safe") {
+                    selector := mload(add(reason, 0x20))
+                }
+
+                reentryRevertSelector = selector;
+            }
+        }
+
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        pure
+        override
+        returns (bytes4)
+    {
+        return this.onERC1155BatchReceived.selector;
+    }
+
+    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC165).interfaceId;
+    }
+}
 
 contract GuardianQuestTest is Test {
     GuardianQuest internal guardian;
@@ -161,5 +224,40 @@ contract GuardianQuestTest is Test {
 
         vm.prank(verifier);
         guardian.verifyCompletion(learner, QUEST_ID, REPORT_HASH);
+    }
+
+    /// @notice ERC-1155 接收回调不能重复完成、重复铸造或覆盖报告哈希
+    function testReceiverCallbackCannotDuplicateCompletion() public {
+        bytes32 reentryReportHash = keccak256("reentrant-report-overwrite-attempt");
+
+        ReentrantGuardianReceiver receiver =
+            new ReentrantGuardianReceiver(guardian, QUEST_ID, REPORT_HASH, reentryReportHash);
+
+        // 先读取角色常量，避免该 staticcall 消耗 vm.prank。
+        bytes32 verifierRole = guardian.VERIFIER_ROLE();
+
+        // Receiver 必须拥有验证者角色，才能真正到达重复完成检查。
+        vm.prank(admin);
+        guardian.grantRole(verifierRole, address(receiver));
+
+        receiver.completeQuest();
+
+        // ERC-1155 回调确实发生，并尝试了重复验证。
+        assertTrue(receiver.reentryAttempted());
+
+        // 重复调用被 AlreadyCompleted 阻断。
+        assertTrue(receiver.reentryBlocked());
+        assertEq(bytes32(receiver.reentryRevertSelector()), bytes32(GuardianQuest.AlreadyCompleted.selector));
+
+        // 外层合法完成仍然成功。
+        assertTrue(guardian.completed(QUEST_ID, address(receiver)));
+
+        // 回调不能覆盖第一次写入的 Report Hash。
+        assertEq(guardian.reportHashes(QUEST_ID, address(receiver)), REPORT_HASH);
+
+        assertNotEq(guardian.reportHashes(QUEST_ID, address(receiver)), reentryReportHash);
+
+        // Badge 只能铸造一个。
+        assertEq(guardian.balanceOf(address(receiver), QUEST_ID), 1);
     }
 }

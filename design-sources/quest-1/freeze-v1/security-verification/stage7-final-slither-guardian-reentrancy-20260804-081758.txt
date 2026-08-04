@@ -1,0 +1,16 @@
+'forge clean' running (wd: C:\dev\chain-security-cultivation)
+'forge config --json' running
+'forge build --build-info src\GuardianQuest.sol' running (wd: C:\dev\chain-security-cultivation)
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in GuardianQuest.verifyCompletion(address,uint256,bytes32) (src/GuardianQuest.sol#120-150):
+	External calls:
+	- _mint(learner,questId,1,) (src/GuardianQuest.sol#147)
+		- response = IERC1155Receiver(to).onERC1155BatchReceived(operator,from,ids,values,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol#66-82)
+		- response = IERC1155Receiver(to).onERC1155Received(operator,from,id,value,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol#33-46)
+		- ERC1155Utils.checkOnERC1155BatchReceived(operator,from,to,ids,values,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol#209-212)
+		- ERC1155Utils.checkOnERC1155Received(operator,from,to,id,value,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol#216-217)
+	Event emitted after the call(s):
+	- QuestCompleted(questId,learner,reportHash) (src/GuardianQuest.sol#149)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Slither:src/GuardianQuest.sol analyzed (25 contracts with 2 detectors), 1 result(s) found
