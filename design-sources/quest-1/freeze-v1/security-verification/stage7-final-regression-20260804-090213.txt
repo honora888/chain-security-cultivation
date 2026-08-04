@@ -1,0 +1,48 @@
+**********************
+Windows PowerShell 脚本开始
+开始时间: 20260804090213
+用户名: wuxinzhuo\吴昕卓
+RunAs 用户: wuxinzhuo\吴昕卓
+配置名称:
+计算机: WUXINZHUO (Microsoft Windows NT 10.0.22631.0)
+主机应用程序: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+进程 ID: 41452
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+已启动脚本，输出文件为 design-sources/quest-1/freeze-v1/security-verification/stage7-final-regression-20260804-090213.txt
+PS C:\dev\chain-security-cultivation> Write-Host "=== Repository identity ==="
+=== Repository identity ===
+PS C:\dev\chain-security-cultivation> git branch --show-current
+
+PS C:\dev\chain-security-cultivation> git rev-parse HEAD
+
+PS C:\dev\chain-security-cultivation> Write-Host "=== Formatting ==="
+=== Formatting ===
+PS C:\dev\chain-security-cultivation> forge fmt --check
+
+PS C:\dev\chain-security-cultivation> Write-Host "fmt exit code: $LASTEXITCODE"
+fmt exit code: 0
+PS C:\dev\chain-security-cultivation> Write-Host "=== Full Foundry suite ==="
+=== Full Foundry suite ===
+PS C:\dev\chain-security-cultivation> forge test -vvv
+
+PS C:\dev\chain-security-cultivation> Write-Host "full test exit code: $LASTEXITCODE"
+full test exit code: 0
+PS C:\dev\chain-security-cultivation> Write-Host "=== Invariant suite ==="
+=== Invariant suite ===
+PS C:\dev\chain-security-cultivation> forge test --match-path "*Invariant*" -vvvv
+
+PS C:\dev\chain-security-cultivation> Write-Host "invariant exit code: $LASTEXITCODE"
+invariant exit code: 0
+PS C:\dev\chain-security-cultivation> Stop-Transcript
+**********************
+Windows PowerShell 脚本结束
+结束时间: 20260804090219
+**********************

@@ -1,0 +1,48 @@
+'forge clean' running (wd: C:\dev\chain-security-cultivation)
+'forge config --json' running
+'forge build --build-info src\GuardianQuest.sol' running (wd: C:\dev\chain-security-cultivation)
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in GuardianQuest.verifyCompletion(address,uint256,bytes32) (src/GuardianQuest.sol#120-150):
+	External calls:
+	- _mint(learner,questId,1,) (src/GuardianQuest.sol#147)
+		- response = IERC1155Receiver(to).onERC1155BatchReceived(operator,from,ids,values,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol#66-82)
+		- response = IERC1155Receiver(to).onERC1155Received(operator,from,id,value,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol#33-46)
+		- ERC1155Utils.checkOnERC1155BatchReceived(operator,from,to,ids,values,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol#209-212)
+		- ERC1155Utils.checkOnERC1155Received(operator,from,to,id,value,data) (lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol#216-217)
+	Event emitted after the call(s):
+	- QuestCompleted(questId,learner,reportHash) (src/GuardianQuest.sol#149)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: pragma
+5 different versions of Solidity are used:
+	- Version constraint ^0.8.20 is used by:
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/access/AccessControl.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Address.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Comparators.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Errors.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/LowLevelCall.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Panic.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/SlotDerivation.sol#3-5)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol#3-5)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#2-4)
+		-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol#3-5)
+	- Version constraint >=0.8.4 is used by:
+		->=0.8.4 (lib/openzeppelin-contracts/contracts/access/IAccessControl.sol#2-4)
+		->=0.8.4 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#2-4)
+	- Version constraint ^0.8.24 is used by:
+		-^0.8.24 (lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol#2-4)
+		-^0.8.24 (lib/openzeppelin-contracts/contracts/utils/Arrays.sol#3-5)
+		-^0.8.24 (src/GuardianQuest.sol#2)
+	- Version constraint >=0.6.2 is used by:
+		->=0.6.2 (lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol#2-4)
+		->=0.6.2 (lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155Receiver.sol#2-4)
+		->=0.6.2 (lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol#2-4)
+	- Version constraint >=0.4.16 is used by:
+		->=0.4.16 (lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#2-4)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
+INFO:Slither:src/GuardianQuest.sol analyzed (25 contracts with 101 detectors), 2 result(s) found
