@@ -1,0 +1,3 @@
+254c58d081bb28bb5435abdfcf053e395df0a00bd1746d498c74497328e1002c  themoss-core-0.1.0.tgz
+f168a78fb2eabfda7085946ef5e80c26f8a95a0b09cc65bdec043eff3da1e542  themoss-protocol-guardian-0.1.0.tgz
+a5031fdbfead66216ccfc3ab8e8338136e53f6d0e438183ea86d1274027589a5  themoss-simulator-0.1.0.tgz
