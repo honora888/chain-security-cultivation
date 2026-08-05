@@ -1,0 +1,1182 @@
+.catalogPage {
+  --sky-ink: #173f45;
+  --deep-ink: #153638;
+  --muted-ink: #426b6c;
+  --water-jade: #2f8f92;
+  --water-light: #84c9bd;
+  --parchment: #f4ecd8;
+  --parchment-deep: #e7d7b9;
+  --warm-gold: #a57a31;
+  --gold-light: #d3b36b;
+  --cinnabar: #a8473e;
+  position: relative;
+  min-width: 0;
+  min-height: 100svh;
+  overflow-x: clip;
+  isolation: isolate;
+  color: var(--deep-ink);
+  background: #dceceb;
+}
+
+.catalogPage::before {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: clamp(760px, 62vw, 940px);
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    180deg,
+    rgba(4, 25, 36, 0.52) 0%,
+    rgba(7, 34, 43, 0.32) 46%,
+    rgba(11, 43, 48, 0.12) 72%,
+    transparent 100%
+  );
+}
+
+.catalogPage * {
+  min-width: 0;
+}
+
+.realmBackdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -2;
+  display: block;
+  height: clamp(780px, 92vw, 1120px);
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 0 78%, transparent 100%);
+}
+
+.realmBackdrop img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.catalogHeader {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  width: min(calc(100% - 48px), 1440px);
+  min-height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(44, 101, 99, 0.26);
+}
+
+.catalogBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  color: #f6ecd4;
+  text-decoration: none;
+}
+
+.catalogBrand > span:first-child {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(143, 58, 48, 0.68);
+  color: #e4bf72;
+  background: rgba(8, 34, 42, 0.56);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  box-shadow: 0 7px 20px rgba(28, 83, 82, 0.12);
+}
+
+.catalogBrand > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.catalogBrand strong {
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 19px;
+  letter-spacing: 0.12em;
+}
+
+.catalogBrand small {
+  color: rgba(222, 237, 229, 0.72);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.catalogNav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.catalogNav a {
+  padding: 8px 0;
+  color: rgba(239, 241, 225, 0.82);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.catalogNav a[aria-current="page"] {
+  border-bottom: 1px solid var(--warm-gold);
+  color: #f0d48e;
+}
+
+.catalogMain {
+  display: grid;
+  width: min(calc(100% - 48px), 1380px);
+  gap: clamp(18px, 2vw, 28px);
+  margin: 0 auto;
+  padding: clamp(20px, 2vw, 30px) 0 92px;
+}
+
+.catalogHero {
+  position: relative;
+  display: grid;
+  max-width: 640px;
+  justify-items: start;
+  padding: 6px 0 12px;
+}
+
+.catalogHero::before {
+  position: absolute;
+  z-index: -1;
+  inset: -42px -90px -56px -58px;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    ellipse at 25% 42%,
+    rgba(5, 29, 39, 0.48) 0%,
+    rgba(5, 29, 39, 0.22) 54%,
+    transparent 84%
+  );
+}
+
+.eyebrow,
+.realmNavigationHeading p,
+.realmPanelHeader > div > p,
+.rareAttributes > div > p,
+.classificationGuide > div > p {
+  margin: 0;
+  color: #e2c378;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.catalogHero h1 {
+  margin: 13px 0 0;
+  color: #f5ecd8;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(46px, 4.2vw, 60px);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 18px rgba(2, 20, 27, 0.42);
+}
+
+.catalogHero > p:last-child {
+  max-width: 660px;
+  margin: 16px 0 0;
+  color: rgba(242, 241, 224, 0.92);
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 540;
+  line-height: 1.68;
+  text-shadow: 0 1px 9px rgba(3, 20, 27, 0.55);
+}
+
+.realmNavigation {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  margin-top: 0;
+}
+
+.realmNavigationHeading {
+  position: absolute;
+  inset: -40px 10px auto;
+  z-index: 2;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 0;
+  padding: 0 10px;
+  pointer-events: none;
+}
+
+.realmNavigationHeading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.realmNavigationHeading > div h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.realmNavigationHeading h2,
+.realmPanelHeader h2,
+.classificationGuide h2,
+.rareAttributes h3 {
+  margin: 7px 0 0;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.realmNavigationHeading h2 {
+  color: #f5ecd8;
+  text-shadow: 0 2px 14px rgba(2, 20, 27, 0.45);
+}
+
+.realmNavigationHeading h2,
+.classificationGuide h2 {
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+.realmNavigationHeading > span {
+  max-width: 470px;
+  color: rgba(232, 238, 222, 0.78);
+  font-size: 12px;
+  font-weight: 560;
+  line-height: 1.7;
+  text-align: right;
+}
+
+.realmTabs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 16px);
+}
+
+.realmTab {
+  --realm-accent: var(--water-jade);
+  --realm-line: rgba(47, 143, 146, 0.4);
+  position: relative;
+  display: grid;
+  min-height: 220px;
+  align-content: end;
+  gap: 6px;
+  padding: 0 10px 15px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  color: var(--deep-ink);
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease,
+    box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.realmTab[data-realm="Metal"] {
+  --realm-accent: #797b70;
+  --realm-line: rgba(121, 123, 112, 0.48);
+}
+
+.realmTab[data-realm="Wood"] {
+  --realm-accent: #447b58;
+  --realm-line: rgba(68, 123, 88, 0.46);
+}
+
+.realmTab[data-realm="Water"] {
+  --realm-accent: #247e83;
+  --realm-line: rgba(36, 126, 131, 0.5);
+}
+
+.realmTab[data-realm="Fire"] {
+  --realm-accent: #a4513f;
+  --realm-line: rgba(164, 81, 63, 0.44);
+}
+
+.realmTab[data-realm="Earth"] {
+  --realm-accent: #8b6b35;
+  --realm-line: rgba(139, 107, 53, 0.44);
+}
+
+.realmTab[data-realm="Rare"] {
+  --realm-accent: #65627c;
+  --realm-line: rgba(101, 98, 124, 0.44);
+}
+
+.realmArt {
+  position: absolute;
+  inset: 0 0 70px;
+  z-index: -1;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    ellipse 78% 72% at 50% 48%,
+    #000 0 58%,
+    rgba(0, 0, 0, 0.72) 73%,
+    transparent 100%
+  );
+}
+
+.realmArt img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: drop-shadow(0 18px 18px rgba(2, 20, 28, 0.38));
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.realmLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+
+.realmLabel strong {
+  color: #f5ecd8;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.realmLabel > span {
+  color: #e1c479;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.realmTab small {
+  overflow: hidden;
+  color: rgba(235, 239, 222, 0.76);
+  font-size: 9px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.realmTab em {
+  color: rgba(240, 239, 221, 0.72);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.realmTab b {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  margin-top: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--realm-line);
+  color: #f3dfaa;
+  background: rgba(7, 37, 44, 0.74);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.realmTab:hover {
+  transform: translateY(-4px);
+}
+
+.realmTab[aria-selected="true"] {
+  border-color: var(--realm-line);
+  background: rgba(31, 100, 99, 0.14);
+  box-shadow: inset 0 -3px #8dd9ce, 0 18px 40px rgba(2, 24, 30, 0.2);
+}
+
+.realmTab[aria-selected="true"] .realmArt img {
+  filter: saturate(1.08) contrast(1.05) drop-shadow(0 20px 20px rgba(6, 71, 73, 0.38));
+  transform: translateY(-3px) scale(1.05);
+}
+
+.realmPanel {
+  --panel-accent: var(--water-jade);
+  position: relative;
+  padding: clamp(20px, 2.2vw, 30px);
+  border: 1px solid rgba(134, 99, 37, 0.34);
+  background: rgba(247, 240, 218, 0.83);
+  box-shadow: 0 32px 80px rgba(35, 82, 76, 0.17),
+    inset 0 1px rgba(255, 255, 247, 0.88);
+}
+
+.realmPanel[data-realm="Metal"] {
+  --panel-accent: #797b70;
+}
+
+.realmPanel[data-realm="Wood"] {
+  --panel-accent: #447b58;
+}
+
+.realmPanel[data-realm="Fire"] {
+  --panel-accent: #a4513f;
+}
+
+.realmPanel[data-realm="Earth"] {
+  --panel-accent: #8b6b35;
+}
+
+.realmPanel[data-realm="Rare"] {
+  --panel-accent: #65627c;
+}
+
+.realmPanelHeader {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.45fr) minmax(0, 1.55fr);
+  gap: clamp(24px, 5vw, 74px);
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-accent) 36%, transparent);
+}
+
+.realmPanelHeader h2 {
+  color: #173f42;
+  font-size: clamp(34px, 3.1vw, 44px);
+}
+
+.realmPanelHeader > p {
+  margin: 0;
+  color: #3c6566;
+  font-size: 14px;
+  font-weight: 520;
+  line-height: 1.55;
+}
+
+.realmContents {
+  padding-top: 12px;
+  animation: realm-reveal 240ms ease-out both;
+}
+
+.questScrollShell {
+  position: relative;
+}
+
+.questScrollViewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 4px 22px;
+  scrollbar-color: rgba(47, 126, 125, 0.62) rgba(114, 94, 52, 0.13);
+  scrollbar-width: thin;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+}
+
+.questScrollTrack {
+  display: flex;
+  width: max-content;
+  gap: 22px;
+}
+
+.questCard,
+.futureQuestPage {
+  width: min(1040px, calc(100vw - 164px));
+  min-height: 410px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  border: 1px solid rgba(137, 101, 43, 0.45);
+  background: rgba(246, 235, 207, 0.96);
+  box-shadow: 0 20px 50px rgba(45, 75, 66, 0.16),
+    inset 0 0 0 7px rgba(126, 92, 42, 0.05);
+}
+
+.questCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(210px, 0.7fr) minmax(250px, 0.9fr);
+  grid-template-rows: 1fr auto;
+  gap: 24px 34px;
+  padding: clamp(28px, 3.7vw, 50px);
+}
+
+.questIdentityColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.questCardHeader {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.questCardHeader p {
+  margin: 0;
+  color: #8b662b;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.openStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid rgba(40, 123, 122, 0.42);
+  color: #256f72;
+  background: rgba(116, 187, 171, 0.12);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.openStatus::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2f8f84;
+  content: "";
+}
+
+.questType {
+  margin: auto 0 0;
+  color: #2f7778;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.questIdentityColumn h3 {
+  margin: 8px 0 0;
+  color: #173f42;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(40px, 4.6vw, 62px);
+  font-weight: 650;
+  line-height: 1.03;
+  letter-spacing: 0.07em;
+}
+
+.questSummary {
+  margin: 18px 0 0;
+  color: #3c6261;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.questFacts {
+  display: grid;
+  align-content: start;
+  gap: 0;
+  margin: 0;
+  padding: 8px 0;
+  border-block: 1px solid rgba(133, 101, 53, 0.2);
+}
+
+.questFacts > div {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  padding: 13px 2px;
+  border-bottom: 1px solid rgba(44, 107, 105, 0.15);
+}
+
+.questFacts > div:last-child {
+  border-bottom: 0;
+}
+
+.questFacts dt {
+  color: #66817f;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.questFacts dd {
+  margin: 0;
+  color: #173e40;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.questFacts [data-severity="high"] dd {
+  color: var(--cinnabar);
+}
+
+.learningPath {
+  padding-left: 28px;
+  border-left: 1px solid rgba(151, 113, 48, 0.35);
+}
+
+.learningPath h4 {
+  margin: 0;
+  color: #896426;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.learningPath ol {
+  display: grid;
+  gap: 0;
+  margin: 18px 0 0;
+  padding: 0;
+  counter-reset: learning-step;
+  list-style: none;
+}
+
+.learningPath li {
+  position: relative;
+  min-height: 54px;
+  padding: 4px 0 17px 36px;
+  color: #345e60;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+  counter-increment: learning-step;
+}
+
+.learningPath li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid rgba(151, 113, 48, 0.46);
+  border-radius: 50%;
+  color: #8b662a;
+  background: rgba(255, 250, 232, 0.72);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  content: "0" counter(learning-step);
+}
+
+.learningPath li:not(:last-child)::after {
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  left: 12px;
+  width: 1px;
+  background: rgba(151, 113, 48, 0.3);
+  content: "";
+}
+
+.enterQuestLink,
+.emptyRealm a,
+.futureQuestPage a {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 22px;
+  border: 1px solid #286f72;
+  color: #f9f4e5;
+  background: #286f72;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(29, 94, 94, 0.18);
+}
+
+.enterQuestLink {
+  grid-column: 3;
+  align-self: end;
+  width: 100%;
+}
+
+.enterQuestLink span,
+.emptyRealm a span,
+.futureQuestPage a span {
+  transition: transform 160ms ease;
+}
+
+.enterQuestLink:hover span,
+.emptyRealm a:hover span,
+.futureQuestPage a:hover span {
+  transform: translateX(4px);
+}
+
+.futureQuestPage {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  padding: clamp(32px, 5vw, 72px);
+  border-style: dashed;
+}
+
+.futureQuestPage > p,
+.emptyRealm > p {
+  margin: 0;
+  color: #896426;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.futureQuestPage h3,
+.emptyRealm h3 {
+  margin: 14px 0 0;
+  color: #173f42;
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(31px, 4vw, 48px);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.futureQuestPage > span,
+.emptyRealm > span {
+  max-width: 660px;
+  margin: 15px 0 26px;
+  color: #426968;
+  font-size: 13px;
+  font-weight: 520;
+  line-height: 1.85;
+}
+
+.futureQuestPage a,
+.emptyRealm a {
+  border-color: #95702e;
+  background: #95702e;
+}
+
+.scrollHint {
+  margin: 9px 2px 0;
+  color: #527674;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+.emptyRealm {
+  display: grid;
+  min-height: 320px;
+  align-content: center;
+  justify-items: start;
+  padding: clamp(28px, 5vw, 62px);
+  border: 1px dashed color-mix(in srgb, var(--panel-accent) 48%, transparent);
+  background: rgba(251, 245, 225, 0.5);
+}
+
+.rareAttributes {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1.15fr) minmax(220px, 0.7fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 25px;
+  padding: 19px;
+  border: 1px solid rgba(101, 98, 124, 0.28);
+  background: rgba(229, 224, 229, 0.46);
+}
+
+.rareAttributes h3 {
+  color: #3f4150;
+  font-size: 23px;
+}
+
+.rareAttributes ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rareAttributes li {
+  display: grid;
+  padding: 7px 9px;
+  border: 1px solid rgba(101, 98, 124, 0.28);
+  background: rgba(249, 245, 233, 0.55);
+}
+
+.rareAttributes li strong {
+  color: #4b4a5d;
+  font-size: 10px;
+}
+
+.rareAttributes li span {
+  color: #757286;
+  font-size: 8px;
+}
+
+.rareAttributes > p {
+  margin: 0;
+  color: #676677;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.classificationGuide {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1.15fr);
+  gap: 24px 54px;
+  align-items: start;
+  padding: clamp(26px, 4vw, 46px);
+  border-top: 1px solid rgba(139, 101, 39, 0.32);
+  border-bottom: 1px solid rgba(139, 101, 39, 0.22);
+  background: rgba(241, 235, 213, 0.62);
+}
+
+.classificationGuide dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  margin: 0;
+}
+
+.classificationGuide dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(139, 101, 39, 0.2);
+}
+
+.classificationGuide dt {
+  color: #806024;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.classificationGuide dd {
+  margin: 0;
+  color: #496968;
+  font-size: 11px;
+  text-align: right;
+}
+
+.classificationGuide > p {
+  grid-column: 2;
+  margin: 0;
+  color: #5c7774;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.catalogPage :focus-visible {
+  outline: 3px solid #8c651f;
+  outline-offset: 4px;
+}
+
+@keyframes realm-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1120px) {
+  .realmTabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .realmTab {
+    min-height: 196px;
+  }
+
+  .questCard {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.75fr);
+  }
+
+  .learningPath {
+    grid-column: 1 / -1;
+    padding: 22px 0 0;
+    border-top: 1px solid rgba(151, 113, 48, 0.3);
+    border-left: 0;
+  }
+
+  .learningPath ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .learningPath li:not(:last-child)::after {
+    top: 12px;
+    right: -8px;
+    bottom: auto;
+    left: 24px;
+    width: calc(100% - 14px);
+    height: 1px;
+  }
+
+  .enterQuestLink {
+    grid-column: 2;
+  }
+
+  .rareAttributes {
+    grid-template-columns: minmax(180px, 0.5fr) minmax(0, 1fr);
+  }
+
+  .rareAttributes > p {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .realmBackdrop {
+    height: 980px;
+    mask-image: linear-gradient(to bottom, #000 0 82%, transparent 100%);
+  }
+
+  .realmBackdrop img {
+    object-position: center top;
+  }
+
+  .catalogHeader,
+  .catalogMain {
+    width: min(calc(100% - 32px), 1380px);
+  }
+
+  .catalogMain {
+    gap: 34px;
+    padding-top: 42px;
+  }
+
+  .catalogNav a:first-child {
+    display: none;
+  }
+
+  .catalogHero {
+    padding-bottom: 120px;
+  }
+
+  .catalogHero::before {
+    inset: -34px -24px -62px;
+    background: radial-gradient(
+      ellipse at 35% 38%,
+      rgba(4, 27, 37, 0.48),
+      rgba(4, 27, 37, 0.2) 55%,
+      transparent 88%
+    );
+  }
+
+  .catalogHero h1 {
+    font-size: clamp(48px, 14vw, 64px);
+  }
+
+  .realmNavigation {
+    margin-top: 0;
+  }
+
+  .realmNavigationHeading,
+  .realmPanelHeader,
+  .classificationGuide,
+  .rareAttributes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .realmNavigationHeading {
+    position: static;
+    inset: auto;
+    align-items: start;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+
+  .realmNavigationHeading > div {
+    display: block;
+  }
+
+  .realmNavigationHeading > div h2 {
+    margin-top: 7px;
+    font-size: 28px;
+  }
+
+  .realmNavigationHeading > span {
+    text-align: left;
+  }
+
+  .realmTabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .realmTab {
+    min-height: 180px;
+    padding: 0 7px 11px;
+    border-color: rgba(83, 113, 108, 0.18);
+    background: rgba(7, 37, 44, 0.24);
+  }
+
+  .realmArt {
+    bottom: 70px;
+  }
+
+  .realmLabel {
+    display: grid;
+    gap: 2px;
+  }
+
+  .realmLabel strong {
+    font-size: 25px;
+  }
+
+  .realmTab small {
+    display: none;
+  }
+
+  .realmTab em {
+    font-size: 8px;
+  }
+
+  .realmPanel {
+    padding: 24px 18px;
+  }
+
+  .questCard,
+  .futureQuestPage {
+    width: calc(100vw - 76px);
+  }
+
+  .questCard {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    padding: 25px 18px;
+  }
+
+  .questFacts,
+  .learningPath,
+  .enterQuestLink {
+    grid-column: 1;
+  }
+
+  .questFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .questFacts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .learningPath ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .learningPath li:not(:last-child)::after {
+    top: 24px;
+    right: auto;
+    bottom: 0;
+    left: 12px;
+    width: 1px;
+    height: auto;
+  }
+
+  .enterQuestLink {
+    width: 100%;
+  }
+
+  .classificationGuide > p,
+  .rareAttributes > p {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .catalogHeader {
+    min-height: 72px;
+  }
+
+  .catalogBrand > span:first-child {
+    width: 39px;
+    height: 39px;
+  }
+
+  .catalogBrand strong {
+    font-size: 16px;
+  }
+
+  .catalogBrand small {
+    display: none;
+  }
+
+  .catalogNav a {
+    font-size: 12px;
+  }
+
+  .catalogHero {
+    padding-top: 8px;
+    padding-bottom: 98px;
+  }
+
+  .catalogHero h1 {
+    font-size: 46px;
+  }
+
+  .catalogHero > p:last-child {
+    font-size: 14px;
+  }
+
+  .realmNavigationHeading h2,
+  .classificationGuide h2 {
+    font-size: 28px;
+  }
+
+  .realmTab {
+    min-height: 154px;
+  }
+
+  .realmArt {
+    bottom: 62px;
+  }
+
+  .realmLabel strong {
+    font-size: 23px;
+  }
+
+  .realmPanelHeader h2 {
+    font-size: 38px;
+  }
+
+  .questIdentityColumn h3 {
+    font-size: 38px;
+  }
+
+  .questCard,
+  .futureQuestPage {
+    width: calc(100vw - 68px);
+  }
+
+  .futureQuestPage,
+  .emptyRealm {
+    padding: 28px 20px;
+  }
+
+  .classificationGuide {
+    padding: 24px 18px;
+  }
+
+  .classificationGuide dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .realmContents {
+    animation: none;
+  }
+
+  .realmTab,
+  .enterQuestLink span,
+  .emptyRealm a span,
+  .futureQuestPage a span {
+    transition: none;
+  }
+
+  .realmTab:hover,
+  .enterQuestLink:hover span,
+  .emptyRealm a:hover span,
+  .futureQuestPage a:hover span {
+    transform: none;
+  }
+}
