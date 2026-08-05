@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import type {
   AnimationEvent,
   CSSProperties,
@@ -120,10 +122,29 @@ export function RewardSequence({
         EXP、水属性熟练度与徽记均为本地学习结算，不写入链上。
       </p>
 
-      {complete ? (
-        <div hidden={!showChainStatus}>
+      {complete && showChainStatus ? (
+        <>
           <ChainStatusPanel />
-        </div>
+          <section
+            className={styles.guardianContributionCta}
+            aria-labelledby="guardian-contribution-title"
+          >
+            <div>
+              <span>安全案例贡献</span>
+              <h3 id="guardian-contribution-title">召唤 Guardian 安全执事</h3>
+              <p>
+                将真实漏洞、攻击样例与修复对照提交给 Guardian Security
+                Agent，生成待人工审核的异兽志与新 Quest 草案。
+              </p>
+            </div>
+            <Link
+              className={styles.guardianContributionLink}
+              href="/guardian-agent"
+            >
+              前往安全案例贡献工作台
+            </Link>
+          </section>
+        </>
       ) : null}
     </section>
   );
