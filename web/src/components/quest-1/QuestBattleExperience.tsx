@@ -49,7 +49,10 @@ import { SealFormationResult } from "./SealFormationResult";
 import { WaterFormationSigil } from "./WaterFormationSigil";
 import { QuestOneSceneBackground } from "./QuestOneSceneBackground";
 import type { QuestOneBackgroundAct } from "./quest-1-backgrounds";
+import { QuestEntryPage } from "./QuestEntryPage";
 import styles from "./quest-1.module.css";
+
+type QuestExperienceStage = "entry" | "battle";
 
 function getLiveMessage(
   phase: ReturnType<typeof createInitialBattleState>["phase"],
@@ -93,6 +96,8 @@ function persistBattleState(state: BattleState) {
 }
 
 export function QuestBattleExperience() {
+  const [experienceStage, setExperienceStage] =
+    useState<QuestExperienceStage>("entry");
   const [state, dispatch] = useReducer(
     battleReducer,
     undefined,
@@ -130,10 +135,10 @@ export function QuestBattleExperience() {
   const liveMessage = useMemo(() => getLiveMessage(state.phase), [state.phase]);
 
   useEffect(() => {
-    if (hydratedOnce.current) return;
+    if (experienceStage !== "battle" || hydratedOnce.current) return;
     hydratedOnce.current = true;
     dispatch({ type: "HYDRATE", payload: loadBattleData() });
-  }, []);
+  }, [experienceStage]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -144,20 +149,24 @@ export function QuestBattleExperience() {
   }, []);
 
   useEffect(() => {
-    if (state.hydrated && state.phase === "ENTRY") {
+    if (
+      experienceStage === "battle" &&
+      state.hydrated &&
+      state.phase === "ENTRY"
+    ) {
       dispatch({ type: "ENTER_QUEST" });
     }
-  }, [state.hydrated, state.phase]);
+  }, [experienceStage, state.hydrated, state.phase]);
 
   useEffect(() => {
-    if (!state.hydrated) return;
+    if (experienceStage !== "battle" || !state.hydrated) return;
     persistBattleState(state);
-  }, [state]);
+  }, [experienceStage, state]);
 
   useEffect(() => {
-    if (!state.hydrated) return;
+    if (experienceStage !== "battle" || !state.hydrated) return;
     saveMotionMode(state.motionMode);
-  }, [state.hydrated, state.motionMode]);
+  }, [experienceStage, state.hydrated, state.motionMode]);
 
   useEffect(() => {
     if (
@@ -378,6 +387,10 @@ export function QuestBattleExperience() {
     dispatch({ type: "RESET_QUEST" });
   }
 
+  if (experienceStage === "entry") {
+    return <QuestEntryPage onStartQuest={() => setExperienceStage("battle")} />;
+  }
+
   if (!state.hydrated) {
     return (
       <main className={styles.loadingScreen}>
@@ -456,7 +469,7 @@ export function QuestBattleExperience() {
     >
       <div className={styles.contentLayer}>
         <header className={styles.battleHud}>
-        <Link className={styles.backLink} href="/">
+        <Link className={styles.backLink} href="/quests">
           返回山门
         </Link>
 

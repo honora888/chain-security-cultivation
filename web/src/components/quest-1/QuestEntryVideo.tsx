@@ -122,6 +122,7 @@ export function QuestEntryVideo() {
                 : ENTRY_LOADING_POSTER
             }
             muted
+            controls
             playsInline
             preload="metadata"
             onCanPlay={() => {

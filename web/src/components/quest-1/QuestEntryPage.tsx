@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { QUEST_ONE } from "@/data/quest-1";
@@ -19,7 +21,11 @@ const questFacts: Array<{
   { icon: "risk-high", label: "风险", value: QUEST_ONE.risk, danger: true },
 ];
 
-export function QuestEntryPage() {
+interface QuestEntryPageProps {
+  onStartQuest: () => void;
+}
+
+export function QuestEntryPage({ onStartQuest }: QuestEntryPageProps) {
   return (
     <div className={styles.entryPage}>
       <div className={styles.entrySceneBackground} aria-hidden="true">
@@ -87,9 +93,13 @@ export function QuestEntryPage() {
         </section>
 
         <div className={styles.entryCtaGroup}>
-          <Link className={`${styles.primaryButton} ${styles.entryCta}`} href="/quests/1">
+          <button
+            className={`${styles.primaryButton} ${styles.entryCta}`}
+            type="button"
+            onClick={onStartQuest}
+          >
             踏入秘境
-          </Link>
+          </button>
           <small>从识破重入漏洞开始，完成六幕链安修炼。</small>
         </div>
       </main>
