@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
     "db:smoke": "node scripts/database-smoke.mjs",
-    "auth:smoke": "node scripts/auth-api.smoke.mjs"
+    "auth:smoke": "node scripts/auth-api.smoke.mjs",
+    "contributions:smoke": "node scripts/contributions-api.smoke.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
