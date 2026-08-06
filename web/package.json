@@ -12,7 +12,8 @@
     "db:check": "drizzle-kit check",
     "db:smoke": "node scripts/database-smoke.mjs",
     "auth:smoke": "node scripts/auth-api.smoke.mjs",
-    "contributions:smoke": "node scripts/contributions-api.smoke.mjs"
+    "contributions:smoke": "node scripts/contributions-api.smoke.mjs",
+    "review:smoke": "node scripts/review-workflow-api.smoke.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

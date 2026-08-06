@@ -25,7 +25,7 @@ type SessionRow = {
   expires_at: string | Date;
 };
 
-type AuthenticatedSession = {
+export type AuthenticatedSession = {
   walletAddress: string;
   expiresAt: string;
 };

@@ -5,11 +5,16 @@ const baseUrl = (process.env.CONTRIBUTION_API_BASE_URL ?? "http://localhost:3000
 const origin = new URL(baseUrl).origin;
 const account = privateKeyToAccount(generatePrivateKey());
 const suffix = account.address.slice(2, 10).toLowerCase();
+const runMarker = `// contribution-smoke-run:${account.address
+  .slice(2, 18)
+  .toLowerCase()}`;
+
 let stage = "startup";
 let lastStatus = null;
 let lastCode = null;
 
-const vulnerableSource = `contract SampleVaultAlpha {
+const vulnerableSource = `${runMarker}
+contract SampleVaultAlpha {
   mapping(address => uint256) internal credits;
   function release() external {
     uint256 amount = credits[msg.sender];
@@ -18,11 +23,13 @@ const vulnerableSource = `contract SampleVaultAlpha {
     credits[msg.sender] = 0;
   }
 }`;
-const attackSource = `contract SampleAttackerAlpha {
+const attackSource = `${runMarker}
+contract SampleAttackerAlpha {
   SampleVaultAlpha target;
   receive() external payable { target.release(); }
 }`;
-const fixedSource = `contract SampleVaultAlphaFixed {
+const fixedSource = `${runMarker}
+contract SampleVaultAlphaFixed {
   mapping(address => uint256) internal credits;
   function release() external {
     uint256 amount = credits[msg.sender];
