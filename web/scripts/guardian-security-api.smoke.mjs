@@ -84,6 +84,146 @@ assert.equal(sample.payload.confidence.evidenceLevel, "FIX_CONTRAST_PRESENT");
 assert.equal(sample.payload.bestiaryDraft.reviewStatus, "draft");
 assert.equal(sample.payload.questDraft.reviewStatus, "draft");
 assert.equal(sample.payload.review.publishAllowed, false);
+assert.equal(sample.response.headers.get("cache-control"), "no-store");
+
+const lantern = await post({
+  mode: "sample",
+  sample: {
+    name: "Lantern Festival Refund Pool",
+    vulnerableSource: `
+      // SPDX-License-Identifier: MIT
+      pragma solidity ^0.8.24;
+
+      contract LanternRefundPool {
+        mapping(address => uint256) public refundCredits;
+
+        function registerRefund(address attendee) external payable {
+          require(attendee != address(0), "Invalid attendee");
+          require(msg.value > 0, "No refund value");
+          refundCredits[attendee] += msg.value;
+        }
+
+        function claimFestivalRefund() external {
+          uint256 credit = refundCredits[msg.sender];
+          require(credit > 0, "Nothing to claim");
+
+          (bool sent, ) =
+              payable(msg.sender).call{value: credit}("");
+          require(sent, "Refund failed");
+
+          refundCredits[msg.sender] = 0;
+        }
+      }
+    `,
+    attackSource: `
+      // SPDX-License-Identifier: MIT
+      pragma solidity ^0.8.24;
+
+      interface ILanternRefundPool {
+        function registerRefund(address attendee) external payable;
+        function claimFestivalRefund() external;
+      }
+
+      contract FestivalGuest {
+        ILanternRefundPool public immutable refundPool;
+        uint256 public claimUnit;
+
+        constructor(address poolAddress) {
+          refundPool = ILanternRefundPool(poolAddress);
+        }
+
+        function joinAndClaim() external payable {
+          require(msg.value > 0, "Entry value required");
+          claimUnit = msg.value;
+
+          refundPool.registerRefund{value: msg.value}(address(this));
+          refundPool.claimFestivalRefund();
+        }
+
+        receive() external payable {
+          if (address(refundPool).balance >= claimUnit) {
+            refundPool.claimFestivalRefund();
+          }
+        }
+      }
+    `,
+    fixedSource: `
+      // SPDX-License-Identifier: MIT
+      pragma solidity ^0.8.24;
+
+      contract SafeLanternRefundPool {
+        mapping(address => uint256) public refundCredits;
+
+        function registerRefund(address attendee) external payable {
+          require(attendee != address(0), "Invalid attendee");
+          require(msg.value > 0, "No refund value");
+          refundCredits[attendee] += msg.value;
+        }
+
+        function claimFestivalRefund() external {
+          uint256 credit = refundCredits[msg.sender];
+          require(credit > 0, "Nothing to claim");
+
+          refundCredits[msg.sender] = 0;
+
+          (bool sent, ) =
+              payable(msg.sender).call{value: credit}("");
+          require(sent, "Refund failed");
+        }
+      }
+    `,
+  },
+});
+assert.equal(lantern.response.status, 200);
+assert.equal(lantern.response.headers.get("cache-control"), "no-store");
+assert.equal(lantern.payload.analysis.formalType, "Classic Reentrancy");
+assert.equal(lantern.payload.mossEvidence.status, "not-applicable");
+assert.equal(lantern.payload.review.status, "draft");
+assert.equal(lantern.payload.review.requiresHumanApproval, true);
+assert.equal(lantern.payload.review.publishAllowed, false);
+assert.equal(
+  lantern.payload.signals.some(
+    (entry) => entry.id === "state-update-after-external-call" && entry.matched,
+  ),
+  true,
+);
+assert.equal(
+  lantern.payload.signals.some(
+    (entry) => entry.id === "callback-reentry" && entry.matched,
+  ),
+  true,
+);
+assert.equal(
+  lantern.payload.signals.some(
+    (entry) => entry.id === "fixed-state-before-call" && entry.matched,
+  ),
+  true,
+);
+
+const safeLantern = await post({
+  mode: "sample",
+  sample: {
+    name: "Safe Lantern Refund Pool",
+    vulnerableSource: `
+      contract SafeLanternRefundPool {
+        mapping(address => uint256) public refundCredits;
+
+        function claimFestivalRefund() external {
+          uint256 credit = refundCredits[msg.sender];
+          require(credit > 0, "Nothing to claim");
+          refundCredits[msg.sender] = 0;
+          (bool sent, ) = payable(msg.sender).call{value: credit}("");
+          require(sent, "Refund failed");
+        }
+      }
+    `,
+  },
+});
+assert.equal(safeLantern.response.status, 422);
+assert.equal(safeLantern.payload.error.code, "UNSUPPORTED_VULNERABILITY");
+assert.equal("bestiaryDraft" in safeLantern.payload, false);
+assert.equal("questDraft" in safeLantern.payload, false);
+assert.equal(safeLantern.response.headers.get("cache-control"), "no-store");
 
 const unsupported = await post({
   mode: "sample",

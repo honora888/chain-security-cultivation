@@ -11,6 +11,25 @@ export interface ReentrancyRuleSources {
   fixedSource?: string;
 }
 
+interface SolidityFunctionBlock {
+  name: string;
+  body: string;
+  bodyOffset: number;
+}
+
+interface AccountingReference {
+  mapping: string;
+  key: string;
+  index: number;
+}
+
+interface ReentrancyOrderingMatch {
+  functionName: string;
+  mapping: string;
+  callIndex: number;
+  writeIndex: number;
+}
+
 function signal(
   id: string,
   matched: boolean,
@@ -22,9 +41,170 @@ function signal(
   return { id, matched, strength, source, evidenceType, explanation };
 }
 
-function firstMatchIndex(source: string, pattern: RegExp): number {
-  const match = pattern.exec(source);
-  return match?.index ?? -1;
+function stripComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, (comment) =>
+    comment.replace(/[^\r\n]/g, " "),
+  );
+}
+
+function matchingBrace(source: string, openingBrace: number): number {
+  let depth = 0;
+
+  for (let index = openingBrace; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return -1;
+}
+
+function extractFunctionBlocks(source: string): readonly SolidityFunctionBlock[] {
+  const sanitized = stripComments(source);
+  const header = /\bfunction\s+([A-Za-z_]\w*)\s*\([^)]*\)[^{;]*\{/g;
+  const blocks: SolidityFunctionBlock[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = header.exec(sanitized)) !== null) {
+    const openingBrace = sanitized.indexOf("{", match.index);
+    const closingBrace = matchingBrace(sanitized, openingBrace);
+    if (closingBrace < 0) continue;
+
+    blocks.push({
+      name: match[1],
+      body: sanitized.slice(openingBrace + 1, closingBrace),
+      bodyOffset: openingBrace + 1,
+    });
+    header.lastIndex = closingBrace + 1;
+  }
+
+  return blocks;
+}
+
+function extractCallbackBlocks(source: string): readonly SolidityFunctionBlock[] {
+  const sanitized = stripComments(source);
+  const header = /\b(receive|fallback)\s*\([^)]*\)[^{;]*\{/g;
+  const blocks: SolidityFunctionBlock[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = header.exec(sanitized)) !== null) {
+    const openingBrace = sanitized.indexOf("{", match.index);
+    const closingBrace = matchingBrace(sanitized, openingBrace);
+    if (closingBrace < 0) continue;
+
+    blocks.push({
+      name: match[1],
+      body: sanitized.slice(openingBrace + 1, closingBrace),
+      bodyOffset: openingBrace + 1,
+    });
+    header.lastIndex = closingBrace + 1;
+  }
+
+  return blocks;
+}
+
+function findMatches(source: string, pattern: RegExp): readonly RegExpExecArray[] {
+  const matches: RegExpExecArray[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(source)) !== null) {
+    matches.push(match);
+  }
+
+  return matches;
+}
+
+function normalizeKey(key: string): string {
+  return key.replace(/\s+/g, "");
+}
+
+function findAccountingReads(source: string): readonly AccountingReference[] {
+  const reads: AccountingReference[] = [];
+  const pattern =
+    /\b(?:u?int(?:\d+)?|address|bool|bytes(?:\d+)?|string)\s+[A-Za-z_]\w*\s*=\s*([A-Za-z_]\w*)\s*\[\s*([^\]]+)\s*\]/g;
+
+  for (const match of findMatches(source, pattern)) {
+    reads.push({ mapping: match[1], key: normalizeKey(match[2]), index: match.index });
+  }
+
+  return reads;
+}
+
+function findAccountingWrites(source: string): readonly AccountingReference[] {
+  const writes: AccountingReference[] = [];
+  const assignment = /\b([A-Za-z_]\w*)\s*\[\s*([^\]]+)\s*\]\s*(?:=|[-+]=)\s*[^;]+;/g;
+  const deletion = /\bdelete\s+([A-Za-z_]\w*)\s*\[\s*([^\]]+)\s*\]\s*;/g;
+
+  for (const match of findMatches(source, assignment)) {
+    writes.push({ mapping: match[1], key: normalizeKey(match[2]), index: match.index });
+  }
+  for (const match of findMatches(source, deletion)) {
+    writes.push({ mapping: match[1], key: normalizeKey(match[2]), index: match.index });
+  }
+
+  return writes;
+}
+
+function sharesAccountingReference(
+  left: AccountingReference,
+  right: AccountingReference,
+): boolean {
+  return left.mapping === right.mapping && left.key === right.key;
+}
+
+function findOrderingMatch(
+  source: string,
+  stateWriteAfterCall: boolean,
+): ReentrancyOrderingMatch | null {
+  const nativeCall = /\.\s*call\s*\{\s*value\s*:\s*[^}]+\}\s*\(\s*(?:""|'')?\s*\)/g;
+
+  for (const block of extractFunctionBlocks(source)) {
+    const reads = findAccountingReads(block.body);
+    const writes = findAccountingWrites(block.body);
+
+    for (const call of findMatches(block.body, nativeCall)) {
+      const read = reads.find((entry) => entry.index < call.index);
+      if (!read) continue;
+      const write = writes.find(
+        (entry) =>
+          sharesAccountingReference(entry, read) &&
+          (stateWriteAfterCall
+            ? entry.index > call.index
+            : entry.index > read.index && entry.index < call.index),
+      );
+      if (!write) continue;
+
+      return {
+        functionName: block.name,
+        mapping: read.mapping,
+        callIndex: block.bodyOffset + call.index,
+        writeIndex: block.bodyOffset + write.index,
+      };
+    }
+  }
+
+  return null;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function callbackReentersFunction(
+  attackSource: string,
+  functionName: string | undefined,
+): boolean {
+  if (!functionName) return false;
+
+  const reentry = new RegExp(
+    `\\.\\s*${escapeRegExp(functionName)}\\s*\\(`,
+    "i",
+  );
+  return extractCallbackBlocks(attackSource).some((block) =>
+    reentry.test(block.body),
+  );
 }
 
 export function analyzeReentrancySignals(
@@ -35,40 +215,21 @@ export function analyzeReentrancySignals(
   const vulnerable = sources.vulnerableSource;
   const attack = sources.attackSource ?? "";
   const fixed = sources.fixedSource ?? "";
-  const nativeCallPattern = /\.call\s*\{\s*value\s*:/i;
-  const withdrawalPattern =
-    /\b(?:function\s+)?(?:withdraw|withdrawal|claim|redeem|payout|cashout)\b/i;
-  const accountingPattern =
-    /\b(?:balance|balances|credit|credits|deposit|deposits|ledger|accounting)\b/i;
-  const stateMutationPattern =
-    /(?:balances?|credits?|deposits?|ledger|accounting)\s*\[[^\]]+\]\s*(?:=|-=|\+=)/i;
-  const callbackPattern = /\b(?:receive|fallback)\s*\([^)]*\)/i;
-
-  const vulnerableCallIndex = firstMatchIndex(vulnerable, nativeCallPattern);
-  const mutationAfterCall =
-    vulnerableCallIndex >= 0 &&
-    stateMutationPattern.test(vulnerable.slice(vulnerableCallIndex));
-  const attackCallbackIndex = firstMatchIndex(attack, callbackPattern);
-  const callbackReentry =
-    attackCallbackIndex >= 0 &&
-    /\.\s*(?:withdraw|claim|redeem|payout|cashout)\s*\(/i.test(
-      attack.slice(attackCallbackIndex),
-    );
-  const fixedCallIndex = firstMatchIndex(fixed, nativeCallPattern);
-  const fixedMutationIndex = firstMatchIndex(fixed, stateMutationPattern);
-  const fixedStateFirst =
-    fixedCallIndex >= 0 &&
-    fixedMutationIndex >= 0 &&
-    fixedMutationIndex < fixedCallIndex;
-  const hasFundFlow =
-    /\b(?:payable|donate|deposit|withdraw|transfer|vault)\b/i.test(
-      `${vulnerable}\n${attack}`,
-    ) && nativeCallPattern.test(vulnerable);
+  const vulnerableOrdering = findOrderingMatch(vulnerable, true);
+  const fixedOrdering = findOrderingMatch(fixed, false);
+  const hasCallback = extractCallbackBlocks(attack).length > 0;
+  const callbackReentry = callbackReentersFunction(
+    attack,
+    vulnerableOrdering?.functionName,
+  );
+  const hasNativeValueCall = /\.\s*call\s*\{\s*value\s*:/i.test(
+    stripComments(vulnerable),
+  );
 
   const signals: ReentrancySignal[] = [
     signal(
       "external-native-value-call",
-      vulnerableCallIndex >= 0,
+      hasNativeValueCall,
       "strong",
       "vulnerableSource",
       evidenceType,
@@ -76,23 +237,23 @@ export function analyzeReentrancySignals(
     ),
     signal(
       "withdrawal-semantics",
-      withdrawalPattern.test(vulnerable),
+      vulnerableOrdering !== null,
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "The source contains a withdrawal-like function or payout semantic.",
+      "A single payout function reads per-account state, performs a native-value call, and finalizes the same account state afterward.",
     ),
     signal(
       "state-update-after-external-call",
-      mutationAfterCall,
+      vulnerableOrdering !== null,
       "strong",
       "vulnerableSource",
       evidenceType,
-      "Internal account state appears to be mutated only after the external value call.",
+      "The same per-account mapping is updated after its value-bearing external call in the matched payout function.",
     ),
     signal(
       "callback-entry",
-      attackCallbackIndex >= 0,
+      hasCallback,
       "strong",
       "attackSource",
       evidenceType,
@@ -104,15 +265,15 @@ export function analyzeReentrancySignals(
       "strong",
       "attackSource",
       evidenceType,
-      "The callback contains another withdrawal-like call into its target.",
+      "The callback invokes the same vulnerable payout function identified by the source-ordering evidence.",
     ),
     signal(
       "fixed-state-before-call",
-      fixedStateFirst,
+      fixedOrdering !== null,
       "strong",
       "fixedSource",
       evidenceType,
-      "The comparison source updates internal account state before the external value call.",
+      "The comparison source updates the same per-account state before its value-bearing external call.",
     ),
     signal(
       "fixed-non-reentrant",
@@ -124,19 +285,19 @@ export function analyzeReentrancySignals(
     ),
     signal(
       "accounting-state",
-      accountingPattern.test(vulnerable),
+      vulnerableOrdering !== null,
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "The code refers to internal balance, credit, deposit, ledger, or accounting state.",
+      "A per-account mapping read is linked to a later write of the same mapping entry.",
     ),
     signal(
       "fund-flow",
-      hasFundFlow,
+      vulnerableOrdering !== null,
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "The matched patterns describe native-fund custody and payout flow.",
+      "The linked account state and native-value call describe a custody and payout flow.",
     ),
     signal(
       "access-control",
@@ -226,14 +387,11 @@ export function signalMatched(
 export function supportsClassicReentrancy(
   signals: readonly ReentrancySignal[],
 ): boolean {
-  const hasCoreSourcePattern =
+  return (
     signalMatched(signals, "external-native-value-call") &&
-    signalMatched(signals, "withdrawal-semantics") &&
-    signalMatched(signals, "state-update-after-external-call");
-  const hasAttackStructure =
+    signalMatched(signals, "accounting-state") &&
+    signalMatched(signals, "state-update-after-external-call") &&
     signalMatched(signals, "callback-entry") &&
-    signalMatched(signals, "callback-reentry");
-
-  return hasCoreSourcePattern &&
-    (hasAttackStructure || signalMatched(signals, "verified-attack-test"));
+    signalMatched(signals, "callback-reentry")
+  );
 }
