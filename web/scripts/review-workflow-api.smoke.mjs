@@ -191,6 +191,70 @@ contract ReviewSmokeVaultFixed {
     assert.equal(publicDetail.entry.caseId, caseId);
     assert.equal(publicDetail.entry.publicationStatus, "published");
 
+    stage = "rejected name reuse creation";
+    const reusableName = `释放复用${suffix}`;
+    const rejectedContributionResponse = await request("/api/contributions/cases", {
+      method: "POST",
+      headers: { Cookie: contributorCookie },
+      body: JSON.stringify({
+        caseName: `REVIEW SMOKE rejected ${suffix}`,
+        proposedBestiaryName: reusableName,
+        vulnerableSource: `${vulnerableSource}\n// rejected-name-reuse-a:${suffix}`,
+        attackSource: `${attackSource}\n// rejected-name-reuse-a:${suffix}`,
+        fixedSource: `${fixedSource}\n// rejected-name-reuse-a:${suffix}`,
+      }),
+    });
+    const rejectedContribution = await readJson(rejectedContributionResponse);
+    assert.equal(rejectedContributionResponse.status, 201);
+    assertNoStore(rejectedContributionResponse);
+    const rejectedCaseId = rejectedContribution.case.caseId;
+
+    stage = "rejected name reuse decision";
+    const rejectedDecisionResponse = await request(`/api/reviews/cases/${rejectedCaseId}/decision`, {
+      method: "POST",
+      headers: { Cookie: reviewerCookie, Origin: origin },
+      body: JSON.stringify({
+        decision: "rejected",
+        evidenceQuality: 0,
+        reproducibility: 0,
+        technicalAccuracy: 0,
+        remediationQuality: 0,
+        contributionValue: 0,
+        reviewSummary: "Deterministic review smoke rejection.",
+        reviewNotes: "Synthetic smoke case; released name must be reusable.",
+      }),
+    });
+    const rejectedDecision = await readJson(rejectedDecisionResponse);
+    assert.equal(rejectedDecisionResponse.status, 200);
+    assertNoStore(rejectedDecisionResponse);
+    assert.equal(rejectedDecision.status, "rejected");
+    assert.equal(rejectedDecision.meritAmount, 0);
+    assert.equal(rejectedDecision.bestiaryCreated, false);
+
+    stage = "rejected bestiary absence";
+    const rejectedBestiaryResponse = await request(`/api/bestiary/${rejectedCaseId}`);
+    const rejectedBestiary = await readJson(rejectedBestiaryResponse);
+    assert.equal(rejectedBestiaryResponse.status, 404);
+    assertNoStore(rejectedBestiaryResponse);
+    assert.equal(rejectedBestiary.error.code, "BESTIARY_ENTRY_NOT_FOUND");
+
+    stage = "released name reuse creation";
+    const reusedContributionResponse = await request("/api/contributions/cases", {
+      method: "POST",
+      headers: { Cookie: contributorCookie },
+      body: JSON.stringify({
+        caseName: `REVIEW SMOKE reused ${suffix}`,
+        proposedBestiaryName: reusableName,
+        vulnerableSource: `${vulnerableSource}\n// rejected-name-reuse-b:${suffix}`,
+        attackSource: `${attackSource}\n// rejected-name-reuse-b:${suffix}`,
+        fixedSource: `${fixedSource}\n// rejected-name-reuse-b:${suffix}`,
+      }),
+    });
+    const reusedContribution = await readJson(reusedContributionResponse);
+    assert.equal(reusedContributionResponse.status, 201);
+    assertNoStore(reusedContributionResponse);
+    assert.equal(reusedContribution.case.status, "pending_review");
+
     stage = "duplicate approval";
     const duplicateResponse = await request(`/api/reviews/cases/${caseId}/decision`, {
       method: "POST",

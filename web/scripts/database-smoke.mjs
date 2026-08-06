@@ -19,7 +19,7 @@ const requiredIndexes = [
   "wallet_sessions_session_hash_unique",
   "security_cases_case_id_unique",
   "security_cases_case_hash_unique",
-  "bestiary_name_reservations_normalized_name_unique",
+  "bestiary_name_reservations_active_name_unique",
   "bestiary_entries_case_id_unique",
   "bestiary_entries_normalized_name_unique",
   "merit_ledger_idempotency_key_unique",
@@ -48,10 +48,17 @@ async function main() {
   }
 
   const indexRows = await sql.query(
-    "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[]) AND indexdef LIKE 'CREATE UNIQUE INDEX%'",
+    "SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[]) AND indexdef LIKE 'CREATE UNIQUE INDEX%'",
     [requiredIndexes],
   );
   if (!hasAll(requiredIndexes, indexRows, "indexname")) {
+    throw new Error("schema incomplete");
+  }
+  const activeReservationIndex = indexRows.find(
+    (row) => row.indexname === "bestiary_name_reservations_active_name_unique",
+  );
+  const activeDefinition = String(activeReservationIndex?.indexdef ?? "").toLowerCase();
+  if (!activeDefinition.includes(" where ") || !activeDefinition.includes("reserved") || !activeDefinition.includes("approved")) {
     throw new Error("schema incomplete");
   }
 

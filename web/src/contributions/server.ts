@@ -61,6 +61,7 @@ function mapDatabaseError(error: unknown): never {
   }
   if (
     constraint === "bestiary_name_reservations_normalized_name_unique" ||
+    constraint === "bestiary_name_reservations_active_name_unique" ||
     constraint === "bestiary_entries_normalized_name_unique"
   ) {
     throw new ContributionHttpError("BESTIARY_NAME_UNAVAILABLE");

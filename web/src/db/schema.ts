@@ -200,7 +200,11 @@ export const bestiaryNameReservations = pgTable(
     releasedAt: timestamp("released_at", { withTimezone: true }),
   },
   (table) => ({
-    normalizedNameUnique: uniqueIndex("bestiary_name_reservations_normalized_name_unique").on(table.normalizedName),
+    activeNameUnique: uniqueIndex("bestiary_name_reservations_active_name_unique")
+      .on(table.normalizedName)
+      .where(
+        sql`${table.status} IN ('reserved'::name_reservation_status, 'approved'::name_reservation_status)`,
+      ),
     caseIdIndex: index("bestiary_name_reservations_case_id_idx").on(table.caseId),
     statusIndex: index("bestiary_name_reservations_status_idx").on(table.status),
   }),

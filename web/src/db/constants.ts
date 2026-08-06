@@ -15,7 +15,7 @@ export const REQUIRED_UNIQUE_INDEXES = [
   "wallet_sessions_session_hash_unique",
   "security_cases_case_id_unique",
   "security_cases_case_hash_unique",
-  "bestiary_name_reservations_normalized_name_unique",
+  "bestiary_name_reservations_active_name_unique",
   "bestiary_entries_case_id_unique",
   "bestiary_entries_normalized_name_unique",
   "merit_ledger_idempotency_key_unique",

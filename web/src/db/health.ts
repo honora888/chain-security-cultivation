@@ -7,7 +7,7 @@ import {
 import { getNeonSql, type NeonSql } from "@/db/client";
 
 type TableRow = { table_name: string };
-type IndexRow = { indexname: string };
+type IndexRow = { indexname: string; indexdef: string };
 type ReservationRow = { status: string };
 
 export type DatabaseHealthSuccess = {
@@ -73,14 +73,23 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthResult> {
     }
 
     const indexRows = await queryRows<IndexRow>(sql,
-      "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[]) AND indexdef LIKE 'CREATE UNIQUE INDEX%'",
+      "SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[]) AND indexdef LIKE 'CREATE UNIQUE INDEX%'",
       [Array.from(REQUIRED_UNIQUE_INDEXES)],
     );
     const requiredUniqueIndexesPresent = includesAll(
       REQUIRED_UNIQUE_INDEXES,
       new Set(indexRows.map((row) => row.indexname)),
     );
-    if (!requiredUniqueIndexesPresent) {
+    const activeReservationIndex = indexRows.find(
+      (row) => row.indexname === "bestiary_name_reservations_active_name_unique",
+    );
+    const activeReservationIndexDefinition = activeReservationIndex?.indexdef.toLowerCase() ?? "";
+    const activeReservationIndexIsPartial = Boolean(activeReservationIndex) && (() => {
+      const definition = activeReservationIndexDefinition;
+      return definition.includes(" where ") && definition.includes("reserved") && definition.includes("approved");
+    })();
+    const requiredIndexesValid = requiredUniqueIndexesPresent && activeReservationIndexIsPartial;
+    if (!requiredIndexesValid) {
       return {
         ok: false,
         code: "DATABASE_SCHEMA_INCOMPLETE",
