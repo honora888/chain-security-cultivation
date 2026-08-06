@@ -1,0 +1,1289 @@
+{
+  "id": "0355fec8-30e1-40d2-82e4-87f8d6a6256c",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bestiary_entries": {
+      "name": "bestiary_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "formal_type": {
+          "name": "formal_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "primary_element": {
+          "name": "primary_element",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_elements": {
+          "name": "secondary_elements",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "realm": {
+          "name": "realm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "severity_label": {
+          "name": "severity_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confidence_label": {
+          "name": "confidence_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_summary": {
+          "name": "public_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_attack_pattern": {
+          "name": "public_attack_pattern",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "public_prerequisites": {
+          "name": "public_prerequisites",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "public_impact": {
+          "name": "public_impact",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_mitigations": {
+          "name": "public_mitigations",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "public_known_limitations": {
+          "name": "public_known_limitations",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "public_code_excerpt": {
+          "name": "public_code_excerpt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_disclosure": {
+          "name": "source_disclosure",
+          "type": "source_disclosure",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'summary_only'"
+        },
+        "contributor_address": {
+          "name": "contributor_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reviewer_address": {
+          "name": "reviewer_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publication_status": {
+          "name": "publication_status",
+          "type": "bestiary_publication_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unpublished'"
+        },
+        "quest_conversion_status": {
+          "name": "quest_conversion_status",
+          "type": "quest_conversion_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_started'"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "bestiary_entries_case_id_unique": {
+          "name": "bestiary_entries_case_id_unique",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_normalized_name_unique": {
+          "name": "bestiary_entries_normalized_name_unique",
+          "columns": [
+            {
+              "expression": "normalized_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_publication_status_idx": {
+          "name": "bestiary_entries_publication_status_idx",
+          "columns": [
+            {
+              "expression": "publication_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_quest_conversion_status_idx": {
+          "name": "bestiary_entries_quest_conversion_status_idx",
+          "columns": [
+            {
+              "expression": "quest_conversion_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_formal_type_idx": {
+          "name": "bestiary_entries_formal_type_idx",
+          "columns": [
+            {
+              "expression": "formal_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_primary_element_idx": {
+          "name": "bestiary_entries_primary_element_idx",
+          "columns": [
+            {
+              "expression": "primary_element",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_entries_published_at_idx": {
+          "name": "bestiary_entries_published_at_idx",
+          "columns": [
+            {
+              "expression": "published_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "bestiary_entries_case_id_security_cases_id_fk": {
+          "name": "bestiary_entries_case_id_security_cases_id_fk",
+          "tableFrom": "bestiary_entries",
+          "tableTo": "security_cases",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bestiary_name_reservations": {
+      "name": "bestiary_name_reservations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "name_reservation_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'reserved'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "released_at": {
+          "name": "released_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "bestiary_name_reservations_normalized_name_unique": {
+          "name": "bestiary_name_reservations_normalized_name_unique",
+          "columns": [
+            {
+              "expression": "normalized_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_name_reservations_case_id_idx": {
+          "name": "bestiary_name_reservations_case_id_idx",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bestiary_name_reservations_status_idx": {
+          "name": "bestiary_name_reservations_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "bestiary_name_reservations_case_id_security_cases_id_fk": {
+          "name": "bestiary_name_reservations_case_id_security_cases_id_fk",
+          "tableFrom": "bestiary_name_reservations",
+          "tableTo": "security_cases",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.case_reviews": {
+      "name": "case_reviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reviewer_address": {
+          "name": "reviewer_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decision": {
+          "name": "decision",
+          "type": "review_decision",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review_notes": {
+          "name": "review_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "final_bestiary_name": {
+          "name": "final_bestiary_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "normalized_final_name": {
+          "name": "normalized_final_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "final_quest_title": {
+          "name": "final_quest_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "evidence_score": {
+          "name": "evidence_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reproducibility_score": {
+          "name": "reproducibility_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fix_quality_score": {
+          "name": "fix_quality_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "educational_value_score": {
+          "name": "educational_value_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "novelty_score": {
+          "name": "novelty_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "merit_total": {
+          "name": "merit_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "case_reviews_case_id_idx": {
+          "name": "case_reviews_case_id_idx",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "case_reviews_reviewer_address_idx": {
+          "name": "case_reviews_reviewer_address_idx",
+          "columns": [
+            {
+              "expression": "reviewer_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "case_reviews_decision_idx": {
+          "name": "case_reviews_decision_idx",
+          "columns": [
+            {
+              "expression": "decision",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "case_reviews_created_at_idx": {
+          "name": "case_reviews_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "case_reviews_case_id_security_cases_id_fk": {
+          "name": "case_reviews_case_id_security_cases_id_fk",
+          "tableFrom": "case_reviews",
+          "tableTo": "security_cases",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "case_reviews_evidence_score_range": {
+          "name": "case_reviews_evidence_score_range",
+          "value": "\"case_reviews\".\"evidence_score\" BETWEEN 0 AND 25"
+        },
+        "case_reviews_reproducibility_score_range": {
+          "name": "case_reviews_reproducibility_score_range",
+          "value": "\"case_reviews\".\"reproducibility_score\" BETWEEN 0 AND 25"
+        },
+        "case_reviews_fix_quality_score_range": {
+          "name": "case_reviews_fix_quality_score_range",
+          "value": "\"case_reviews\".\"fix_quality_score\" BETWEEN 0 AND 20"
+        },
+        "case_reviews_educational_value_score_range": {
+          "name": "case_reviews_educational_value_score_range",
+          "value": "\"case_reviews\".\"educational_value_score\" BETWEEN 0 AND 20"
+        },
+        "case_reviews_novelty_score_range": {
+          "name": "case_reviews_novelty_score_range",
+          "value": "\"case_reviews\".\"novelty_score\" BETWEEN 0 AND 10"
+        },
+        "case_reviews_merit_total_range": {
+          "name": "case_reviews_merit_total_range",
+          "value": "\"case_reviews\".\"merit_total\" BETWEEN 0 AND 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.merit_ledger": {
+      "name": "merit_ledger",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "wallet_address": {
+          "name": "wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review_id": {
+          "name": "review_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "merit_ledger_idempotency_key_unique": {
+          "name": "merit_ledger_idempotency_key_unique",
+          "columns": [
+            {
+              "expression": "idempotency_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "merit_ledger_wallet_address_idx": {
+          "name": "merit_ledger_wallet_address_idx",
+          "columns": [
+            {
+              "expression": "wallet_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "merit_ledger_case_id_idx": {
+          "name": "merit_ledger_case_id_idx",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "merit_ledger_review_id_idx": {
+          "name": "merit_ledger_review_id_idx",
+          "columns": [
+            {
+              "expression": "review_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "merit_ledger_created_at_idx": {
+          "name": "merit_ledger_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "merit_ledger_case_id_security_cases_id_fk": {
+          "name": "merit_ledger_case_id_security_cases_id_fk",
+          "tableFrom": "merit_ledger",
+          "tableTo": "security_cases",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "merit_ledger_review_id_case_reviews_id_fk": {
+          "name": "merit_ledger_review_id_case_reviews_id_fk",
+          "tableFrom": "merit_ledger",
+          "tableTo": "case_reviews",
+          "columnsFrom": [
+            "review_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "merit_ledger_amount_non_negative": {
+          "name": "merit_ledger_amount_non_negative",
+          "value": "\"merit_ledger\".\"amount\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.security_cases": {
+      "name": "security_cases",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_hash": {
+          "name": "case_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contributor_address": {
+          "name": "contributor_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_name": {
+          "name": "case_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vulnerable_source": {
+          "name": "vulnerable_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attack_source": {
+          "name": "attack_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "fixed_source": {
+          "name": "fixed_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "analysis_json": {
+          "name": "analysis_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formal_type": {
+          "name": "formal_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_element": {
+          "name": "primary_element",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_elements": {
+          "name": "secondary_elements",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "severity_label": {
+          "name": "severity_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity_score": {
+          "name": "severity_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confidence_label": {
+          "name": "confidence_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confidence_score": {
+          "name": "confidence_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proposed_bestiary_name": {
+          "name": "proposed_bestiary_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "normalized_bestiary_name": {
+          "name": "normalized_bestiary_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "case_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "security_cases_case_id_unique": {
+          "name": "security_cases_case_id_unique",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "security_cases_case_hash_unique": {
+          "name": "security_cases_case_hash_unique",
+          "columns": [
+            {
+              "expression": "case_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "security_cases_contributor_address_idx": {
+          "name": "security_cases_contributor_address_idx",
+          "columns": [
+            {
+              "expression": "contributor_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "security_cases_status_idx": {
+          "name": "security_cases_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "security_cases_created_at_idx": {
+          "name": "security_cases_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "security_cases_severity_score_range": {
+          "name": "security_cases_severity_score_range",
+          "value": "\"security_cases\".\"severity_score\" IS NULL OR (\"security_cases\".\"severity_score\" BETWEEN 0 AND 12)"
+        },
+        "security_cases_confidence_score_range": {
+          "name": "security_cases_confidence_score_range",
+          "value": "\"security_cases\".\"confidence_score\" IS NULL OR (\"security_cases\".\"confidence_score\" BETWEEN 0 AND 100)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.wallet_nonces": {
+      "name": "wallet_nonces",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "wallet_address": {
+          "name": "wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nonce_hash": {
+          "name": "nonce_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "wallet_nonces_nonce_hash_unique": {
+          "name": "wallet_nonces_nonce_hash_unique",
+          "columns": [
+            {
+              "expression": "nonce_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "wallet_nonces_wallet_address_idx": {
+          "name": "wallet_nonces_wallet_address_idx",
+          "columns": [
+            {
+              "expression": "wallet_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "wallet_nonces_expires_at_idx": {
+          "name": "wallet_nonces_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.wallet_sessions": {
+      "name": "wallet_sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "wallet_address": {
+          "name": "wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_hash": {
+          "name": "session_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "wallet_sessions_session_hash_unique": {
+          "name": "wallet_sessions_session_hash_unique",
+          "columns": [
+            {
+              "expression": "session_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "wallet_sessions_wallet_address_idx": {
+          "name": "wallet_sessions_wallet_address_idx",
+          "columns": [
+            {
+              "expression": "wallet_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "wallet_sessions_expires_at_idx": {
+          "name": "wallet_sessions_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.bestiary_publication_status": {
+      "name": "bestiary_publication_status",
+      "schema": "public",
+      "values": [
+        "unpublished",
+        "published",
+        "withdrawn"
+      ]
+    },
+    "public.case_status": {
+      "name": "case_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "pending_review",
+        "changes_requested",
+        "approved",
+        "rejected"
+      ]
+    },
+    "public.name_reservation_status": {
+      "name": "name_reservation_status",
+      "schema": "public",
+      "values": [
+        "reserved",
+        "approved",
+        "released"
+      ]
+    },
+    "public.quest_conversion_status": {
+      "name": "quest_conversion_status",
+      "schema": "public",
+      "values": [
+        "not_started",
+        "candidate",
+        "ready",
+        "registered_on_monad"
+      ]
+    },
+    "public.review_decision": {
+      "name": "review_decision",
+      "schema": "public",
+      "values": [
+        "approved",
+        "changes_requested",
+        "rejected"
+      ]
+    },
+    "public.source_disclosure": {
+      "name": "source_disclosure",
+      "schema": "public",
+      "values": [
+        "summary_only",
+        "reviewed_excerpt",
+        "full_source"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

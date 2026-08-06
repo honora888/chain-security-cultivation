@@ -6,22 +6,30 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
+    "db:smoke": "node scripts/database-smoke.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@themoss/core": "file:vendor/moss-07b673844f8c/themoss-core-0.1.0.tgz",
     "@themoss/protocol-guardian": "file:vendor/moss-07b673844f8c/themoss-protocol-guardian-0.1.0.tgz",
     "@themoss/simulator": "file:vendor/moss-07b673844f8c/themoss-simulator-0.1.0.tgz",
+    "drizzle-orm": "^0.45.2",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "viem": "2.54.3"
   },
   "devDependencies": {
+    "@next/env": "^16.2.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
