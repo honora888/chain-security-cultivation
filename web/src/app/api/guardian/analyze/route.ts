@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { runHybridGuardianAnalysis } from "@/features/guardian-llm/hybrid-analysis";
+import { createGuardianLlmRuntime } from "@/features/guardian-llm/provider-factory";
 import { GuardianSecurityError } from "@/features/guardian-security/analysis-types";
 import {
   guardianSecurityFailure,
@@ -54,12 +56,43 @@ async function readJsonBody(request: Request): Promise<unknown> {
 export async function POST(request: Request) {
   try {
     const input = parseGuardianSecurityRequest(await readJsonBody(request));
-    const result = await runGuardianSecurityAnalysis(input);
-    return NextResponse.json(result, {
+
+    if (input.mode === "builtin") {
+      const result = await runGuardianSecurityAnalysis(input);
+      return NextResponse.json(result, {
+        status: 200,
+        headers: {
+          ...NO_STORE_HEADERS,
+          [GUARDIAN_ANALYSIS_DIGEST_HEADER]: guardianAnalysisDigest(result),
+        },
+      });
+    }
+
+    const llmRuntime = createGuardianLlmRuntime();
+    const outcome = await runHybridGuardianAnalysis({
+      request: input,
+      mode: llmRuntime.mode,
+      provider: llmRuntime.provider,
+      runDeterministic: runGuardianSecurityAnalysis,
+    });
+
+    if (outcome.kind === "candidate-only") {
+      return NextResponse.json(outcome.response, {
+        status: 200,
+        headers: NO_STORE_HEADERS,
+      });
+    }
+
+    return NextResponse.json(outcome.response, {
       status: 200,
       headers: {
         ...NO_STORE_HEADERS,
-        [GUARDIAN_ANALYSIS_DIGEST_HEADER]: guardianAnalysisDigest(result),
+        // The legacy contribution digest intentionally binds only the
+        // deterministic draft. LLM enhancement is nondeterministic and
+        // analysis-only until Signed Guardian Draft is implemented.
+        [GUARDIAN_ANALYSIS_DIGEST_HEADER]: guardianAnalysisDigest(
+          outcome.deterministicResult,
+        ),
       },
     });
   } catch (error) {
