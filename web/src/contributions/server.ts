@@ -22,9 +22,13 @@ import {
   CONTRIBUTION_SCHEMA_VERSION,
   ContributionHttpError,
 } from "@/contributions/constants";
-import { type ContributionInput } from "@/contributions/http";
+import { type ContributionInput, type SignedContributionInput } from "@/contributions/http";
 import { normalizeBestiaryName, normalizeSourceForHash } from "@/contributions/normalize";
 import { guardianAnalysisDigest } from "@/lib/guardian-analysis-digest";
+import {
+  prepareSignedContribution,
+  type PreparedSignedContribution,
+} from "@/contributions/signed-contribution";
 
 type CaseRow = {
   case_id: string;
@@ -269,6 +273,91 @@ export async function createContribution(input: ContributionInput, expectedAnaly
   }
 
   throw new ContributionHttpError("BESTIARY_NAME_UNAVAILABLE");
+}
+
+export async function persistPreparedSignedContribution(
+  sql: NeonSql,
+  prepared: PreparedSignedContribution,
+  caseId = `case-${randomUUID()}`,
+) {
+  let rows: InsertedCaseRow[];
+  try {
+    rows = await queryRows<InsertedCaseRow>(
+      sql,
+      `WITH inserted_case AS (
+         INSERT INTO security_cases (
+           case_id, case_hash, contributor_address, case_name,
+           vulnerable_source, attack_source, fixed_source, analysis_json,
+           formal_type, primary_element, secondary_elements,
+           severity_label, severity_score, confidence_label, confidence_score,
+           proposed_bestiary_name, normalized_bestiary_name, status
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8::jsonb,
+           $9, $10, $11::jsonb, $12, $13, $14, $15, $16, $17,
+           'pending_review'::case_status
+         )
+         RETURNING id, case_id, case_hash, case_name, contributor_address,
+           formal_type, primary_element, secondary_elements, severity_label,
+           severity_score, confidence_label, confidence_score,
+           proposed_bestiary_name, status, created_at
+       ), reserved_name AS (
+         INSERT INTO bestiary_name_reservations (
+           normalized_name, display_name, case_id, status
+         )
+         SELECT $17, $16, inserted_case.id, 'reserved'::name_reservation_status
+         FROM inserted_case
+         UNION ALL
+         SELECT $17, $16, inserted_case.id, 'reserved'::name_reservation_status
+         FROM inserted_case
+         WHERE EXISTS (
+           SELECT 1 FROM bestiary_entries WHERE normalized_name = $17
+         )
+         RETURNING normalized_name
+       )
+       SELECT inserted_case.*
+       FROM inserted_case
+       INNER JOIN reserved_name ON reserved_name.normalized_name = $17`,
+      [
+        caseId,
+        prepared.caseHash,
+        prepared.contributorAddress,
+        prepared.caseName,
+        prepared.vulnerableSource,
+        prepared.attackSource,
+        prepared.fixedSource,
+        JSON.stringify(prepared.storedAnalysis),
+        prepared.formalType,
+        prepared.primaryElement,
+        JSON.stringify(prepared.secondaryElements),
+        prepared.severityLabel,
+        prepared.severityScore,
+        prepared.confidenceLabel,
+        prepared.confidenceScore,
+        prepared.proposedBestiaryName,
+        prepared.normalizedBestiaryName,
+      ],
+    );
+  } catch (error) {
+    return mapDatabaseError(error);
+  }
+  const row = rows[0];
+  if (!row) throw new ContributionHttpError("DATABASE_UNAVAILABLE");
+  return {
+    ok: true as const,
+    schemaVersion: CONTRIBUTION_SCHEMA_VERSION,
+    case: toCaseMetadata(row),
+    analysis: prepared.storedAnalysis,
+  };
+}
+
+export async function createSignedContribution(input: SignedContributionInput) {
+  const contributorAddress = await requireAuthenticatedWallet();
+  const prepared = prepareSignedContribution({
+    submission: input,
+    authenticatedWallet: contributorAddress,
+    secret: process.env.GUARDIAN_DRAFT_SIGNING_SECRET,
+  });
+  return persistPreparedSignedContribution(getNeonSql(), prepared);
 }
 
 export async function listContributions() {

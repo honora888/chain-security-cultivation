@@ -16,6 +16,7 @@ import {
   ReviewHttpError,
   type ReviewDecisionInput,
 } from "@/reviews/http";
+import { assertReviewDecisionAllowedForStoredAnalysis } from "@/reviews/candidate-gate";
 
 type CaseRow = {
   id: string;
@@ -341,6 +342,20 @@ export async function getReviewCase(caseId: string) {
 export async function applyReviewDecision(caseId: string, input: ReviewDecisionInput) {
   const { reviewerAddress } = await requireReviewerSession();
   assertCaseId(caseId);
+  if (input.decision === "approved") {
+    let candidateRows: { analysis_json: unknown }[];
+    try {
+      candidateRows = await queryRows<{ analysis_json: unknown }>(
+        getNeonSql(),
+        "SELECT analysis_json FROM security_cases WHERE case_id = $1 LIMIT 1",
+        [caseId],
+      );
+    } catch (error) {
+      return mapDatabaseError(error);
+    }
+    if (!candidateRows[0]) throw new ReviewHttpError("CASE_NOT_FOUND");
+    assertReviewDecisionAllowedForStoredAnalysis(candidateRows[0].analysis_json, input.decision);
+  }
   const total =
     input.evidenceQuality +
     input.reproducibility +
@@ -388,6 +403,14 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
          WHERE sc.id = t.id
            AND t.status IN ('pending_review', 'changes_requested')
            AND ($2 <> 'approved' OR t.reservation_normalized_name IS NOT NULL)
+           AND (
+             $2 <> 'approved'
+             OR NOT (
+               t.analysis_json #>> '{schemaVersion}' = 'guardian-signed-contribution-v1'
+               AND t.analysis_json #>> '{signedDraft,claims,draft,analysis,schemaVersion}' =
+                 'guardian-security-candidate-analysis-v1'
+             )
+           )
          RETURNING sc.*, t.reservation_display_name, t.reservation_normalized_name
        ), inserted_review AS (
          INSERT INTO case_reviews (
@@ -433,33 +456,42 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
          )
          SELECT uc.id, ur.display_name, ur.normalized_name, uc.formal_type,
            uc.primary_element, uc.secondary_elements,
-           uc.analysis_json #>> '{classification,realm,realm}',
+           COALESCE(
+             uc.analysis_json #>> '{classification,realm,realm}',
+             uc.analysis_json #>> '{signedDraft,claims,draft,analysis,classification,realm,realm}'
+           ),
            uc.severity_label, uc.confidence_label,
            COALESCE(
              uc.analysis_json #>> '{bestiaryDraft,summary}',
+             uc.analysis_json #>> '{signedDraft,claims,draft,analysis,bestiaryDraft,summary}',
              uc.analysis_json #>> '{analysis,impact}'
            ),
            COALESCE(
              uc.analysis_json #> '{bestiaryDraft,attackPattern}',
+             uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,attackPattern}',
              uc.analysis_json #> '{analysis,attackPath}',
              '[]'::jsonb
            ),
            COALESCE(
              uc.analysis_json #> '{bestiaryDraft,prerequisites}',
+             uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,prerequisites}',
              uc.analysis_json #> '{analysis,prerequisites}',
              '[]'::jsonb
            ),
            COALESCE(
              uc.analysis_json #>> '{bestiaryDraft,impact}',
+             uc.analysis_json #>> '{signedDraft,claims,draft,analysis,bestiaryDraft,impact}',
              uc.analysis_json #>> '{analysis,impact}'
            ),
            COALESCE(
              uc.analysis_json #> '{bestiaryDraft,mitigations}',
+             uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,mitigations}',
              uc.analysis_json #> '{analysis,mitigations}',
              '[]'::jsonb
            ),
            COALESCE(
              uc.analysis_json #> '{bestiaryDraft,knownLimitations}',
+             uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,knownLimitations}',
              uc.analysis_json #> '{limitations}',
              '[]'::jsonb
            ),

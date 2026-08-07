@@ -3,13 +3,10 @@ import {
   noStoreJson,
   parseContributionInput,
   readJsonBody,
+  resolveContributionCredential,
 } from "@/contributions/http";
-import { createContribution, listContributions } from "@/contributions/server";
-import {
-  GUARDIAN_ANALYSIS_DIGEST_HEADER,
-  GUARDIAN_ANALYSIS_DIGEST_PATTERN,
-} from "@/lib/guardian-analysis-digest";
-import { ContributionHttpError } from "@/contributions/constants";
+import { createContribution, createSignedContribution, listContributions } from "@/contributions/server";
+import { GUARDIAN_ANALYSIS_DIGEST_HEADER } from "@/lib/guardian-analysis-digest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,11 +14,16 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const input = parseContributionInput(await readJsonBody(request));
-    const analysisDigest = request.headers.get(GUARDIAN_ANALYSIS_DIGEST_HEADER)?.trim() ?? "";
-    if (!GUARDIAN_ANALYSIS_DIGEST_PATTERN.test(analysisDigest)) {
-      throw new ContributionHttpError("INVALID_REQUEST");
-    }
-    return noStoreJson(await createContribution(input, analysisDigest), 201);
+    const credential = resolveContributionCredential(
+      input,
+      request.headers.get(GUARDIAN_ANALYSIS_DIGEST_HEADER),
+    );
+    return noStoreJson(
+      credential.mode === "signed"
+        ? await createSignedContribution(credential.input)
+        : await createContribution(credential.input, credential.analysisDigest),
+      201,
+    );
   } catch (error) {
     return contributionErrorResponse(error);
   }

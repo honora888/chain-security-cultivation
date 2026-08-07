@@ -7,6 +7,7 @@ import {
   type ReviewDecisionPayload,
   type ReviewDecisionResult,
   type ReviewerAnalysis,
+  type ReviewerCandidateAnalysis,
   type ReviewQuestDraft,
   type ReviewStatus,
   type StoredReview,
@@ -17,6 +18,7 @@ export type ReviewerErrorCode =
   | "REVIEWER_REQUIRED"
   | "CASE_NOT_FOUND"
   | "CASE_STATE_CONFLICT"
+  | "CANDIDATE_REQUIRES_VERIFICATION"
   | "REVIEW_ALREADY_APPLIED"
   | "BESTIARY_NAME_UNAVAILABLE"
   | "INVALID_REVIEW_SCORE"
@@ -30,6 +32,7 @@ const ERROR_MESSAGES: Record<ReviewerErrorCode, string> = {
   REVIEWER_REQUIRED: "此处为守阁人审核台，当前修仙身份没有审核权限。",
   CASE_NOT_FOUND: "未找到该案例，可能已被移除。",
   CASE_STATE_CONFLICT: "案例状态已改变，请重新加载后再审核。",
+  CANDIDATE_REQUIRES_VERIFICATION: "需先完成人工验证与正式分类，当前候选草案暂不可发布。",
   REVIEW_ALREADY_APPLIED: "该审核决定已经处理，请重新加载卷宗。",
   BESTIARY_NAME_UNAVAILABLE: "拟定异兽名称已被占用，请返回卷宗核对名称状态。",
   INVALID_REVIEW_SCORE: "审核评分超出允许范围，请检查五维评分。",
@@ -213,6 +216,12 @@ function parseQuestDraft(value: unknown): ReviewQuestDraft | null {
 }
 
 function parseAnalysis(value: unknown): ReviewerAnalysis | null {
+  if (isRecord(value) && value.schemaVersion === "guardian-signed-contribution-v1") {
+    const signedDraft = recordAt(value, "signedDraft");
+    const claims = recordAt(signedDraft, "claims");
+    const draft = recordAt(claims, "draft");
+    value = draft?.analysis;
+  }
   if (!isRecord(value)) return null;
   const analysis = recordAt(value, "analysis");
   const classification = recordAt(value, "classification");
@@ -249,6 +258,64 @@ function parseAnalysis(value: unknown): ReviewerAnalysis | null {
     },
     bestiaryDraft: parseBestiaryDraft(value.bestiaryDraft),
     questDraft: parseQuestDraft(value.questDraft),
+  };
+}
+
+export function parseReviewerCandidateAnalysis(value: unknown): ReviewerCandidateAnalysis | null {
+  if (!isRecord(value) || value.schemaVersion !== "guardian-signed-contribution-v1") return null;
+  const signedDraft = recordAt(value, "signedDraft");
+  const claims = recordAt(signedDraft, "claims");
+  const draft = recordAt(claims, "draft");
+  const analysis = recordAt(draft, "analysis");
+  const enhancement = recordAt(analysis, "llmEnhancement");
+  const selectedBestiaryName = nonEmptyString(draft?.selectedBestiaryName);
+  const publicSummary = nonEmptyString(enhancement?.publicSummary);
+  if (
+    analysis?.schemaVersion !== "guardian-security-candidate-analysis-v1" ||
+    !selectedBestiaryName ||
+    !publicSummary ||
+    !Array.isArray(enhancement?.candidateFindings)
+  ) return null;
+
+  const findings = enhancement.candidateFindings.map((value): ReviewerCandidateAnalysis["findings"][number] | null => {
+    if (!isRecord(value) || value.verification !== "llm_candidate") return null;
+    const confidence = recordAt(value, "suggestedConfidence");
+    const candidateId = nonEmptyString(value.candidateId);
+    const category = nonEmptyString(value.category);
+    const title = nonEmptyString(value.title);
+    const severity = nonEmptyString(value.suggestedSeverity);
+    const confidenceLabel = nonEmptyString(confidence?.label);
+    const confidenceScore = numberValue(confidence?.score);
+    const explanation = nonEmptyString(value.explanation);
+    if (!candidateId || !category || !title || !severity || !confidenceLabel || confidenceScore === null || !explanation) return null;
+    const evidence = Array.isArray(value.evidence) ? value.evidence.map((entry) => {
+      if (!isRecord(entry)) return null;
+      const source = nonEmptyString(entry.source);
+      const description = nonEmptyString(entry.description);
+      return source && description
+        ? { source, description, locations: stringArray(entry.locations) }
+        : null;
+    }) : [];
+    if (evidence.some((entry) => entry === null)) return null;
+    return {
+      candidateId,
+      category,
+      title,
+      verification: "llm_candidate",
+      suggestedSeverity: severity,
+      suggestedConfidence: { label: confidenceLabel, score: confidenceScore },
+      explanation,
+      attackPath: stringArray(value.attackPath),
+      evidence: evidence as readonly { source: string; description: string; locations: readonly string[] }[],
+      suggestedFix: stringArray(value.suggestedFix),
+      limitations: stringArray(value.limitations),
+    };
+  });
+  if (findings.length === 0 || findings.some((entry) => entry === null)) return null;
+  return {
+    publicSummary,
+    selectedBestiaryName,
+    findings: findings as ReviewerCandidateAnalysis["findings"],
   };
 }
 
@@ -313,6 +380,7 @@ function parseDetail(value: unknown): ReviewCaseDetail | null {
     attackSource: stringValue(value.attackSource) ?? "",
     fixedSource: stringValue(value.fixedSource) ?? "",
     analysis: parseAnalysis(value.analysisJson),
+    candidateAnalysis: parseReviewerCandidateAnalysis(value.analysisJson),
     reviews: reviewsValue as readonly StoredReview[],
     merit: { totalMerit },
     bestiary,

@@ -89,6 +89,26 @@ export type ReviewerAnalysis = {
   questDraft: ReviewQuestDraft | null;
 };
 
+export type ReviewerCandidateFinding = {
+  candidateId: string;
+  category: string;
+  title: string;
+  verification: "llm_candidate";
+  suggestedSeverity: string;
+  suggestedConfidence: { label: string; score: number };
+  explanation: string;
+  attackPath: readonly string[];
+  evidence: readonly { source: string; description: string; locations: readonly string[] }[];
+  suggestedFix: readonly string[];
+  limitations: readonly string[];
+};
+
+export type ReviewerCandidateAnalysis = {
+  publicSummary: string;
+  selectedBestiaryName: string;
+  findings: readonly ReviewerCandidateFinding[];
+};
+
 export type StoredReview = {
   reviewId: string;
   reviewerAddress: string;
@@ -119,6 +139,7 @@ export type ReviewCaseDetail = ReviewCaseSummary & {
   attackSource: string;
   fixedSource: string;
   analysis: ReviewerAnalysis | null;
+  candidateAnalysis: ReviewerCandidateAnalysis | null;
   reviews: readonly StoredReview[];
   merit: { totalMerit: number };
   bestiary: ReviewBestiaryPublication | null;

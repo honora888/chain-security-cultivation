@@ -19,6 +19,7 @@ import {
   type ReviewFilter,
   type ReviewStatus,
   type ReviewerAnalysis,
+  type ReviewerCandidateAnalysis,
 } from "./reviewer-types";
 import { ReviewerAccessLink } from "@/features/wallet-auth/reviewer-access-link";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
@@ -288,6 +289,41 @@ function AnalysisSection({ analysis }: { analysis: ReviewerAnalysis | null }) {
   );
 }
 
+function CandidateAnalysisSection({ analysis }: { analysis: ReviewerCandidateAnalysis }) {
+  return (
+    <section className={styles.dossierPanel} aria-labelledby="candidate-finding">
+      <div className={styles.panelHeading}>
+        <span>候</span>
+        <div><p>LLM CANDIDATE · HUMAN VERIFICATION REQUIRED</p><h2 id="candidate-finding">Guardian 候选发现</h2></div>
+        <strong className={styles.draftStamp}>候选 / Candidate</strong>
+      </div>
+      <p>{analysis.publicSummary}</p>
+      <dl className={styles.factGrid}>
+        <div><dt>签名选定异兽名</dt><dd>{analysis.selectedBestiaryName}</dd></div>
+        <div><dt>验证状态</dt><dd>尚未完成确定性验证</dd></div>
+        <div className={styles.wideFact}><dt>人工审核要求</dt><dd>需先完成人工验证与正式分类，暂不可发布。</dd></div>
+      </dl>
+      <div className={styles.reviewHistory}>
+        {analysis.findings.map((finding) => (
+          <article key={finding.candidateId}>
+            <header><strong>{finding.title}</strong><span>LLM Candidate</span></header>
+            <p><b>类别：</b>{finding.category}</p>
+            <p><b>建议 Severity：</b>{finding.suggestedSeverity}</p>
+            <p><b>建议 Confidence：</b>{finding.suggestedConfidence.label} · {finding.suggestedConfidence.score}/100</p>
+            <p>{finding.explanation}</p>
+            <div className={styles.evidenceGrid}>
+              <div><h3>攻击路径</h3><TextList items={finding.attackPath} /></div>
+              <div><h3>建议修复</h3><TextList items={finding.suggestedFix} /></div>
+              <div><h3>候选证据</h3><TextList items={finding.evidence.map((entry) => `${entry.source}：${entry.description}${entry.locations.length ? `（${entry.locations.join("、")}）` : ""}`)} /></div>
+              <div><h3>已知局限</h3><TextList items={finding.limitations} /></div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BestiaryDraftSection({ draft }: { draft: NonNullable<ReviewerAnalysis["bestiaryDraft"]> }) {
   return (
     <section className={styles.dossierPanel} aria-labelledby="bestiary-draft-heading">
@@ -353,6 +389,7 @@ function DecisionForm({ detail, onComplete }: { detail: ReviewCaseDetail; onComp
   const parsedScores = parseScores(scores);
   const total = parsedScores ? Object.values(parsedScores).reduce((sum, value) => sum + value, 0) : null;
   const valid = Boolean(decision && parsedScores && reviewSummary.trim() && (decision !== "rejected" || rejectConfirmed));
+  const candidateOnly = detail.candidateAnalysis !== null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -381,11 +418,12 @@ function DecisionForm({ detail, onComplete }: { detail: ReviewCaseDetail; onComp
       <p>选择决定后填写正式审核表单。最终总分由服务端按冻结权重重新计算。</p>
       <div className={styles.decisionChoices} role="group" aria-label="选择审核决定">
         {(Object.keys(DECISION_COPY) as ReviewDecision[]).map((value) => (
-          <button key={value} type="button" aria-pressed={decision === value} onClick={() => { setDecision(value); setError(null); setRejectConfirmed(false); }}>
+          <button key={value} type="button" disabled={candidateOnly && value === "approved"} aria-pressed={decision === value} onClick={() => { setDecision(value); setError(null); setRejectConfirmed(false); }}>
             <strong>{DECISION_COPY[value].label}</strong><span>{DECISION_COPY[value].description}</span>
           </button>
         ))}
       </div>
+      {candidateOnly ? <p className={styles.decisionNotice}>需先完成人工验证与正式分类，暂不可发布。当前仍可要求修改或驳回。</p> : null}
       {decision ? (
         <form className={styles.reviewForm} onSubmit={submit} aria-busy={submitting}>
           <div className={styles.formHeading}><h3>{DECISION_COPY[decision].label} · 审核表</h3><strong>总 Merit：{total ?? "—"} / 100</strong></div>
@@ -541,6 +579,7 @@ export function ReviewerCasePage({ caseId }: { caseId: string }) {
           </section>
           {result ? <DecisionOutcome result={result} detail={detail} /> : null}
           <AnalysisSection analysis={detail.analysis} />
+          {detail.candidateAnalysis ? <CandidateAnalysisSection analysis={detail.candidateAnalysis} /> : null}
           <SourceDossier detail={detail} />
           <ReviewHistory detail={detail} />
           {!result && detail.status === "pending_review" ? <DecisionForm detail={detail} onComplete={complete} /> : null}

@@ -1,3 +1,5 @@
+import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
+
 export type ContributionStatus = "pending_review" | "changes_requested" | "approved" | "rejected";
 
 export type ContributionSummary = {
@@ -162,6 +164,25 @@ export async function createContribution(input: ContributionSubmission, analysis
   const parsed = parseSummary(response.case);
   if (!parsed || !("analysis" in response)) throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法识别的案例信息，请稍后重试。", 200);
   return { summary: parsed, analysis: response.analysis };
+}
+
+export async function createSignedContribution(
+  input: ContributionSubmission,
+  signedDraft: SignedGuardianDraftV1,
+): Promise<ContributionSummary> {
+  const response = await request("/api/contributions/cases", {
+    method: "POST",
+    body: JSON.stringify({ ...input, signedDraft }),
+  });
+  const parsed = parseSummary(response.case);
+  if (!parsed) {
+    throw new ContributorApiError(
+      "INVALID_RESPONSE",
+      "服务返回了无法识别的案例信息，请稍后重试。",
+      200,
+    );
+  }
+  return parsed;
 }
 
 export async function getContributions(signal?: AbortSignal): Promise<readonly ContributionSummary[]> {

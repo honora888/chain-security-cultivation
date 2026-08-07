@@ -11,6 +11,7 @@ import {
   ContributionHttpError,
 } from "@/contributions/constants";
 import { normalizeCaseName } from "@/contributions/normalize";
+import { GUARDIAN_ANALYSIS_DIGEST_PATTERN } from "@/lib/guardian-analysis-digest";
 
 export function noStoreJson<T>(body: T, status = 200): NextResponse<T> {
   return NextResponse.json(body, {
@@ -79,12 +80,46 @@ export type ContributionInput = {
   fixedSource: string;
 };
 
-export function parseContributionInput(value: unknown): ContributionInput {
+export type SignedContributionInput = ContributionInput & {
+  signedDraft: unknown;
+};
+
+export type ParsedContributionInput = ContributionInput | SignedContributionInput;
+
+export function hasSignedDraft(input: ParsedContributionInput): input is SignedContributionInput {
+  return "signedDraft" in input;
+}
+
+export type ContributionCredential =
+  | { readonly mode: "signed"; readonly input: SignedContributionInput }
+  | { readonly mode: "legacy"; readonly input: ContributionInput; readonly analysisDigest: string };
+
+export function resolveContributionCredential(
+  input: ParsedContributionInput,
+  rawAnalysisDigest: string | null,
+): ContributionCredential {
+  const analysisDigest = rawAnalysisDigest?.trim() ?? "";
+  if (hasSignedDraft(input)) {
+    if (analysisDigest.length > 0) throw new ContributionHttpError("INVALID_REQUEST");
+    return { mode: "signed", input };
+  }
+  if (!GUARDIAN_ANALYSIS_DIGEST_PATTERN.test(analysisDigest)) {
+    throw new ContributionHttpError("INVALID_REQUEST");
+  }
+  return { mode: "legacy", input, analysisDigest };
+}
+
+export function parseContributionInput(value: unknown): ParsedContributionInput {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new ContributionHttpError("INVALID_REQUEST");
+  }
+  const hasDraft = Object.hasOwn(value, "signedDraft");
   const object = exactObject(value, [
     "caseName",
     "vulnerableSource",
     "attackSource",
     "fixedSource",
+    ...(hasDraft ? ["signedDraft"] : []),
   ]);
   const caseName = normalizeCaseName(requiredString(object.caseName));
   const vulnerableSource = requiredString(object.vulnerableSource);
@@ -105,12 +140,13 @@ export function parseContributionInput(value: unknown): ContributionInput {
     throw new ContributionHttpError("PAYLOAD_TOO_LARGE");
   }
 
-  return {
+  const input: ContributionInput = {
     caseName,
     vulnerableSource,
     attackSource,
     fixedSource,
   };
+  return hasDraft ? { ...input, signedDraft: object.signedDraft } : input;
 }
 
 export function contributionErrorResponse(error: unknown): NextResponse {

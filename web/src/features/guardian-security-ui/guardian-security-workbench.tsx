@@ -9,6 +9,7 @@ import type { GuardianHybridPublicResponse } from "@/features/guardian-llm/hybri
 import {
   ContributorApiError,
   createContribution,
+  createSignedContribution,
   type ContributionSummary,
 } from "@/features/contributor-ui/contributor-api-client";
 import { useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
@@ -244,8 +245,6 @@ export function GuardianSecurityWorkbench() {
   async function confirmContribution(): Promise<void> {
     if (
       !result ||
-      !isGuardianSampleSuccess(result) ||
-      !analysisDigest ||
       isBusy ||
       createdCase
     ) return;
@@ -256,18 +255,26 @@ export function GuardianSecurityWorkbench() {
     setStatus("saving");
     setStatusMessage("正在确认献策并提交守阁人审核……");
     try {
-      const created = await createContribution({
+      const submission = {
         caseName: form.name.trim(),
         vulnerableSource: form.vulnerableSource,
         attackSource: form.attackSource,
         fixedSource: form.fixedSource,
-      }, analysisDigest);
-      if (!isGuardianSampleSuccess(created.analysis)) {
-        throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
+      };
+      if (result.schemaVersion === "guardian-security-candidate-analysis-v1") {
+        if (!signedDraft) return;
+        const summary = await createSignedContribution(submission, signedDraft);
+        setCreatedCase(summary);
+      } else {
+        if (!isGuardianSampleSuccess(result) || !analysisDigest) return;
+        const created = await createContribution(submission, analysisDigest);
+        if (!isGuardianSampleSuccess(created.analysis)) {
+          throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
+        }
+        setResult(created.analysis);
+        setSignedDraft(null);
+        setCreatedCase(created.summary);
       }
-      setResult(created.analysis);
-      setSignedDraft(null);
-      setCreatedCase(created.summary);
       setStatus("saved");
       setStatusMessage("异兽献策已进入守阁人审核，当前状态为待审核。");
     } catch (error) {
@@ -534,12 +541,24 @@ export function GuardianSecurityWorkbench() {
         {result?.schemaVersion === "guardian-security-candidate-analysis-v1" ? (
           <section className={styles.confirmContribution} aria-labelledby="candidate-stage-title">
             <div>
-              <p className={styles.sectionIndex}>Stage 34.3 · Signed carriage only</p>
-              <h2 id="candidate-stage-title">候选草案尚未接入提交</h2>
+              <p className={styles.sectionIndex}>Signed candidate · Human review only</p>
+              <h2 id="candidate-stage-title">提交守阁人审核</h2>
               <p>
-                当前仅生成并保留待人工审核的候选草案。数据库提交、审核批准与发布能力将在后续阶段接入。
+                {createdCase
+                  ? `候选献策 ${createdCase.caseId} 已保存为待审核状态。`
+                  : "该草案仍是 LLM Candidate；提交后只进入人工审核，不会自动获得正式分类或发布。"}
               </p>
             </div>
+            {!wallet.authenticated ? <p className={styles.confirmNotice}>请先使用全局钱包入口完成签名入世。</p> : null}
+            {!signedDraft && !createdCase ? <p className={styles.confirmNotice}>当前没有有效签名草案，请重新进行 Guardian 鉴定。</p> : null}
+            <button
+              className={styles.submitButton}
+              type="button"
+              disabled={isBusy || Boolean(createdCase) || !wallet.authenticated || !signedDraft}
+              onClick={() => void confirmContribution()}
+            >
+              {status === "saving" ? "正在提交审核" : createdCase ? "已进入待审核" : "确认候选草案 · 提交人工审核"}
+            </button>
           </section>
         ) : null}
       </main>
