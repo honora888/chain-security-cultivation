@@ -1,4 +1,7 @@
-import type { GuardianFindingConfidence } from "./contracts";
+import type {
+  GuardianFindingConfidence,
+  GuardianFindingSeverity,
+} from "./contracts";
 import {
   GUARDIAN_CONFIDENCE_MAX_SCORE,
   GUARDIAN_CONFIDENCE_MIN_SCORE,
@@ -59,5 +62,29 @@ export function guardianConfidenceLabelZh(label: GuardianConfidenceLabel): strin
       return "中";
     case "Low":
       return "低";
+  }
+}
+
+export function isGuardianFindingSeverity(
+  value: unknown,
+): value is GuardianFindingSeverity {
+  return (
+    value === "Informational" ||
+    value === "Low" ||
+    value === "Medium" ||
+    value === "High" ||
+    value === "Critical"
+  );
+}
+
+export function guardianFindingSeverityLabelZh(
+  severity: GuardianFindingSeverity,
+): string {
+  switch (severity) {
+    case "Informational": return "信息";
+    case "Low": return "低";
+    case "Medium": return "中";
+    case "High": return "高";
+    case "Critical": return "严重";
   }
 }

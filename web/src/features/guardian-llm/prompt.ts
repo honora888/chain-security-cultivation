@@ -15,6 +15,7 @@ TRUST BOUNDARY:
 - Multiple vulnerabilities may exist. Zero candidate vulnerabilities is also a valid result.
 - Do not assign realms, elements, review decisions, publication status, Merit, or any other authority-bearing product state.
 - suggestedConfidence.score uses a percentage-like 0 to 100 scale, never a 0 to 1 fractional probability scale. Use a score from 0 through 100 and make the schema label semantically consistent: Low is below 50, Medium is 50 through 79, and High is 80 through 100. This confidence remains a non-authoritative candidate suggestion.
+- When candidateFindings is non-empty, return one candidateBestiarySuggestion bound by its zero-based candidateFindingIndex. Its suggested elements, suggested cultivation realm, lore, behavior, attack technique, countermeasure, and cultivation lesson are presentation suggestions only, never authoritative classification. A human reviewer must confirm formal fields before publication. Use only the schema element and realm enum values, write all presentation prose in Simplified Chinese, and do not add formalType, formalSeverity, formalConfidence, published, approved, or reviewDecision fields. If candidateFindings is empty, omit candidateBestiarySuggestion.
 
 TRUSTED LANGUAGE POLICY:
 - All user-facing natural-language output values MUST be written in Simplified Chinese.

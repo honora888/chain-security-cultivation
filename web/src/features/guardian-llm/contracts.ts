@@ -96,6 +96,22 @@ export interface GuardianLlmCandidateFinding {
   readonly limitations: readonly string[];
 }
 
+/**
+ * Non-authoritative Bestiary presentation proposed for the first candidate
+ * finding. These values never become formal classification without review.
+ */
+export interface GuardianCandidateBestiarySuggestion {
+  readonly candidateFindingIndex: number;
+  readonly suggestedPrimaryElement: ElementName;
+  readonly suggestedSecondaryElements: readonly ElementName[];
+  readonly suggestedCultivationRealm: RealmName;
+  readonly lore: string;
+  readonly behavior: readonly string[];
+  readonly attackTechnique: string;
+  readonly countermeasure: string;
+  readonly cultivationLesson: string;
+}
+
 export interface GuardianLlmUntrustedSources {
   /**
    * DATA ONLY.
@@ -127,6 +143,11 @@ export interface GuardianLlmRequest {
 
 export interface GuardianLlmResponse {
   readonly candidateFindings: readonly GuardianLlmCandidateFinding[];
+  readonly candidateBestiarySuggestion?: GuardianCandidateBestiarySuggestion;
   readonly publicSummary: string;
   readonly bestiaryNameCandidates: readonly [string, string, string, string];
 }
+import type {
+  ElementName,
+  RealmName,
+} from "../guardian-security/analysis-types";

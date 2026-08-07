@@ -1,6 +1,7 @@
 import type { GuardianSecuritySuccess } from "../guardian-security/analysis-types";
 
 import type {
+  GuardianCandidateBestiarySuggestion,
   GuardianLlmCandidateFinding,
   GuardianLlmResponse,
 } from "./contracts";
@@ -8,6 +9,8 @@ import type {
 export interface GuardianPublicLlmEnhancement {
   readonly status: "enhanced";
   readonly candidateFindings: readonly GuardianLlmCandidateFinding[];
+  /** Absent only for legacy persisted signed drafts. */
+  readonly candidateBestiarySuggestion?: GuardianCandidateBestiarySuggestion | null;
   readonly publicSummary: string;
   readonly bestiaryNameCandidates: readonly [string, string, string, string];
 }
@@ -68,6 +71,7 @@ export function toPublicLlmEnhancement(
   return {
     status: "enhanced",
     candidateFindings: response.candidateFindings,
+    candidateBestiarySuggestion: response.candidateBestiarySuggestion,
     publicSummary: response.publicSummary,
     bestiaryNameCandidates: response.bestiaryNameCandidates,
   };

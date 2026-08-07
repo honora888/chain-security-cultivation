@@ -155,6 +155,17 @@ function llmResponse() {
       "Seal Thief",
       "Owner Eater",
     ],
+    candidateBestiarySuggestion: {
+      candidateFindingIndex: 0,
+      suggestedPrimaryElement: "Metal",
+      suggestedSecondaryElements: ["Fire"],
+      suggestedCultivationRealm: "Core Formation",
+      lore: "\u517d",
+      behavior: ["\u517d"],
+      attackTechnique: "\u517d",
+      countermeasure: "\u517d",
+      cultivationLesson: "\u517d",
+    },
   };
 }
 

@@ -7,6 +7,7 @@ import {
   type ReviewDecisionPayload,
   type ReviewDecisionResult,
   type ReviewerAnalysis,
+  type ReviewerCandidateBestiarySuggestion,
   type ReviewerCandidateAnalysis,
   type ReviewQuestDraft,
   type ReviewStatus,
@@ -15,8 +16,13 @@ import {
 import {
   isGuardianConfidenceLabel,
   isGuardianConfidenceScore,
+  isGuardianFindingSeverity,
   normalizeGuardianSuggestedConfidence,
 } from "@/features/guardian-llm/confidence";
+import {
+  isCultivationElement,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
 
 export type ReviewerErrorCode =
   | "AUTH_REQUIRED"
@@ -296,7 +302,7 @@ export function parseReviewerCandidateAnalysis(value: unknown): ReviewerCandidat
       !candidateId ||
       !category ||
       !title ||
-      !severity ||
+      !isGuardianFindingSeverity(severity) ||
       !isGuardianConfidenceLabel(confidenceLabel) ||
       confidenceScore === null ||
       !isGuardianConfidenceScore(confidenceScore) ||
@@ -329,10 +335,76 @@ export function parseReviewerCandidateAnalysis(value: unknown): ReviewerCandidat
     };
   });
   if (findings.length === 0 || findings.some((entry) => entry === null)) return null;
+  const suggestion = Object.hasOwn(enhancement, "candidateBestiarySuggestion")
+    ? parseReviewerCandidateBestiarySuggestion(
+        enhancement.candidateBestiarySuggestion,
+        findings.length,
+      )
+    : undefined;
+  if (Object.hasOwn(enhancement, "candidateBestiarySuggestion") && !suggestion) return null;
   return {
     publicSummary,
     selectedBestiaryName,
     findings: findings as ReviewerCandidateAnalysis["findings"],
+    ...(suggestion ? { candidateBestiarySuggestion: suggestion } : {}),
+  };
+}
+
+function parseReviewerCandidateBestiarySuggestion(
+  value: unknown,
+  candidateCount: number,
+): ReviewerCandidateBestiarySuggestion | null {
+  if (!isRecord(value)) return null;
+  const keys = [
+    "candidateFindingIndex",
+    "suggestedPrimaryElement",
+    "suggestedSecondaryElements",
+    "suggestedCultivationRealm",
+    "lore",
+    "behavior",
+    "attackTechnique",
+    "countermeasure",
+    "cultivationLesson",
+  ];
+  if (Object.keys(value).length !== keys.length || !keys.every((key) => Object.hasOwn(value, key))) return null;
+  const primary = value.suggestedPrimaryElement;
+  const candidateFindingIndex = value.candidateFindingIndex;
+  const rawSecondary = value.suggestedSecondaryElements;
+  if (
+    typeof candidateFindingIndex !== "number" ||
+    !Number.isInteger(candidateFindingIndex) ||
+    candidateFindingIndex < 0 ||
+    candidateFindingIndex >= candidateCount ||
+    !isCultivationElement(primary) ||
+    !Array.isArray(rawSecondary) ||
+    rawSecondary.length > 4 ||
+    !rawSecondary.every(isCultivationElement) ||
+    new Set(rawSecondary).size !== rawSecondary.length ||
+    rawSecondary.includes(primary) ||
+    !isCultivationRealm(value.suggestedCultivationRealm) ||
+    !Array.isArray(value.behavior) ||
+    value.behavior.length === 0
+  ) return null;
+  const secondary = rawSecondary as readonly typeof primary[];
+  const behavior = stringArray(value.behavior);
+  const prose = [
+    value.lore,
+    value.attackTechnique,
+    value.countermeasure,
+    value.cultivationLesson,
+    ...behavior,
+  ];
+  if (!prose.every((item) => typeof item === "string" && item.trim() === item && /\p{Script=Han}/u.test(item))) return null;
+  return {
+    candidateFindingIndex,
+    suggestedPrimaryElement: primary,
+    suggestedSecondaryElements: secondary,
+    suggestedCultivationRealm: value.suggestedCultivationRealm,
+    lore: value.lore as string,
+    behavior,
+    attackTechnique: value.attackTechnique as string,
+    countermeasure: value.countermeasure as string,
+    cultivationLesson: value.cultivationLesson as string,
   };
 }
 

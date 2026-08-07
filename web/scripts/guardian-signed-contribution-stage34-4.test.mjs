@@ -75,6 +75,17 @@ function llmResponse() {
     }],
     publicSummary: "发现一个需要人工验证的访问控制候选。",
     bestiaryNameCandidates: ["越权夺印兽", "无门守印兽", "盗令影兽", "夺主潜兽"],
+    candidateBestiarySuggestion: {
+      candidateFindingIndex: 0,
+      suggestedPrimaryElement: "Metal",
+      suggestedSecondaryElements: ["Fire"],
+      suggestedCultivationRealm: "Core Formation",
+      lore: "\u517d",
+      behavior: ["\u517d"],
+      attackTechnique: "\u517d",
+      countermeasure: "\u517d",
+      cultivationLesson: "\u517d",
+    },
   };
 }
 

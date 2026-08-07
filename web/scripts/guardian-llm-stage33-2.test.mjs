@@ -15,7 +15,7 @@ registerHooks({
 
     if (
       context.parentURL?.includes("/src/features/guardian-llm/") &&
-      specifier.startsWith("./") &&
+      specifier.startsWith(".") &&
       !specifier.endsWith(".ts")
     ) {
       return {
@@ -119,6 +119,17 @@ function validRawResponse() {
       "空门越界兽",
       "断应潜行兽",
     ],
+    candidateBestiarySuggestion: {
+      candidateFindingIndex: 0,
+      suggestedPrimaryElement: "Metal",
+      suggestedSecondaryElements: ["Fire"],
+      suggestedCultivationRealm: "Core Formation",
+      lore: "\u517d",
+      behavior: ["\u517d"],
+      attackTechnique: "\u517d",
+      countermeasure: "\u517d",
+      cultivationLesson: "\u517d",
+    },
   };
 }
 
@@ -223,6 +234,7 @@ test("valid response with two vulnerability categories parses", () => {
 test("zero candidate findings parses", () => {
   const value = validRawResponse();
   value.candidateFindings = [];
+  delete value.candidateBestiarySuggestion;
   assert.equal(parseGuardianLlmResponse(value).candidateFindings.length, 0);
 });
 

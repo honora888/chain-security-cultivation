@@ -6,25 +6,11 @@ import type {
   RealmName,
   ReentrancySignal,
 } from "./analysis-types";
+import {
+  cultivationElementLabel,
+  cultivationRealmLabel,
+} from "./cultivation-labels";
 import { signalMatched } from "./reentrancy-rules";
-
-const ELEMENT_LABELS: Record<ElementName, string> = {
-  Metal: "金",
-  Wood: "木",
-  Water: "水",
-  Fire: "火",
-  Earth: "土",
-};
-
-const REALM_LABELS: Record<RealmName, string> = {
-  "Qi Refining": "练气期",
-  "Foundation Establishment": "筑基期",
-  "Core Formation": "金丹期",
-  "Nascent Soul": "元婴期",
-  "Spirit Transformation": "化神期",
-  Mahayana: "大乘期",
-  Tribulation: "渡劫期",
-};
 
 export function classifyElements(
   signals: readonly ReentrancySignal[],
@@ -72,7 +58,7 @@ export function classifyElements(
 
   return {
     primaryElement,
-    primaryElementLabel: ELEMENT_LABELS[primaryElement],
+    primaryElementLabel: cultivationElementLabel(primaryElement),
     secondaryElements,
     elementScores: scores,
     rationale,
@@ -177,7 +163,7 @@ export function classifyRealm(
 
   return {
     realm,
-    realmLabel: REALM_LABELS[realm],
+    realmLabel: cultivationRealmLabel(realm),
     realmScore,
     complexityFactors,
     rationale: [

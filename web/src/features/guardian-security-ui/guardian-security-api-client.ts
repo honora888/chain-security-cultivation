@@ -14,6 +14,7 @@ import type {
   GuardianPublicLlmEnhancement,
 } from "@/features/guardian-llm/hybrid-analysis-types";
 import type {
+  GuardianCandidateBestiarySuggestion,
   GuardianAffectedCode,
   GuardianFindingConfidence,
   GuardianFindingSeverity,
@@ -22,12 +23,17 @@ import type {
   GuardianVulnerabilityCategory,
 } from "@/features/guardian-llm/contracts";
 import {
+  isCultivationElement,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
+import {
   isGuardianConfidenceScore,
   normalizeGuardianSuggestedConfidence,
 } from "@/features/guardian-llm/confidence";
 import {
   MAX_LLM_AFFECTED_CODE_ITEMS,
   MAX_LLM_BESTIARY_NAME_LENGTH,
+  MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
   MAX_LLM_CANDIDATE_FINDINGS,
   MAX_LLM_EVIDENCE_ITEMS,
   MAX_LLM_EVIDENCE_LOCATIONS,
@@ -244,12 +250,84 @@ function candidateFinding(value: unknown, index: number): GuardianLlmCandidateFi
   };
 }
 
+function chinesePresentationString(value: unknown, maxLength: number): string {
+  const text = trimmedString(value, maxLength);
+  if (!/\p{Script=Han}/u.test(text)) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return text;
+}
+
+function candidateBestiarySuggestion(
+  value: unknown,
+  candidateCount: number,
+): GuardianCandidateBestiarySuggestion {
+  const suggestion = exactObject(value, [
+    "candidateFindingIndex",
+    "suggestedPrimaryElement",
+    "suggestedSecondaryElements",
+    "suggestedCultivationRealm",
+    "lore",
+    "behavior",
+    "attackTechnique",
+    "countermeasure",
+    "cultivationLesson",
+  ]);
+  const primary = suggestion.suggestedPrimaryElement;
+  const candidateFindingIndex = suggestion.candidateFindingIndex;
+  const rawSecondary = suggestion.suggestedSecondaryElements;
+  if (
+    typeof candidateFindingIndex !== "number" ||
+    !Number.isInteger(candidateFindingIndex) ||
+    candidateFindingIndex < 0 ||
+    candidateFindingIndex >= candidateCount ||
+    !isCultivationElement(primary) ||
+    !Array.isArray(rawSecondary) ||
+    rawSecondary.length > 4 ||
+    !rawSecondary.every(isCultivationElement) ||
+    new Set(rawSecondary).size !== rawSecondary.length ||
+    rawSecondary.includes(primary) ||
+    !isCultivationRealm(suggestion.suggestedCultivationRealm) ||
+    !Array.isArray(suggestion.behavior) ||
+    suggestion.behavior.length === 0
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  const secondary = rawSecondary as readonly typeof primary[];
+
+  return {
+    candidateFindingIndex,
+    suggestedPrimaryElement: primary,
+    suggestedSecondaryElements: secondary,
+    suggestedCultivationRealm: suggestion.suggestedCultivationRealm,
+    lore: chinesePresentationString(suggestion.lore, MAX_LLM_EXPLANATION_LENGTH),
+    behavior: stringList(
+      suggestion.behavior,
+      MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
+    ).map((item) => chinesePresentationString(item, MAX_LLM_TEXT_ITEM_LENGTH)),
+    attackTechnique: chinesePresentationString(
+      suggestion.attackTechnique,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+    countermeasure: chinesePresentationString(
+      suggestion.countermeasure,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+    cultivationLesson: chinesePresentationString(
+      suggestion.cultivationLesson,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+  };
+}
+
 function publicLlmEnhancement(value: unknown): GuardianPublicLlmEnhancement {
+  const hasSuggestion = isRecord(value) && Object.hasOwn(value, "candidateBestiarySuggestion");
   const enhancement = exactObject(value, [
     "status",
     "candidateFindings",
     "publicSummary",
     "bestiaryNameCandidates",
+    ...(hasSuggestion ? ["candidateBestiarySuggestion"] : []),
   ]);
   if (
     enhancement.status !== "enhanced" ||
@@ -267,9 +345,18 @@ function publicLlmEnhancement(value: unknown): GuardianPublicLlmEnhancement {
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
   const [first, second, third, fourth] = names;
+  const candidateFindings = enhancement.candidateFindings.map(candidateFinding);
   return {
     status: "enhanced",
-    candidateFindings: enhancement.candidateFindings.map(candidateFinding),
+    candidateFindings,
+    ...(hasSuggestion
+      ? {
+          candidateBestiarySuggestion: candidateBestiarySuggestion(
+            enhancement.candidateBestiarySuggestion,
+            candidateFindings.length,
+          ),
+        }
+      : {}),
     publicSummary: trimmedString(
       enhancement.publicSummary,
       MAX_LLM_PUBLIC_SUMMARY_LENGTH,

@@ -22,7 +22,16 @@ import {
   type SignedGuardianDraftV1,
 } from "@/features/guardian-draft/contracts";
 import type { GuardianHybridPublicResponse } from "@/features/guardian-llm/hybrid-analysis-types";
-import { MAX_LLM_BESTIARY_NAME_LENGTH } from "@/features/guardian-llm/response-schema";
+import {
+  MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
+  MAX_LLM_BESTIARY_NAME_LENGTH,
+  MAX_LLM_EXPLANATION_LENGTH,
+  MAX_LLM_TEXT_ITEM_LENGTH,
+} from "@/features/guardian-llm/response-schema";
+import {
+  isCultivationElement,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
 
 export type GuardianDraftErrorCode =
   | "NOT_CONFIGURED"
@@ -114,6 +123,18 @@ const PUBLIC_LLM_ENHANCEMENT_KEYS = [
   "candidateFindings",
   "publicSummary",
   "bestiaryNameCandidates",
+] as const;
+
+const CANDIDATE_BESTIARY_SUGGESTION_KEYS = [
+  "candidateFindingIndex",
+  "suggestedPrimaryElement",
+  "suggestedSecondaryElements",
+  "suggestedCultivationRealm",
+  "lore",
+  "behavior",
+  "attackTechnique",
+  "countermeasure",
+  "cultivationLesson",
 ] as const;
 
 const PUBLIC_CANDIDATE_KEYS = [
@@ -303,8 +324,66 @@ function validateStringArrayFields(value: unknown): void {
   stringArray(value);
 }
 
+function validateChinesePresentationString(
+  value: unknown,
+  maxCharacters: number,
+): string {
+  const text = validateBoundedDisplayString(value, maxCharacters);
+  if (!/\p{Script=Han}/u.test(text)) return fail("MALFORMED");
+  return text;
+}
+
+function validateCandidateBestiarySuggestion(
+  value: unknown,
+  candidateCount: number,
+): void {
+  const suggestion = exactRecord(value, CANDIDATE_BESTIARY_SUGGESTION_KEYS);
+  const primary = suggestion.suggestedPrimaryElement;
+  const secondary = suggestion.suggestedSecondaryElements;
+  const candidateFindingIndex = suggestion.candidateFindingIndex;
+  if (
+    typeof candidateFindingIndex !== "number" ||
+    !Number.isInteger(candidateFindingIndex) ||
+    candidateFindingIndex < 0 ||
+    candidateFindingIndex >= candidateCount ||
+    !isCultivationElement(primary) ||
+    !Array.isArray(secondary) ||
+    secondary.length > 4 ||
+    !secondary.every(isCultivationElement) ||
+    new Set(secondary).size !== secondary.length ||
+    secondary.includes(primary) ||
+    !isCultivationRealm(suggestion.suggestedCultivationRealm) ||
+    !Array.isArray(suggestion.behavior) ||
+    suggestion.behavior.length === 0 ||
+    suggestion.behavior.length > MAX_LLM_BESTIARY_BEHAVIOR_ITEMS
+  ) {
+    return fail("MALFORMED");
+  }
+
+  validateChinesePresentationString(suggestion.lore, MAX_LLM_EXPLANATION_LENGTH);
+  suggestion.behavior.forEach((item) =>
+    validateChinesePresentationString(item, MAX_LLM_TEXT_ITEM_LENGTH),
+  );
+  validateChinesePresentationString(
+    suggestion.attackTechnique,
+    MAX_LLM_TEXT_ITEM_LENGTH,
+  );
+  validateChinesePresentationString(
+    suggestion.countermeasure,
+    MAX_LLM_TEXT_ITEM_LENGTH,
+  );
+  validateChinesePresentationString(
+    suggestion.cultivationLesson,
+    MAX_LLM_TEXT_ITEM_LENGTH,
+  );
+}
+
 function validatePublicLlmEnhancement(value: unknown): void {
-  const enhancement = exactRecord(value, PUBLIC_LLM_ENHANCEMENT_KEYS);
+  const hasSuggestion = isPlainRecord(value) && Object.hasOwn(value, "candidateBestiarySuggestion");
+  const enhancement = exactRecord(value, [
+    ...PUBLIC_LLM_ENHANCEMENT_KEYS,
+    ...(hasSuggestion ? ["candidateBestiarySuggestion"] : []),
+  ]);
   if (
     enhancement.status !== "enhanced" ||
     typeof enhancement.publicSummary !== "string" ||
@@ -372,6 +451,13 @@ function validatePublicLlmEnhancement(value: unknown): void {
       }
       validateStringArrayFields(evidence.locations);
     }
+  }
+
+  if (hasSuggestion) {
+    validateCandidateBestiarySuggestion(
+      enhancement.candidateBestiarySuggestion,
+      enhancement.candidateFindings.length,
+    );
   }
 }
 

@@ -2,6 +2,10 @@ import type {
   GuardianFindingSeverity,
   GuardianVulnerabilityCategory,
 } from "./contracts";
+import {
+  CULTIVATION_ELEMENT_VALUES,
+  CULTIVATION_REALM_VALUES,
+} from "../guardian-security/cultivation-labels";
 
 export const MAX_LLM_CANDIDATE_FINDINGS = 8;
 export const MAX_LLM_TITLE_LENGTH = 120;
@@ -14,6 +18,7 @@ export const MAX_LLM_EVIDENCE_ITEMS = 24;
 export const MAX_LLM_TEXT_ITEM_LENGTH = 1_500;
 export const MAX_LLM_EVIDENCE_LOCATIONS = 20;
 export const MAX_LLM_LOCATION_LENGTH = 300;
+export const MAX_LLM_BESTIARY_BEHAVIOR_ITEMS = 8;
 
 export const GUARDIAN_VULNERABILITY_CATEGORIES: readonly GuardianVulnerabilityCategory[] = [
   "reentrancy",
@@ -136,6 +141,41 @@ const candidateFindingSchema = {
   ],
 };
 
+const candidateBestiarySuggestionSchema = {
+  type: "object",
+  properties: {
+    candidateFindingIndex: { type: "number" },
+    suggestedPrimaryElement: {
+      type: "string",
+      enum: CULTIVATION_ELEMENT_VALUES,
+    },
+    suggestedSecondaryElements: {
+      type: "array",
+      items: { type: "string", enum: CULTIVATION_ELEMENT_VALUES },
+    },
+    suggestedCultivationRealm: {
+      type: "string",
+      enum: CULTIVATION_REALM_VALUES,
+    },
+    lore: { type: "string" },
+    behavior: { type: "array", items: { type: "string" } },
+    attackTechnique: { type: "string" },
+    countermeasure: { type: "string" },
+    cultivationLesson: { type: "string" },
+  },
+  required: [
+    "candidateFindingIndex",
+    "suggestedPrimaryElement",
+    "suggestedSecondaryElements",
+    "suggestedCultivationRealm",
+    "lore",
+    "behavior",
+    "attackTechnique",
+    "countermeasure",
+    "cultivationLesson",
+  ],
+};
+
 /**
  * Gemini structured output schema. Runtime validation in response-parser.ts
  * remains authoritative and independently enforces every size and key bound.
@@ -147,6 +187,7 @@ export const GUARDIAN_LLM_RESPONSE_SCHEMA = {
       type: "array",
       items: candidateFindingSchema,
     },
+    candidateBestiarySuggestion: candidateBestiarySuggestionSchema,
     publicSummary: { type: "string" },
     bestiaryNameCandidates: {
     type: "array",

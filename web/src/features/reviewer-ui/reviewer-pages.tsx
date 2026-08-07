@@ -23,18 +23,19 @@ import {
 } from "./reviewer-types";
 import { ReviewerAccessLink } from "@/features/wallet-auth/reviewer-access-link";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
-import { guardianConfidenceLabelZh } from "@/features/guardian-llm/confidence";
+import {
+  guardianConfidenceLabelZh,
+  guardianFindingSeverityLabelZh,
+} from "@/features/guardian-llm/confidence";
+import {
+  cultivationElementLabel,
+  cultivationRealmLabel,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
 import styles from "./reviewer-ui.module.css";
 
-const REALM_LABELS: Readonly<Record<string, string>> = {
-  "Core Formation": "金丹期",
-  "Foundation Establishment": "筑基期",
-  "Qi Refinement": "炼气期",
-};
-
 function realmDisplay(realm: string, label: string): string {
-  const localized = REALM_LABELS[realm] ?? label;
-  return localized && localized !== realm ? `${localized} · ${realm}` : localized || realm;
+  return isCultivationRealm(realm) ? cultivationRealmLabel(realm) : label || realm;
 }
 
 const STATUS_COPY: Record<ReviewStatus, { label: string; description: string }> = {
@@ -304,12 +305,37 @@ function CandidateAnalysisSection({ analysis }: { analysis: ReviewerCandidateAna
         <div><dt>验证状态</dt><dd>尚未完成确定性验证</dd></div>
         <div className={styles.wideFact}><dt>人工审核要求</dt><dd>需先完成人工验证与正式分类，暂不可发布。</dd></div>
       </dl>
+      {analysis.candidateBestiarySuggestion ? (
+        <section className={styles.dossierPanel} aria-labelledby="candidate-bestiary-suggestion">
+          <div className={styles.panelHeading}>
+            <span>异</span>
+            <div>
+              <p>LLM CANDIDATE · HUMAN REVIEW REQUIRED</p>
+              <h3 id="candidate-bestiary-suggestion">Guardian 候选异兽设定</h3>
+            </div>
+            <strong className={styles.draftStamp}>建议 / Candidate</strong>
+          </div>
+          <p className={styles.legacyNotice}>以下内容为候选展示设定，不是正式属性、境界或发布依据。</p>
+          <dl className={styles.factGrid}>
+            <div><dt>建议属性</dt><dd>{cultivationElementLabel(analysis.candidateBestiarySuggestion.suggestedPrimaryElement)}{analysis.candidateBestiarySuggestion.suggestedSecondaryElements.length ? ` / ${analysis.candidateBestiarySuggestion.suggestedSecondaryElements.map(cultivationElementLabel).join(" / ")}` : ""}</dd></div>
+            <div><dt>建议境界</dt><dd>{cultivationRealmLabel(analysis.candidateBestiarySuggestion.suggestedCultivationRealm)}</dd></div>
+            <div className={styles.wideFact}><dt>妖兽特性</dt><dd>{analysis.candidateBestiarySuggestion.lore}</dd></div>
+            <div className={styles.wideFact}><dt>攻击招式</dt><dd>{analysis.candidateBestiarySuggestion.attackTechnique}</dd></div>
+            <div className={styles.wideFact}><dt>破阵之法</dt><dd>{analysis.candidateBestiarySuggestion.countermeasure}</dd></div>
+            <div className={styles.wideFact}><dt>修炼启示</dt><dd>{analysis.candidateBestiarySuggestion.cultivationLesson}</dd></div>
+          </dl>
+          <div className={styles.reviewHistory}>
+            <h3>出没特征</h3>
+            <TextList items={analysis.candidateBestiarySuggestion.behavior} />
+          </div>
+        </section>
+      ) : null}
       <div className={styles.reviewHistory}>
         {analysis.findings.map((finding) => (
           <article key={finding.candidateId}>
             <header><strong>{finding.title}</strong><span>LLM Candidate</span></header>
             <p><b>类别：</b>{finding.category}</p>
-            <p><b>建议 Severity：</b>{finding.suggestedSeverity}</p>
+            <p><b>建议严重度：</b>{guardianFindingSeverityLabelZh(finding.suggestedSeverity)}</p>
             <p><b>LLM 建议置信度（非权威）：</b>{guardianConfidenceLabelZh(finding.suggestedConfidence.label)} · {finding.suggestedConfidence.score}/100</p>
             <p>{finding.explanation}</p>
             <div className={styles.evidenceGrid}>

@@ -1,4 +1,5 @@
 import type {
+  GuardianCandidateBestiarySuggestion,
   GuardianAffectedCode,
   GuardianFindingConfidence,
   GuardianFindingSeverity,
@@ -7,6 +8,10 @@ import type {
   GuardianLlmResponse,
   GuardianVulnerabilityCategory,
 } from "./contracts";
+import {
+  isCultivationElement,
+  isCultivationRealm,
+} from "../guardian-security/cultivation-labels";
 import { GuardianLlmProviderError } from "./provider";
 import {
   isGuardianConfidenceScore,
@@ -15,6 +20,7 @@ import {
 import {
   MAX_LLM_AFFECTED_CODE_ITEMS,
   MAX_LLM_BESTIARY_NAME_LENGTH,
+  MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
   MAX_LLM_CANDIDATE_FINDINGS,
   MAX_LLM_EVIDENCE_ITEMS,
   MAX_LLM_EVIDENCE_LOCATIONS,
@@ -30,7 +36,12 @@ const RESPONSE_KEYS = [
   "candidateFindings",
   "publicSummary",
   "bestiaryNameCandidates",
+  "candidateBestiarySuggestion",
 ];
+
+const LEGACY_RESPONSE_KEYS = RESPONSE_KEYS.filter(
+  (key) => key !== "candidateBestiarySuggestion",
+);
 
 const CANDIDATE_KEYS = [
   "category",
@@ -46,6 +57,17 @@ const CANDIDATE_KEYS = [
 ];
 
 const CONFIDENCE_KEYS = ["label", "score"];
+const CANDIDATE_BESTIARY_SUGGESTION_KEYS = [
+  "candidateFindingIndex",
+  "suggestedPrimaryElement",
+  "suggestedSecondaryElements",
+  "suggestedCultivationRealm",
+  "lore",
+  "behavior",
+  "attackTechnique",
+  "countermeasure",
+  "cultivationLesson",
+];
 const AFFECTED_CODE_KEYS = ["source", "location", "explanation"];
 const EVIDENCE_KEYS = ["source", "description", "locations"];
 
@@ -99,6 +121,14 @@ function parseStringArray(
   }
 
   return value.map((item) => parseTrimmedString(item, maxItemLength));
+}
+
+function parseChinesePresentationString(value: unknown, maxLength: number): string {
+  const text = parseTrimmedString(value, maxLength);
+  if (!/\p{Script=Han}/u.test(text)) {
+    return invalidResponse();
+  }
+  return text;
 }
 
 function parseCategory(value: unknown): GuardianVulnerabilityCategory {
@@ -233,6 +263,65 @@ function parseCandidateFinding(
   };
 }
 
+function parseCandidateBestiarySuggestion(
+  value: unknown,
+  candidateCount: number,
+): GuardianCandidateBestiarySuggestion {
+  const suggestion = parseExactObject(
+    value,
+    CANDIDATE_BESTIARY_SUGGESTION_KEYS,
+  );
+  const primaryElement = suggestion.suggestedPrimaryElement;
+  const candidateFindingIndex = suggestion.candidateFindingIndex;
+  const rawSecondaryElements = suggestion.suggestedSecondaryElements;
+
+  if (
+    typeof candidateFindingIndex !== "number" ||
+    !Number.isInteger(candidateFindingIndex) ||
+    candidateFindingIndex < 0 ||
+    candidateFindingIndex >= candidateCount ||
+    !isCultivationElement(primaryElement) ||
+    !Array.isArray(rawSecondaryElements) ||
+    rawSecondaryElements.length > 4 ||
+    !rawSecondaryElements.every(isCultivationElement) ||
+    new Set(rawSecondaryElements).size !== rawSecondaryElements.length ||
+    rawSecondaryElements.includes(primaryElement) ||
+    !isCultivationRealm(suggestion.suggestedCultivationRealm) ||
+    !Array.isArray(suggestion.behavior) ||
+    suggestion.behavior.length === 0
+  ) {
+    return invalidResponse();
+  }
+  const secondaryElements = rawSecondaryElements as readonly typeof primaryElement[];
+
+  return {
+    candidateFindingIndex,
+    suggestedPrimaryElement: primaryElement,
+    suggestedSecondaryElements: secondaryElements,
+    suggestedCultivationRealm: suggestion.suggestedCultivationRealm,
+    lore: parseChinesePresentationString(
+      suggestion.lore,
+      MAX_LLM_EXPLANATION_LENGTH,
+    ),
+    behavior: parseStringArray(
+      suggestion.behavior,
+      MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
+    ).map((item) => parseChinesePresentationString(item, MAX_LLM_TEXT_ITEM_LENGTH)),
+    attackTechnique: parseChinesePresentationString(
+      suggestion.attackTechnique,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+    countermeasure: parseChinesePresentationString(
+      suggestion.countermeasure,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+    cultivationLesson: parseChinesePresentationString(
+      suggestion.cultivationLesson,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+    ),
+  };
+}
+
 function parseBestiaryNames(
   value: unknown,
 ): readonly [string, string, string, string] {
@@ -254,7 +343,11 @@ function parseBestiaryNames(
 }
 
 export function parseGuardianLlmResponse(value: unknown): GuardianLlmResponse {
-  const response = parseExactObject(value, RESPONSE_KEYS);
+  const hasSuggestion = isRecord(value) && Object.hasOwn(value, "candidateBestiarySuggestion");
+  const response = parseExactObject(
+    value,
+    hasSuggestion ? RESPONSE_KEYS : LEGACY_RESPONSE_KEYS,
+  );
 
   if (
     !Array.isArray(response.candidateFindings) ||
@@ -263,8 +356,21 @@ export function parseGuardianLlmResponse(value: unknown): GuardianLlmResponse {
     return invalidResponse();
   }
 
+  const candidateFindings = response.candidateFindings.map(parseCandidateFinding);
+  if (candidateFindings.length > 0 && !hasSuggestion) {
+    return invalidResponse();
+  }
+
   return {
-    candidateFindings: response.candidateFindings.map(parseCandidateFinding),
+    candidateFindings,
+    ...(hasSuggestion
+      ? {
+          candidateBestiarySuggestion: parseCandidateBestiarySuggestion(
+            response.candidateBestiarySuggestion,
+            candidateFindings.length,
+          ),
+        }
+      : {}),
     publicSummary: parseTrimmedString(
       response.publicSummary,
       MAX_LLM_PUBLIC_SUMMARY_LENGTH,

@@ -1,5 +1,12 @@
 import type { GuardianCandidateOnlyAnalysisSuccess } from "@/features/guardian-llm/hybrid-analysis-types";
-import { guardianConfidenceLabelZh } from "@/features/guardian-llm/confidence";
+import {
+  guardianConfidenceLabelZh,
+  guardianFindingSeverityLabelZh,
+} from "@/features/guardian-llm/confidence";
+import {
+  cultivationElementLabel,
+  cultivationRealmLabel,
+} from "@/features/guardian-security/cultivation-labels";
 
 import styles from "./guardian-security-ui.module.css";
 
@@ -23,6 +30,7 @@ export function GuardianCandidateResults({
   const alternatives = result.llmEnhancement.bestiaryNameCandidates.filter(
     (name) => name !== selectedBestiaryName,
   );
+  const suggestion = result.llmEnhancement.candidateBestiarySuggestion;
 
   return (
     <section className={styles.results} aria-labelledby="candidate-results-title">
@@ -51,6 +59,67 @@ export function GuardianCandidateResults({
         </div>
       </section>
 
+      {suggestion ? (
+        <section
+          className={styles.resultPanel}
+          aria-labelledby="candidate-bestiary-suggestion-title"
+        >
+          <div className={styles.panelTitleRow}>
+            <span aria-hidden="true">异</span>
+            <div>
+              <p>LLM Candidate · Human Review Required</p>
+              <h3 id="candidate-bestiary-suggestion-title">候选异兽设定</h3>
+            </div>
+          </div>
+          <p className={styles.cautionNote}>
+            以下为 Guardian 生成的候选设定，仅供人工审核参考，不构成正式分类或发布结论。
+          </p>
+          <dl className={styles.summaryFacts}>
+            <div>
+              <dt>异兽名</dt>
+              <dd>{selectedBestiaryName}</dd>
+            </div>
+            <div>
+              <dt>Guardian 建议属性</dt>
+              <dd>
+                {cultivationElementLabel(suggestion.suggestedPrimaryElement)}
+                {suggestion.suggestedSecondaryElements.length > 0
+                  ? ` / ${suggestion.suggestedSecondaryElements
+                      .map(cultivationElementLabel)
+                      .join(" / ")}`
+                  : ""}
+              </dd>
+            </div>
+            <div>
+              <dt>Guardian 建议境界</dt>
+              <dd>{cultivationRealmLabel(suggestion.suggestedCultivationRealm)}</dd>
+            </div>
+            <div className={styles.wideFact}>
+              <dt>妖兽特性</dt>
+              <dd>{suggestion.lore}</dd>
+            </div>
+          </dl>
+          <div className={styles.detailGrid}>
+            <div>
+              <h4>出没特征</h4>
+              <TextList items={suggestion.behavior} />
+            </div>
+            <div>
+              <h4>攻击招式</h4>
+              <p>{suggestion.attackTechnique}</p>
+            </div>
+            <div>
+              <h4>破阵之法</h4>
+              <p>{suggestion.countermeasure}</p>
+            </div>
+            <div>
+              <h4>修炼启示</h4>
+              <p>{suggestion.cultivationLesson}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {result.llmEnhancement.candidateFindings.map((finding) => (
         <section
           className={styles.resultPanel}
@@ -74,7 +143,7 @@ export function GuardianCandidateResults({
             </div>
             <div>
               <dt>LLM 建议严重度（非权威）</dt>
-              <dd>{finding.suggestedSeverity}</dd>
+              <dd>{guardianFindingSeverityLabelZh(finding.suggestedSeverity)}</dd>
             </div>
             <div>
               <dt>LLM 建议置信度（非权威）</dt>

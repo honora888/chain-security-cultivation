@@ -1,4 +1,11 @@
-import type { GuardianFindingConfidence } from "@/features/guardian-llm/contracts";
+import type {
+  GuardianFindingConfidence,
+  GuardianFindingSeverity,
+} from "@/features/guardian-llm/contracts";
+import type {
+  ElementName,
+  RealmName,
+} from "@/features/guardian-security/analysis-types";
 
 export const REVIEW_STATUSES = [
   "pending_review",
@@ -96,7 +103,7 @@ export type ReviewerCandidateFinding = {
   category: string;
   title: string;
   verification: "llm_candidate";
-  suggestedSeverity: string;
+  suggestedSeverity: GuardianFindingSeverity;
   suggestedConfidence: GuardianFindingConfidence;
   explanation: string;
   attackPath: readonly string[];
@@ -105,10 +112,23 @@ export type ReviewerCandidateFinding = {
   limitations: readonly string[];
 };
 
+export type ReviewerCandidateBestiarySuggestion = {
+  candidateFindingIndex: number;
+  suggestedPrimaryElement: ElementName;
+  suggestedSecondaryElements: readonly ElementName[];
+  suggestedCultivationRealm: RealmName;
+  lore: string;
+  behavior: readonly string[];
+  attackTechnique: string;
+  countermeasure: string;
+  cultivationLesson: string;
+};
+
 export type ReviewerCandidateAnalysis = {
   publicSummary: string;
   selectedBestiaryName: string;
   findings: readonly ReviewerCandidateFinding[];
+  candidateBestiarySuggestion?: ReviewerCandidateBestiarySuggestion;
 };
 
 export type StoredReview = {

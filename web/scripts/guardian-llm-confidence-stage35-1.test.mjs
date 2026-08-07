@@ -8,7 +8,7 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     if (
       context.parentURL?.includes("/src/features/guardian-llm/") &&
-      specifier.startsWith("./") &&
+      specifier.startsWith(".") &&
       !specifier.endsWith(".ts")
     ) {
       return {
@@ -85,6 +85,17 @@ function rawResponse(label = "High", score = 92) {
     ],
     publicSummary: "发现一个需要人工审核的候选问题。",
     bestiaryNameCandidates: ["夺主妖", "无门之兽", "锁魂魇", "噬权兽"],
+    candidateBestiarySuggestion: {
+      candidateFindingIndex: 0,
+      suggestedPrimaryElement: "Metal",
+      suggestedSecondaryElements: ["Fire"],
+      suggestedCultivationRealm: "Core Formation",
+      lore: "此兽窥伺失守的权限边界。",
+      behavior: ["常在关键状态变更附近出没。"],
+      attackTechnique: "趁守卫缺位时夺取主印。",
+      countermeasure: "在关键调用前验证权限。",
+      cultivationLesson: "修炼时先辨清权限边界。",
+    },
   };
 }
 
