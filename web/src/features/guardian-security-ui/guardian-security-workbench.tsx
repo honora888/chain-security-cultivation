@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
 import { guardianDraftInputChanged } from "@/features/guardian-draft/client";
@@ -10,8 +10,12 @@ import {
   ContributorApiError,
   createContribution,
   createSignedContribution,
+  getContribution,
+  resubmitContribution,
+  resubmitSignedContribution,
   type ContributionSummary,
 } from "@/features/contributor-ui/contributor-api-client";
+import { contributionSubmissionErrorMessage } from "@/features/contributor-ui/contribution-submission-copy";
 import { useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 
@@ -35,6 +39,10 @@ type WorkbenchStatus = "idle" | "submitting" | "success" | "saving" | "saved" | 
 type FieldName = keyof GuardianSampleSubmission;
 type FieldErrors = Partial<Record<FieldName | "form", string>>;
 type FlowStepState = "pending" | "current" | "complete" | "review" | "error";
+type ContributionFeedback = {
+  kind: "submitting" | "success" | "error";
+  message: string;
+};
 
 const EMPTY_FORM: GuardianSampleSubmission = {
   name: "",
@@ -167,8 +175,24 @@ function messageForError(error: unknown): string {
   return ERROR_COPY.INTERNAL_ERROR;
 }
 
-export function GuardianSecurityWorkbench() {
+function ContributionFeedbackMessage({ feedback }: { feedback: ContributionFeedback | null }) {
+  if (!feedback) return null;
+  return (
+    <p
+      className={styles.contributionFeedback}
+      data-kind={feedback.kind}
+      role={feedback.kind === "error" ? "alert" : "status"}
+      aria-live={feedback.kind === "error" ? "assertive" : "polite"}
+      aria-atomic="true"
+    >
+      {feedback.message}
+    </p>
+  );
+}
+
+export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?: string }) {
   const wallet = useWalletAuth();
+  const submissionInFlight = useRef(false);
   const [form, setForm] = useState<GuardianSampleSubmission>(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<WorkbenchStatus>("idle");
@@ -179,6 +203,27 @@ export function GuardianSecurityWorkbench() {
   const [analysisDigest, setAnalysisDigest] = useState<string | null>(null);
   const [signedDraft, setSignedDraft] = useState<SignedGuardianDraftV1 | null>(null);
   const [createdCase, setCreatedCase] = useState<ContributionSummary | null>(null);
+  const [contributionFeedback, setContributionFeedback] = useState<ContributionFeedback | null>(null);
+
+  useEffect(() => {
+    if (!revisionCaseId || !wallet.authenticated) return;
+    const controller = new AbortController();
+    void getContribution(revisionCaseId, controller.signal).then((detail) => {
+      if (detail.status !== "changes_requested") {
+        throw new ContributorApiError("CASE_STATE_CONFLICT", "只有待返修案例可以载入返修工作台。", 409);
+      }
+      setForm({ name: detail.caseName, vulnerableSource: detail.vulnerableSource, attackSource: detail.attackSource, fixedSource: detail.fixedSource });
+      setContributionFeedback(null);
+      setStatus("idle");
+      setStatusMessage("待返修案例已载入。修改源码后请重新进行 Guardian 鉴定。");
+    }).catch((error) => {
+      if (!controller.signal.aborted) {
+        setStatus("error");
+        setStatusMessage(error instanceof ContributorApiError ? error.message : "返修案例载入失败。");
+      }
+    });
+    return () => controller.abort();
+  }, [revisionCaseId, wallet.authenticated]);
 
   const totalSourceLength = SOURCE_FIELDS.reduce(
     (total, field) => total + form[field.name].length,
@@ -192,6 +237,7 @@ export function GuardianSecurityWorkbench() {
     const nextForm = { ...form, [field]: value };
     setForm(nextForm);
     setFieldErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
+    setContributionFeedback(null);
     if (result !== null && guardianDraftInputChanged(form, nextForm)) {
       setResult(null);
       setAnalysisDigest(null);
@@ -215,6 +261,7 @@ export function GuardianSecurityWorkbench() {
     }
 
     setFieldErrors({});
+    setContributionFeedback(null);
     setStatus("submitting");
     setStatusMessage("正在分析受限源码文本并生成安全案例草案……");
     try {
@@ -238,6 +285,7 @@ export function GuardianSecurityWorkbench() {
     setAnalysisDigest(null);
     setSignedDraft(null);
     setCreatedCase(null);
+    setContributionFeedback(null);
     setStatus("idle");
     setStatusMessage("准备提交新的安全案例。");
   }
@@ -246,14 +294,19 @@ export function GuardianSecurityWorkbench() {
     if (
       !result ||
       isBusy ||
-      createdCase
+      createdCase ||
+      submissionInFlight.current
     ) return;
     if (!wallet.authenticated) {
-      setStatusMessage("请先连接钱包并签名入世，再确认提交守阁人审核。");
+      const message = "请先连接钱包并签名入世，再确认提交守阁人审核。";
+      setStatusMessage(message);
+      setContributionFeedback({ kind: "error", message });
       return;
     }
+    submissionInFlight.current = true;
     setStatus("saving");
-    setStatusMessage("正在确认献策并提交守阁人审核……");
+    setStatusMessage("正在提交异兽献策…");
+    setContributionFeedback({ kind: "submitting", message: "正在提交异兽献策…" });
     try {
       const submission = {
         caseName: form.name.trim(),
@@ -262,26 +315,40 @@ export function GuardianSecurityWorkbench() {
         fixedSource: form.fixedSource,
       };
       if (result.schemaVersion === "guardian-security-candidate-analysis-v1") {
-        if (!signedDraft) return;
-        const summary = await createSignedContribution(submission, signedDraft);
+        if (!signedDraft) throw new Error("Missing signed draft");
+        const summary = revisionCaseId
+          ? await resubmitSignedContribution(revisionCaseId, submission, signedDraft)
+          : await createSignedContribution(submission, signedDraft);
         setCreatedCase(summary);
       } else {
-        if (!isGuardianSampleSuccess(result) || !analysisDigest) return;
-        const created = await createContribution(submission, analysisDigest);
-        if (!isGuardianSampleSuccess(created.analysis)) {
-          throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
+        if (!isGuardianSampleSuccess(result) || !analysisDigest) {
+          throw new Error("Missing deterministic analysis credential");
         }
-        setResult(created.analysis);
-        setSignedDraft(null);
-        setCreatedCase(created.summary);
+        if (revisionCaseId) {
+          setCreatedCase(await resubmitContribution(revisionCaseId, submission, analysisDigest));
+        } else {
+          const created = await createContribution(submission, analysisDigest);
+          if (!isGuardianSampleSuccess(created.analysis)) {
+            throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
+          }
+          setResult(created.analysis);
+          setSignedDraft(null);
+          setCreatedCase(created.summary);
+        }
       }
       setStatus("saved");
-      setStatusMessage("异兽献策已进入守阁人审核，当前状态为待审核。");
+      setStatusMessage("异兽献策已提交，正在等待守阁人审核。");
+      setContributionFeedback({
+        kind: "success",
+        message: "异兽献策已提交，正在等待守阁人审核。",
+      });
     } catch (error) {
+      const message = contributionSubmissionErrorMessage(error);
       setStatus("error");
-      setStatusMessage(error instanceof ContributorApiError
-        ? error.message
-        : "献策未能提交，请稍后重试。");
+      setStatusMessage(message);
+      setContributionFeedback({ kind: "error", message });
+    } finally {
+      submissionInFlight.current = false;
     }
   }
 
@@ -324,7 +391,7 @@ export function GuardianSecurityWorkbench() {
         <section className={styles.submissionSection} aria-labelledby="submission-title">
           <div className={styles.submissionIntro}>
             <p className={styles.sectionIndex}>Submission dossier · Sample only</p>
-            <h2 id="submission-title">异兽献策</h2>
+            <h2 id="submission-title">{revisionCaseId ? "返修案例" : "异兽献策"}</h2>
             <p>
               当前公开工作台只接受新的用户样例，不提供内置案例选择，也不会自动触发链上注册。
             </p>
@@ -373,6 +440,7 @@ export function GuardianSecurityWorkbench() {
                 value={form.name}
                 maxLength={MAX_CASE_NAME_LENGTH}
                 required
+                readOnly={Boolean(revisionCaseId)}
                 autoComplete="off"
                 aria-invalid={Boolean(fieldErrors.name)}
                 aria-describedby="guardian-case-name-hint guardian-case-name-error"
@@ -534,8 +602,9 @@ export function GuardianSecurityWorkbench() {
             disabled={isBusy || Boolean(createdCase) || !wallet.authenticated}
             onClick={() => void confirmContribution()}
           >
-            {status === "saving" ? "正在提交审核" : createdCase ? "已进入待审核" : "确认献策 · 提交人工审核"}
+            {status === "saving" ? "正在提交异兽献策…" : createdCase ? "已进入待审核" : revisionCaseId ? "重新提交审核" : "确认献策 · 提交人工审核"}
           </button>
+          <ContributionFeedbackMessage feedback={contributionFeedback} />
         </section> : null}
 
         {result?.schemaVersion === "guardian-security-candidate-analysis-v1" ? (
@@ -557,8 +626,9 @@ export function GuardianSecurityWorkbench() {
               disabled={isBusy || Boolean(createdCase) || !wallet.authenticated || !signedDraft}
               onClick={() => void confirmContribution()}
             >
-              {status === "saving" ? "正在提交审核" : createdCase ? "已进入待审核" : "确认候选草案 · 提交人工审核"}
+              {status === "saving" ? "正在提交异兽献策…" : createdCase ? "已进入待审核" : revisionCaseId ? "重新提交审核" : "确认候选草案 · 提交人工审核"}
             </button>
+            <ContributionFeedbackMessage feedback={contributionFeedback} />
           </section>
         ) : null}
       </main>

@@ -13,6 +13,8 @@ export type ContributionErrorCode =
   | "INVALID_REQUEST"
   | "INVALID_CASE_ID"
   | "CASE_NOT_FOUND"
+  | "CASE_STATE_CONFLICT"
+  | "REVISION_HISTORY_UNAVAILABLE"
   | "AUTH_REQUIRED"
   | "CASE_ALREADY_EXISTS"
   | "BESTIARY_NAME_UNAVAILABLE"
@@ -37,6 +39,8 @@ const CONTRIBUTION_ERROR_MESSAGES: Record<ContributionErrorCode, string> = {
   INVALID_REQUEST: "提交内容格式不正确，请检查案例和源码字段。",
   INVALID_CASE_ID: "案例编号格式不正确。",
   CASE_NOT_FOUND: "未找到该安全案例。",
+  CASE_STATE_CONFLICT: "只有待返修案例可以重新提交审核。",
+  REVISION_HISTORY_UNAVAILABLE: "该案例缺少可验证的历史快照，暂不能安全返修。",
   AUTH_REQUIRED: "请先完成钱包身份认证。",
   CASE_ALREADY_EXISTS: "相同源码的安全案例已经提交。",
   BESTIARY_NAME_UNAVAILABLE: "该异兽名称已被占用。",
@@ -62,6 +66,8 @@ const CONTRIBUTION_ERROR_STATUSES: Record<ContributionErrorCode, number> = {
   INVALID_REQUEST: 400,
   INVALID_CASE_ID: 400,
   CASE_NOT_FOUND: 404,
+  CASE_STATE_CONFLICT: 409,
+  REVISION_HISTORY_UNAVAILABLE: 409,
   AUTH_REQUIRED: 401,
   CASE_ALREADY_EXISTS: 409,
   BESTIARY_NAME_UNAVAILABLE: 409,

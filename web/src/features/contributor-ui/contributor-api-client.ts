@@ -1,4 +1,5 @@
 import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
+import type { ReviewerFormalClassification } from "@/reviews/formal-classification";
 
 export type ContributionStatus = "pending_review" | "changes_requested" | "approved" | "rejected";
 
@@ -20,7 +21,25 @@ export type ContributionDetail = ContributionSummary & {
   vulnerableSource: string;
   attackSource: string;
   fixedSource: string;
-  analysisJson: unknown;
+  analysis: unknown;
+  latestReview: ContributorReviewSummary | null;
+  reviewHistory: readonly ContributorReviewSummary[];
+};
+
+export type ContributorReviewSummary = {
+  reviewId: string;
+  decision: "approved" | "changes_requested" | "rejected";
+  reviewedAt: string;
+  score: {
+    evidenceQuality: number;
+    reproducibility: number;
+    technicalAccuracy: number;
+    remediationQuality: number;
+    contributionValue: number;
+    total: number;
+  };
+  guardianFeedback: string;
+  formalClassification: ReviewerFormalClassification | null;
 };
 
 export type MeritEntry = {
@@ -101,8 +120,58 @@ function parseDetail(value: unknown): ContributionDetail | null {
   const vulnerableSource = asString(value.vulnerableSource);
   const attackSource = asString(value.attackSource);
   const fixedSource = asString(value.fixedSource);
-  if (vulnerableSource === null || attackSource === null || fixedSource === null || !("analysisJson" in value)) return null;
-  return { ...summary, vulnerableSource, attackSource, fixedSource, analysisJson: value.analysisJson };
+  if (
+    vulnerableSource === null || attackSource === null || fixedSource === null ||
+    !("analysis" in value) || !Array.isArray(value.reviewHistory)
+  ) return null;
+  const reviewHistory = value.reviewHistory.map(parseContributorReview);
+  const latestReview = value.latestReview === null ? null : parseContributorReview(value.latestReview);
+  if (reviewHistory.some((review) => review === null) || (value.latestReview !== null && !latestReview)) return null;
+  return {
+    ...summary,
+    vulnerableSource,
+    attackSource,
+    fixedSource,
+    analysis: value.analysis,
+    latestReview,
+    reviewHistory: reviewHistory as ContributorReviewSummary[],
+  };
+}
+
+function reviewDecision(value: unknown): ContributorReviewSummary["decision"] | null {
+  return value === "approved" || value === "changes_requested" || value === "rejected" ? value : null;
+}
+
+function parseContributorReview(value: unknown): ContributorReviewSummary | null {
+  if (!isRecord(value) || !isRecord(value.score)) return null;
+  const reviewId = asString(value.reviewId);
+  const decision = reviewDecision(value.decision);
+  const reviewedAt = asString(value.reviewedAt);
+  const guardianFeedback = asString(value.guardianFeedback);
+  const scores = [
+    value.score.evidenceQuality,
+    value.score.reproducibility,
+    value.score.technicalAccuracy,
+    value.score.remediationQuality,
+    value.score.contributionValue,
+    value.score.total,
+  ];
+  if (!reviewId || !decision || !reviewedAt || guardianFeedback === null || scores.some((score) => asNumber(score) === null)) return null;
+  return {
+    reviewId,
+    decision,
+    reviewedAt,
+    guardianFeedback,
+    score: {
+      evidenceQuality: value.score.evidenceQuality as number,
+      reproducibility: value.score.reproducibility as number,
+      technicalAccuracy: value.score.technicalAccuracy as number,
+      remediationQuality: value.score.remediationQuality as number,
+      contributionValue: value.score.contributionValue as number,
+      total: value.score.total as number,
+    },
+    formalClassification: value.formalClassification as ReviewerFormalClassification | null,
+  };
 }
 
 function parseMerit(value: unknown): MeritSummary | null {
@@ -182,6 +251,35 @@ export async function createSignedContribution(
       200,
     );
   }
+  return parsed;
+}
+
+export async function resubmitContribution(
+  caseId: string,
+  input: ContributionSubmission,
+  analysisDigest: string,
+): Promise<ContributionSummary> {
+  const response = await request(`/api/contributions/cases/${encodeURIComponent(caseId)}/resubmit`, {
+    method: "POST",
+    headers: { "X-Guardian-Analysis-Digest": analysisDigest },
+    body: JSON.stringify(input),
+  });
+  const parsed = parseSummary(response.case);
+  if (!parsed) throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法识别的案例信息。", 200);
+  return parsed;
+}
+
+export async function resubmitSignedContribution(
+  caseId: string,
+  input: ContributionSubmission,
+  signedDraft: SignedGuardianDraftV1,
+): Promise<ContributionSummary> {
+  const response = await request(`/api/contributions/cases/${encodeURIComponent(caseId)}/resubmit`, {
+    method: "POST",
+    body: JSON.stringify({ ...input, signedDraft }),
+  });
+  const parsed = parseSummary(response.case);
+  if (!parsed) throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法识别的案例信息。", 200);
   return parsed;
 }
 

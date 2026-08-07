@@ -102,18 +102,27 @@ function mapDatabaseError(error: unknown): never {
   if (error instanceof DatabaseConfigurationError) {
     throw new ReviewHttpError("DATABASE_NOT_CONFIGURED");
   }
+
   const constraint =
-    typeof error === "object" && error !== null && "constraint" in error &&
-    typeof error.constraint === "string" ? error.constraint : "";
+    typeof error === "object" &&
+    error !== null &&
+    "constraint" in error &&
+    typeof error.constraint === "string"
+      ? error.constraint
+      : "";
+
   if (constraint === "merit_ledger_idempotency_key_unique") {
     throw new ReviewHttpError("REVIEW_ALREADY_APPLIED");
   }
+
   if (constraint === "bestiary_entries_case_id_unique") {
     throw new ReviewHttpError("REVIEW_ALREADY_APPLIED");
   }
+
   if (constraint === "bestiary_entries_normalized_name_unique") {
     throw new ReviewHttpError("BESTIARY_NAME_UNAVAILABLE");
   }
+
   throw new ReviewHttpError("DATABASE_UNAVAILABLE");
 }
 
@@ -456,7 +465,26 @@ export async function applyReviewDecisionWithContext(
            evidence_score, reproducibility_score, fix_quality_score,
            educational_value_score, novelty_score, merit_total
          )
-         SELECT id, $3, $2::review_decision, $4,
+         SELECT id, $3, $2::review_decision,
+           (
+           CASE WHEN $2 = 'changes_requested' THEN
+           jsonb_set(
+           $4::jsonb,
+           '{revisionSnapshot}',
+           jsonb_build_object(
+           'caseHash', case_hash,
+           'caseName', case_name,
+           'vulnerableSource', vulnerable_source,
+           'attackSource', attack_source,
+           'fixedSource', fixed_source,
+           'analysisJson', analysis_json,
+           'proposedBestiaryName', proposed_bestiary_name,
+           'normalizedBestiaryName', normalized_bestiary_name
+           )
+           )
+          ELSE $4::jsonb
+           END
+            )::text,
            reservation_display_name, reservation_normalized_name, NULL,
            $5, $6, $7, $8, $9, $10
          FROM updated_case

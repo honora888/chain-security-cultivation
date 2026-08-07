@@ -4,6 +4,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AUTH_CHAIN_ID, AUTH_CHAIN_NAME, useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
+import {
+  guardianConfidenceLabelZh,
+  guardianFindingSeverityLabelZh,
+} from "@/features/guardian-llm/confidence";
+import {
+  cultivationElementLabel,
+  cultivationRealmLabel,
+  isCultivationElement,
+} from "@/features/guardian-security/cultivation-labels";
+import { formalVulnerabilityTypeLabelZh } from "@/reviews/formal-classification";
 
 import {
   ContributorApiError,
@@ -13,14 +23,15 @@ import {
   type ContributionDetail,
   type ContributionStatus,
   type ContributionSummary,
+  type ContributorReviewSummary,
   type MeritSummary,
 } from "./contributor-api-client";
 import styles from "./contributor-ui.module.css";
 
 const STATUS_COPY: Record<ContributionStatus, string> = {
-  pending_review: "待审核",
-  changes_requested: "需要修改",
-  approved: "已收录",
+  pending_review: "待守阁人审核",
+  changes_requested: "待返修",
+  approved: "已通过 / 已收录",
   rejected: "未通过",
 };
 
@@ -91,6 +102,32 @@ function ListBlock({ title, values }: { title: string; values: readonly string[]
   );
 }
 
+const REVIEW_SCORE_FIELDS = [
+  ["evidenceQuality", "证据完整性", 25],
+  ["reproducibility", "攻击可复现性", 25],
+  ["technicalAccuracy", "修复质量", 20],
+  ["remediationQuality", "教育价值", 20],
+  ["contributionValue", "案例新颖性", 10],
+] as const;
+
+function ReviewSummary({ review, historical = false }: { review: ContributorReviewSummary; historical?: boolean }) {
+  const classification = review.formalClassification;
+  return <section className={styles.reviewSummary}>
+    <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>{historical ? "历史审核" : "最新审核"}</p><h3>{STATUS_COPY[review.decision]}</h3></div><time dateTime={review.reviewedAt}>{dateText(review.reviewedAt)}</time></div>
+    <div className={styles.reviewScoreGrid}>{REVIEW_SCORE_FIELDS.map(([key, label, maximum]) => <div key={key}><span>{label}</span><strong>{review.score[key]} / {maximum}</strong></div>)}<div><span>总分</span><strong>{review.score.total} / 100</strong></div></div>
+    <div className={styles.guardianFeedback}><h4>守阁人意见</h4><p>{review.guardianFeedback || "守阁人未填写公开意见。"}</p></div>
+    {classification ? <div className={styles.formalClassification}><h4>正式鉴定</h4><dl className={styles.detailFacts}>
+      <div><dt>漏洞类型</dt><dd>{formalVulnerabilityTypeLabelZh(classification.formalType)}</dd></div>
+      <div><dt>主属性</dt><dd>{cultivationElementLabel(classification.primaryElement)}</dd></div>
+      <div><dt>次属性</dt><dd>{classification.secondaryElements.map(cultivationElementLabel).join("、") || "无"}</dd></div>
+      <div><dt>境界</dt><dd>{cultivationRealmLabel(classification.realm)}</dd></div>
+      <div><dt>严重度</dt><dd>{guardianFindingSeverityLabelZh(classification.severity.label)} · {classification.severity.score} / 12</dd></div>
+      <div><dt>置信度</dt><dd>{guardianConfidenceLabelZh(classification.confidence.label)} · {classification.confidence.score} / 100</dd></div>
+    </dl></div> : null}
+    <p className={styles.privacyNotice}>内部审核备注不会向提交人公开。</p>
+  </section>;
+}
+
 export function WalletStatusCard({ compact = false }: { compact?: boolean }) {
   const wallet = useWalletAuth();
   const wrongNetwork = wallet.walletAddress !== null && wallet.chainId !== AUTH_CHAIN_ID;
@@ -134,12 +171,18 @@ function ContributorShell({ children, current }: { children: React.ReactNode; cu
 }
 
 function CaseFacts({ item }: { item: ContributionSummary }) {
+  const primaryElement = item.primaryElement && isCultivationElement(item.primaryElement)
+    ? cultivationElementLabel(item.primaryElement)
+    : item.primaryElement;
+  const severity = item.severity.label;
+  const confidence = item.confidence.label;
   return (
     <dl className={styles.facts}>
       <div><dt>异兽名</dt><dd>{item.proposedBestiaryName ?? "未记录"}</dd></div>
-      <div><dt>正式类型</dt><dd>{item.formalType ?? "待分析"}</dd></div>
-      <div><dt>风险</dt><dd>{item.severity.label ?? "待分析"}</dd></div>
-      <div><dt>置信度</dt><dd>{item.confidence.label ?? "待分析"}</dd></div>
+      <div><dt>正式类型</dt><dd>{item.formalType ? formalVulnerabilityTypeLabelZh(item.formalType) : "待分析"}</dd></div>
+      <div><dt>主属性</dt><dd>{primaryElement ?? "待分析"}</dd></div>
+      <div><dt>风险</dt><dd>{severity === "Informational" || severity === "Low" || severity === "Medium" || severity === "High" || severity === "Critical" ? guardianFindingSeverityLabelZh(severity) : "待分析"}</dd></div>
+      <div><dt>置信度</dt><dd>{confidence === "Low" || confidence === "Medium" || confidence === "High" ? guardianConfidenceLabelZh(confidence) : "待分析"}</dd></div>
     </dl>
   );
 }
@@ -218,10 +261,12 @@ export function CaseDetailPageClient({ caseId }: { caseId: string }) {
     {item ? <section className={styles.detailCard}>
       <div className={styles.sectionHeader}><div><p className={styles.statusPill} data-status={item.status}>{STATUS_COPY[item.status]}</p><h2>{item.caseName}</h2></div><Link href="/profile">返回我的档案</Link></div>
       <CaseFacts item={item} />
-      <dl className={styles.detailFacts}><div><dt>案例编号</dt><dd><code>{item.caseId}</code></dd></div><div><dt>主属性</dt><dd>{item.primaryElement ?? "待分析"}</dd></div><div><dt>次属性</dt><dd>{item.secondaryElements.join(" · ") || "无"}</dd></div><div><dt>提交时间</dt><dd>{dateText(item.createdAt)}</dd></div><div><dt>更新时间</dt><dd>{dateText(item.updatedAt)}</dd></div></dl>
-      {item.status === "changes_requested" ? <p className={styles.notice}>该案例需要修改。贡献者修改提交功能将在后续阶段开放。</p> : null}
+      <dl className={styles.detailFacts}><div><dt>案例编号</dt><dd><code>{item.caseId}</code></dd></div><div><dt>次属性</dt><dd>{item.secondaryElements.map((element) => isCultivationElement(element) ? cultivationElementLabel(element) : element).join("、") || "无"}</dd></div><div><dt>提交时间</dt><dd>{dateText(item.createdAt)}</dd></div><div><dt>更新时间</dt><dd>{dateText(item.updatedAt)}</dd></div></dl>
+      {item.latestReview ? <ReviewSummary review={item.latestReview} /> : null}
+      {(item.latestReview ? item.reviewHistory.slice(0, -1) : item.reviewHistory).map((review) => <ReviewSummary key={review.reviewId} review={review} historical />)}
+      {item.status === "changes_requested" ? <div className={styles.revisionAction}><p>守阁人已要求返修。修改源码后必须重新运行 Guardian，再提交新的鉴定结果。</p><Link href={`/contribute?revision=${encodeURIComponent(item.caseId)}`}>返修此案例</Link></div> : null}
       {item.status === "approved" ? <p className={styles.notice}>案例已收录。公开异兽志页面将在后续阶段开放；当前不假设公开条目一定存在。</p> : null}
-      <SafeAnalysis analysis={item.analysisJson} />
+      <SafeAnalysis analysis={item.analysis} />
       <section className={styles.sourceDetails}><h3>源码卷宗</h3><SourceDetails title="漏洞合约源码" source={item.vulnerableSource}/><SourceDetails title="攻击样例源码" source={item.attackSource}/><SourceDetails title="修复合约源码" source={item.fixedSource}/></section>
     </section> : null}
   </ContributorShell>;

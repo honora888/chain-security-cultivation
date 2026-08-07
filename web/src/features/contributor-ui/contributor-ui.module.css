@@ -94,3 +94,23 @@
 @media (max-width: 760px) { .header,.main { width: min(calc(100% - 32px),1240px); }.header { min-height: 72px; align-items: start; flex-direction: column; gap: 8px; padding: 13px 0; }.navigation { justify-content: start; gap: 12px 17px; }.navigation a { font-size: 12px; }.main { padding-top: 38px; }.hero::before { inset: -36px -24px -42px; }.hero h1 { font-size: 43px; }.walletCard,.formGrid,.profileSummary,.statusGrid,.detailFacts { grid-template-columns: minmax(0,1fr); }.walletActions { justify-content: start; }.walletActions button { flex: 1 1 160px; }.formFooter { align-items: stretch; flex-direction: column; }.formFooter button { width: 100%; }.facts { grid-template-columns: minmax(0,1fr); }.caseCard { grid-template-columns: minmax(0,1fr); gap: 14px; }.caseCard > div:last-child { grid-template-columns: 1fr auto; align-items: center; }.meritSection li { grid-template-columns: 54px minmax(0,1fr); }.meritSection li time { grid-column: 2; }.sourceField textarea { min-height: 190px; } }
 
 @media (prefers-reduced-motion: reduce) { .page *, .page *::before, .page *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+.reviewSummary { margin: 22px 0; padding: 18px; border: 1px solid rgba(145,216,189,.22); background: rgba(3,22,17,.58); }
+.reviewSummary h3,.reviewSummary h4 { margin: 0; color: var(--paper); }
+.reviewScoreGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 16px; }
+.reviewScoreGrid > div { display: grid; gap: 4px; padding: 11px; border: 1px solid rgba(145,216,189,.15); }
+.reviewScoreGrid span,.privacyNotice { color: var(--muted); font-size: 11px; }
+.reviewScoreGrid strong { color: var(--gold); }
+.guardianFeedback { margin-top: 16px; }
+.guardianFeedback p { margin-bottom: 0; color: #e7eadf; line-height: 1.7; }
+.formalClassification { margin-top: 18px; }
+.privacyNotice { margin: 16px 0 0; }
+.revisionAction { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 18px 0; padding: 16px; border-left: 3px solid var(--gold); background: rgba(227,196,111,.08); }
+.revisionAction p { margin: 0; color: #eadfbf; }
+.revisionAction a { flex: none; padding: 10px 14px; color: #081815; background: var(--gold); font-weight: 800; }
+
+@media (max-width: 760px) {
+  .reviewScoreGrid { grid-template-columns: minmax(0,1fr); }
+  .revisionAction { align-items: stretch; flex-direction: column; }
+  .revisionAction a { text-align: center; }
+}
