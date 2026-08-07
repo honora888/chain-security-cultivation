@@ -1,3 +1,5 @@
+import type { GuardianFindingConfidence } from "@/features/guardian-llm/contracts";
+
 export const REVIEW_STATUSES = [
   "pending_review",
   "changes_requested",
@@ -95,7 +97,7 @@ export type ReviewerCandidateFinding = {
   title: string;
   verification: "llm_candidate";
   suggestedSeverity: string;
-  suggestedConfidence: { label: string; score: number };
+  suggestedConfidence: GuardianFindingConfidence;
   explanation: string;
   attackPath: readonly string[];
   evidence: readonly { source: string; description: string; locations: readonly string[] }[];

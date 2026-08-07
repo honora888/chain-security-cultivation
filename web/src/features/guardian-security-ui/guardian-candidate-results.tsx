@@ -1,4 +1,5 @@
 import type { GuardianCandidateOnlyAnalysisSuccess } from "@/features/guardian-llm/hybrid-analysis-types";
+import { guardianConfidenceLabelZh } from "@/features/guardian-llm/confidence";
 
 import styles from "./guardian-security-ui.module.css";
 
@@ -78,7 +79,7 @@ export function GuardianCandidateResults({
             <div>
               <dt>LLM 建议置信度（非权威）</dt>
               <dd>
-                {finding.suggestedConfidence.label} · {finding.suggestedConfidence.score} / 100
+                {guardianConfidenceLabelZh(finding.suggestedConfidence.label)} · {finding.suggestedConfidence.score} / 100
               </dd>
             </div>
             <div className={styles.wideFact}>

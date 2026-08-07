@@ -46,6 +46,8 @@ export const GUARDIAN_FINDING_SEVERITIES: readonly GuardianFindingSeverity[] = [
 ];
 
 export const GUARDIAN_CONFIDENCE_LABELS = ["Low", "Medium", "High"];
+export const GUARDIAN_CONFIDENCE_MIN_SCORE = 0;
+export const GUARDIAN_CONFIDENCE_MAX_SCORE = 100;
 export const GUARDIAN_AFFECTED_CODE_SOURCES = [
   "vulnerableSource",
   "attackSource",
@@ -99,7 +101,11 @@ const candidateFindingSchema = {
       type: "object",
       properties: {
         label: { type: "string", enum: GUARDIAN_CONFIDENCE_LABELS },
-        score: { type: "number" },
+        score: {
+          type: "number",
+          minimum: GUARDIAN_CONFIDENCE_MIN_SCORE,
+          maximum: GUARDIAN_CONFIDENCE_MAX_SCORE,
+        },
       },
       required: ["label", "score"],
     },

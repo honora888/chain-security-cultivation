@@ -9,6 +9,10 @@ import type {
 } from "./contracts";
 import { GuardianLlmProviderError } from "./provider";
 import {
+  isGuardianConfidenceScore,
+  normalizeGuardianSuggestedConfidence,
+} from "./confidence";
+import {
   MAX_LLM_AFFECTED_CODE_ITEMS,
   MAX_LLM_BESTIARY_NAME_LENGTH,
   MAX_LLM_CANDIDATE_FINDINGS,
@@ -145,16 +149,11 @@ function parseConfidence(value: unknown): GuardianFindingConfidence {
     return invalidResponse();
   }
 
-  if (
-    typeof confidence.score !== "number" ||
-    !Number.isFinite(confidence.score) ||
-    confidence.score < 0 ||
-    confidence.score > 100
-  ) {
+  if (!isGuardianConfidenceScore(confidence.score)) {
     return invalidResponse();
   }
 
-  return { label, score: confidence.score };
+  return normalizeGuardianSuggestedConfidence({ label, score: confidence.score });
 }
 
 function parseAffectedCode(value: unknown): GuardianAffectedCode {

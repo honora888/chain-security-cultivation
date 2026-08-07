@@ -23,6 +23,7 @@ import {
 } from "./reviewer-types";
 import { ReviewerAccessLink } from "@/features/wallet-auth/reviewer-access-link";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
+import { guardianConfidenceLabelZh } from "@/features/guardian-llm/confidence";
 import styles from "./reviewer-ui.module.css";
 
 const REALM_LABELS: Readonly<Record<string, string>> = {
@@ -309,7 +310,7 @@ function CandidateAnalysisSection({ analysis }: { analysis: ReviewerCandidateAna
             <header><strong>{finding.title}</strong><span>LLM Candidate</span></header>
             <p><b>类别：</b>{finding.category}</p>
             <p><b>建议 Severity：</b>{finding.suggestedSeverity}</p>
-            <p><b>建议 Confidence：</b>{finding.suggestedConfidence.label} · {finding.suggestedConfidence.score}/100</p>
+            <p><b>LLM 建议置信度（非权威）：</b>{guardianConfidenceLabelZh(finding.suggestedConfidence.label)} · {finding.suggestedConfidence.score}/100</p>
             <p>{finding.explanation}</p>
             <div className={styles.evidenceGrid}>
               <div><h3>攻击路径</h3><TextList items={finding.attackPath} /></div>

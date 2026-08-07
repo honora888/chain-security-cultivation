@@ -22,6 +22,10 @@ import type {
   GuardianVulnerabilityCategory,
 } from "@/features/guardian-llm/contracts";
 import {
+  isGuardianConfidenceScore,
+  normalizeGuardianSuggestedConfidence,
+} from "@/features/guardian-llm/confidence";
+import {
   MAX_LLM_AFFECTED_CODE_ITEMS,
   MAX_LLM_BESTIARY_NAME_LENGTH,
   MAX_LLM_CANDIDATE_FINDINGS,
@@ -150,14 +154,14 @@ function candidateConfidence(value: unknown): GuardianFindingConfidence {
   const confidence = exactObject(value, ["label", "score"]);
   if (
     !isOneOf(confidence.label, CONFIDENCE_VALUES) ||
-    typeof confidence.score !== "number" ||
-    !Number.isFinite(confidence.score) ||
-    confidence.score < 0 ||
-    confidence.score > 100
+    !isGuardianConfidenceScore(confidence.score)
   ) {
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
-  return { label: confidence.label, score: confidence.score };
+  return normalizeGuardianSuggestedConfidence({
+    label: confidence.label,
+    score: confidence.score,
+  });
 }
 
 function candidateAffectedCode(value: unknown): GuardianAffectedCode {

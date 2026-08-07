@@ -63,6 +63,8 @@ const { parseGuardianLlmResponse } = await import(
 const {
   GUARDIAN_AFFECTED_CODE_SOURCES,
   GUARDIAN_CONFIDENCE_LABELS,
+  GUARDIAN_CONFIDENCE_MAX_SCORE,
+  GUARDIAN_CONFIDENCE_MIN_SCORE,
   GUARDIAN_FINDING_SEVERITIES,
   GUARDIAN_LLM_RESPONSE_SCHEMA,
   GUARDIAN_VULNERABILITY_CATEGORIES,
@@ -264,6 +266,8 @@ test("Gemini schema stays lightweight while retaining security enums", () => {
     new Set([
       "schema.properties.bestiaryNameCandidates.minItems",
       "schema.properties.bestiaryNameCandidates.maxItems",
+      "schema.properties.candidateFindings.items.properties.suggestedConfidence.properties.score.minimum",
+      "schema.properties.candidateFindings.items.properties.suggestedConfidence.properties.score.maximum",
     ]),
   );
 
@@ -289,6 +293,15 @@ test("Gemini schema stays lightweight while retaining security enums", () => {
   assert.deepEqual(
     findingSchema.properties.suggestedConfidence.properties.label.enum,
     GUARDIAN_CONFIDENCE_LABELS,
+  );
+
+  assert.equal(
+    findingSchema.properties.suggestedConfidence.properties.score.minimum,
+    GUARDIAN_CONFIDENCE_MIN_SCORE,
+  );
+  assert.equal(
+    findingSchema.properties.suggestedConfidence.properties.score.maximum,
+    GUARDIAN_CONFIDENCE_MAX_SCORE,
   );
 
   assert.deepEqual(

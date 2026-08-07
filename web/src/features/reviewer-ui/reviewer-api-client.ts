@@ -12,6 +12,11 @@ import {
   type ReviewStatus,
   type StoredReview,
 } from "./reviewer-types";
+import {
+  isGuardianConfidenceLabel,
+  isGuardianConfidenceScore,
+  normalizeGuardianSuggestedConfidence,
+} from "@/features/guardian-llm/confidence";
 
 export type ReviewerErrorCode =
   | "AUTH_REQUIRED"
@@ -287,7 +292,16 @@ export function parseReviewerCandidateAnalysis(value: unknown): ReviewerCandidat
     const confidenceLabel = nonEmptyString(confidence?.label);
     const confidenceScore = numberValue(confidence?.score);
     const explanation = nonEmptyString(value.explanation);
-    if (!candidateId || !category || !title || !severity || !confidenceLabel || confidenceScore === null || !explanation) return null;
+    if (
+      !candidateId ||
+      !category ||
+      !title ||
+      !severity ||
+      !isGuardianConfidenceLabel(confidenceLabel) ||
+      confidenceScore === null ||
+      !isGuardianConfidenceScore(confidenceScore) ||
+      !explanation
+    ) return null;
     const evidence = Array.isArray(value.evidence) ? value.evidence.map((entry) => {
       if (!isRecord(entry)) return null;
       const source = nonEmptyString(entry.source);
@@ -303,7 +317,10 @@ export function parseReviewerCandidateAnalysis(value: unknown): ReviewerCandidat
       title,
       verification: "llm_candidate",
       suggestedSeverity: severity,
-      suggestedConfidence: { label: confidenceLabel, score: confidenceScore },
+      suggestedConfidence: normalizeGuardianSuggestedConfidence({
+        label: confidenceLabel,
+        score: confidenceScore,
+      }),
       explanation,
       attackPath: stringArray(value.attackPath),
       evidence: evidence as readonly { source: string; description: string; locations: readonly string[] }[],
