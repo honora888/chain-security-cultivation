@@ -4,6 +4,17 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
+import {
+  guardianConfidenceLabelZh,
+  guardianFindingSeverityLabelZh,
+} from "@/features/guardian-llm/confidence";
+import {
+  cultivationElementLabel,
+  cultivationRealmLabel,
+  isCultivationElement,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
+import { formalVulnerabilityTypeLabelZh } from "@/reviews/formal-classification";
 
 import {
   BestiaryApiError,
@@ -30,20 +41,26 @@ const FILTERS: readonly BestiarySeverityFilter[] = [
 
 const FILTER_LABELS: Record<BestiarySeverityFilter, string> = {
   All: "全部",
-  Critical: "Critical",
-  High: "High",
-  Medium: "Medium",
-  Low: "Low",
-  Informational: "Informational",
+  Critical: "严重",
+  High: "高",
+  Medium: "中",
+  Low: "低",
+  Informational: "信息",
 };
 
-const ELEMENT_LABELS: Readonly<Record<string, string>> = {
-  Metal: "金",
-  Wood: "木",
-  Water: "水",
-  Fire: "火",
-  Earth: "土",
-};
+function elementLabel(value: string): string {
+  return isCultivationElement(value) ? cultivationElementLabel(value) : value;
+}
+
+function realmLabel(value: string, fallback?: string | null): string {
+  return isCultivationRealm(value) ? cultivationRealmLabel(value) : fallback ?? value;
+}
+
+function confidenceLabel(value: string): string {
+  return value === "Low" || value === "Medium" || value === "High"
+    ? guardianConfidenceLabelZh(value)
+    : value;
+}
 
 function compactAddress(address: string): string {
   return address.length > 12
@@ -143,32 +160,32 @@ function BestiaryCard({ entry }: { entry: UnifiedBestiaryEntry }) {
         <EntryStatus entry={entry} />
       </div>
       <div className={styles.entryIdentity}>
-        <p>{entry.formalType}</p>
+        <p>{formalVulnerabilityTypeLabelZh(entry.formalType)}</p>
         <h2>{entry.displayName}</h2>
       </div>
       <dl className={styles.entryMetrics}>
         <div>
           <dt>风险 Severity</dt>
-          <dd>{entry.severity}</dd>
+          <dd>{guardianFindingSeverityLabelZh(entry.severity)}</dd>
         </div>
         <div>
           <dt>可信度 Confidence</dt>
-          <dd>{entry.confidence}</dd>
+          <dd>{confidenceLabel(entry.confidence)}</dd>
         </div>
         <div>
           <dt>五行</dt>
           <dd>
             {entry.primaryElement
-              ? ELEMENT_LABELS[entry.primaryElement] ?? entry.primaryElement
+              ? elementLabel(entry.primaryElement)
               : "跨机制"}
             {entry.secondaryElements.length > 0
-              ? ` · 辅 ${entry.secondaryElements.map((item) => ELEMENT_LABELS[item] ?? item).join("、")}`
+              ? ` · 辅 ${entry.secondaryElements.map(elementLabel).join("、")}`
               : ""}
           </dd>
         </div>
         <div>
           <dt>境界</dt>
-          <dd>{entry.realmLabel ?? entry.realm}</dd>
+          <dd>{realmLabel(entry.realm, entry.realmLabel)}</dd>
         </div>
       </dl>
       <p className={styles.entrySummary}>{entry.summary}</p>
@@ -322,18 +339,18 @@ function BestiaryDossier({ entry }: { entry: UnifiedBestiaryEntry }) {
           <p className={styles.sectionIndex}>
             {number ?? "PUBLIC BESTIARY DOSSIER"}
           </p>
-          <p className={styles.dossierType}>{entry.formalType}</p>
+          <p className={styles.dossierType}>{formalVulnerabilityTypeLabelZh(entry.formalType)}</p>
           <h1>{entry.displayName}</h1>
         </div>
         <EntryStatus entry={entry} />
       </header>
 
       <dl className={styles.dossierFacts}>
-        <div><dt>风险 Severity</dt><dd>{entry.severity}</dd></div>
-        <div><dt>可信度 Confidence</dt><dd>{entry.confidence}</dd></div>
-        <div><dt>主五行</dt><dd>{entry.primaryElement ? ELEMENT_LABELS[entry.primaryElement] ?? entry.primaryElement : "跨机制"}</dd></div>
-        <div><dt>辅五行</dt><dd>{entry.secondaryElements.length > 0 ? entry.secondaryElements.map((item) => ELEMENT_LABELS[item] ?? item).join("、") : "无"}</dd></div>
-        <div><dt>境界</dt><dd>{entry.realmLabel ? `${entry.realmLabel} · ${entry.realm}` : entry.realm}</dd></div>
+        <div><dt>风险 Severity</dt><dd>{guardianFindingSeverityLabelZh(entry.severity)}</dd></div>
+        <div><dt>可信度 Confidence</dt><dd>{confidenceLabel(entry.confidence)}</dd></div>
+        <div><dt>主五行</dt><dd>{entry.primaryElement ? elementLabel(entry.primaryElement) : "跨机制"}</dd></div>
+        <div><dt>辅五行</dt><dd>{entry.secondaryElements.length > 0 ? entry.secondaryElements.map(elementLabel).join("、") : "无"}</dd></div>
+        <div><dt>境界</dt><dd>{realmLabel(entry.realm, entry.realmLabel)}</dd></div>
         <div><dt>状态</dt><dd>{conversionLabel(entry)}</dd></div>
       </dl>
 
@@ -433,8 +450,8 @@ export function RecentBestiaryArchive() {
             <Link key={`${entry.identityKind}:${entry.entryId}`} href={`/bestiary/${encodeURIComponent(entry.entryId)}`}>
               <span>{questNumber(entry) ?? conversionLabel(entry)}</span>
               <strong>{entry.displayName}</strong>
-              <small>{entry.formalType}</small>
-              <em>{entry.severity} · {entry.primaryElement ? ELEMENT_LABELS[entry.primaryElement] ?? entry.primaryElement : "跨机制"}</em>
+              <small>{formalVulnerabilityTypeLabelZh(entry.formalType)}</small>
+              <em>{guardianFindingSeverityLabelZh(entry.severity)} · {entry.primaryElement ? elementLabel(entry.primaryElement) : "跨机制"}</em>
               <time dateTime={entry.approvedAt ?? undefined}>{formatDate(entry.approvedAt)}</time>
             </Link>
           ))}

@@ -6,6 +6,7 @@ import type {
   ElementName,
   RealmName,
 } from "@/features/guardian-security/analysis-types";
+import type { ReviewerFormalClassification } from "@/reviews/formal-classification";
 
 export const REVIEW_STATUSES = [
   "pending_review",
@@ -176,6 +177,7 @@ export type ReviewDecisionPayload = {
   contributionValue: number;
   reviewSummary: string;
   reviewNotes: string;
+  classification?: ReviewerFormalClassification;
 };
 
 export type ReviewDecisionResult = {

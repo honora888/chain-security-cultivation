@@ -17,6 +17,7 @@ import {
   type ReviewDecisionInput,
 } from "@/reviews/http";
 import { assertReviewDecisionAllowedForStoredAnalysis } from "@/reviews/candidate-gate";
+import { isCandidateSignedContribution } from "@/contributions/signed-contribution";
 
 type CaseRow = {
   id: string;
@@ -341,12 +342,25 @@ export async function getReviewCase(caseId: string) {
 
 export async function applyReviewDecision(caseId: string, input: ReviewDecisionInput) {
   const { reviewerAddress } = await requireReviewerSession();
+  return applyReviewDecisionWithContext(caseId, input, {
+    reviewerAddress,
+    sql: getNeonSql(),
+  });
+}
+
+export async function applyReviewDecisionWithContext(
+  caseId: string,
+  input: ReviewDecisionInput,
+  context: { readonly reviewerAddress: string; readonly sql: NeonSql },
+) {
+  const { reviewerAddress, sql } = context;
   assertCaseId(caseId);
+  let candidateClassification = null;
   if (input.decision === "approved") {
     let candidateRows: { analysis_json: unknown }[];
     try {
       candidateRows = await queryRows<{ analysis_json: unknown }>(
-        getNeonSql(),
+        sql,
         "SELECT analysis_json FROM security_cases WHERE case_id = $1 LIMIT 1",
         [caseId],
       );
@@ -354,7 +368,16 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
       return mapDatabaseError(error);
     }
     if (!candidateRows[0]) throw new ReviewHttpError("CASE_NOT_FOUND");
-    assertReviewDecisionAllowedForStoredAnalysis(candidateRows[0].analysis_json, input.decision);
+    const candidate = isCandidateSignedContribution(candidateRows[0].analysis_json);
+    if (!candidate && input.classification !== null) {
+      throw new ReviewHttpError("INVALID_REQUEST");
+    }
+    assertReviewDecisionAllowedForStoredAnalysis(
+      candidateRows[0].analysis_json,
+      input.decision,
+      input.classification,
+    );
+    candidateClassification = candidate ? input.classification : null;
   }
   const total =
     input.evidenceQuality +
@@ -362,7 +385,11 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
     input.technicalAccuracy +
     input.remediationQuality +
     input.contributionValue;
-  const storedNotes = JSON.stringify({ summary: input.reviewSummary, notes: input.reviewNotes });
+  const storedNotes = JSON.stringify({
+    summary: input.reviewSummary,
+    notes: input.reviewNotes,
+    ...(candidateClassification ? { classification: candidateClassification } : {}),
+  });
   const reason = JSON.stringify({
     type: "case-review-approved",
     caseId,
@@ -388,7 +415,7 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
   let result: ResultRow[];
   try {
     result = await queryRows<ResultRow>(
-      getNeonSql(),
+      sql,
       `WITH target AS (
          SELECT sc.*, r.display_name AS reservation_display_name,
            r.normalized_name AS reservation_normalized_name
@@ -398,19 +425,29 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
          FOR UPDATE OF sc
        ), updated_case AS (
          UPDATE security_cases sc
-         SET status = $2::case_status, updated_at = now()
+         SET status = $2::case_status,
+           formal_type = COALESCE($13::text, sc.formal_type),
+           primary_element = COALESCE($14::text, sc.primary_element),
+           secondary_elements = COALESCE($15::jsonb, sc.secondary_elements),
+           severity_label = COALESCE($16::text, sc.severity_label),
+           severity_score = COALESCE($17::integer, sc.severity_score),
+           confidence_label = COALESCE($18::text, sc.confidence_label),
+           confidence_score = COALESCE($19::integer, sc.confidence_score),
+           updated_at = now()
          FROM target t
          WHERE sc.id = t.id
            AND t.status IN ('pending_review', 'changes_requested')
            AND ($2 <> 'approved' OR t.reservation_normalized_name IS NOT NULL)
-           AND (
-             $2 <> 'approved'
-             OR NOT (
-               t.analysis_json #>> '{schemaVersion}' = 'guardian-signed-contribution-v1'
-               AND t.analysis_json #>> '{signedDraft,claims,draft,analysis,schemaVersion}' =
-                 'guardian-security-candidate-analysis-v1'
-             )
-           )
+            AND ($2 <> 'approved' OR NOT (
+              t.analysis_json #>> '{schemaVersion}' = 'guardian-signed-contribution-v1'
+              AND t.analysis_json #>> '{signedDraft,claims,draft,analysis,schemaVersion}' =
+                'guardian-security-candidate-analysis-v1'
+            ) OR (
+              $13::text IS NOT NULL AND $14::text IS NOT NULL AND
+              $15::jsonb IS NOT NULL AND $16::text IS NOT NULL AND
+              $17::integer IS NOT NULL AND $18::text IS NOT NULL AND
+              $19::integer IS NOT NULL AND $20::text IS NOT NULL
+            ))
          RETURNING sc.*, t.reservation_display_name, t.reservation_normalized_name
        ), inserted_review AS (
          INSERT INTO case_reviews (
@@ -456,41 +493,50 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
          )
          SELECT uc.id, ur.display_name, ur.normalized_name, uc.formal_type,
            uc.primary_element, uc.secondary_elements,
-           COALESCE(
-             uc.analysis_json #>> '{classification,realm,realm}',
+            COALESCE(
+              $20::text,
+              uc.analysis_json #>> '{classification,realm,realm}',
              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,classification,realm,realm}'
            ),
            uc.severity_label, uc.confidence_label,
-           COALESCE(
-             uc.analysis_json #>> '{bestiaryDraft,summary}',
+            COALESCE(
+              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateBestiarySuggestion,lore}',
+              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,llmEnhancement,publicSummary}',
+              uc.analysis_json #>> '{bestiaryDraft,summary}',
              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,bestiaryDraft,summary}',
              uc.analysis_json #>> '{analysis,impact}'
            ),
-           COALESCE(
-             uc.analysis_json #> '{bestiaryDraft,attackPattern}',
+            COALESCE(
+              uc.analysis_json #> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateBestiarySuggestion,behavior}',
+              uc.analysis_json #> '{bestiaryDraft,attackPattern}',
              uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,attackPattern}',
              uc.analysis_json #> '{analysis,attackPath}',
              '[]'::jsonb
            ),
-           COALESCE(
-             uc.analysis_json #> '{bestiaryDraft,prerequisites}',
+            COALESCE(
+              uc.analysis_json #> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateFindings,0,attackPath}',
+              uc.analysis_json #> '{bestiaryDraft,prerequisites}',
              uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,prerequisites}',
              uc.analysis_json #> '{analysis,prerequisites}',
              '[]'::jsonb
            ),
-           COALESCE(
-             uc.analysis_json #>> '{bestiaryDraft,impact}',
+            COALESCE(
+              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateBestiarySuggestion,attackTechnique}',
+              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateFindings,0,explanation}',
+              uc.analysis_json #>> '{bestiaryDraft,impact}',
              uc.analysis_json #>> '{signedDraft,claims,draft,analysis,bestiaryDraft,impact}',
              uc.analysis_json #>> '{analysis,impact}'
            ),
-           COALESCE(
-             uc.analysis_json #> '{bestiaryDraft,mitigations}',
+            COALESCE(
+              uc.analysis_json #> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateFindings,0,suggestedFix}',
+              uc.analysis_json #> '{bestiaryDraft,mitigations}',
              uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,mitigations}',
              uc.analysis_json #> '{analysis,mitigations}',
              '[]'::jsonb
            ),
-           COALESCE(
-             uc.analysis_json #> '{bestiaryDraft,knownLimitations}',
+            COALESCE(
+              uc.analysis_json #> '{signedDraft,claims,draft,analysis,llmEnhancement,candidateFindings,0,limitations}',
+              uc.analysis_json #> '{bestiaryDraft,knownLimitations}',
              uc.analysis_json #> '{signedDraft,claims,draft,analysis,bestiaryDraft,knownLimitations}',
              uc.analysis_json #> '{limitations}',
              '[]'::jsonb
@@ -522,6 +568,14 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
         total,
         reason,
         idempotencyKey,
+        candidateClassification?.formalType ?? null,
+        candidateClassification?.primaryElement ?? null,
+        candidateClassification ? JSON.stringify(candidateClassification.secondaryElements) : null,
+        candidateClassification?.severity.label ?? null,
+        candidateClassification?.severity.score ?? null,
+        candidateClassification?.confidence.label ?? null,
+        candidateClassification?.confidence.score ?? null,
+        candidateClassification?.realm ?? null,
       ],
     );
   } catch (error) {
@@ -533,7 +587,7 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
     let existing: { status: string }[];
     try {
       existing = await queryRows<{ status: string }>(
-        getNeonSql(),
+        sql,
         "SELECT status FROM security_cases WHERE case_id = $1 LIMIT 1",
         [caseId],
       );

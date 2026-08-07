@@ -28,14 +28,30 @@ import {
   guardianFindingSeverityLabelZh,
 } from "@/features/guardian-llm/confidence";
 import {
+  CULTIVATION_ELEMENT_VALUES,
+  CULTIVATION_REALM_VALUES,
   cultivationElementLabel,
   cultivationRealmLabel,
+  isCultivationElement,
   isCultivationRealm,
 } from "@/features/guardian-security/cultivation-labels";
+import {
+  FORMAL_CONFIDENCE_VALUES,
+  FORMAL_SEVERITY_VALUES,
+  FORMAL_VULNERABILITY_TYPES,
+  confidenceLabelForScore,
+  formalVulnerabilityTypeLabelZh,
+  severityLabelForScore,
+  type ReviewerFormalClassification,
+} from "@/reviews/formal-classification";
 import styles from "./reviewer-ui.module.css";
 
 function realmDisplay(realm: string, label: string): string {
   return isCultivationRealm(realm) ? cultivationRealmLabel(realm) : label || realm;
+}
+
+function elementDisplay(element: string): string {
+  return isCultivationElement(element) ? cultivationElementLabel(element) : element;
 }
 
 const STATUS_COPY: Record<ReviewStatus, { label: string; description: string }> = {
@@ -77,6 +93,63 @@ const EMPTY_SCORES: ScoreDraft = {
   remediationQuality: "",
   contributionValue: "",
 };
+
+type ClassificationDraft = {
+  formalType: string;
+  primaryElement: string;
+  secondaryElements: readonly string[];
+  realm: string;
+  severityLabel: string;
+  severityScore: string;
+  confidenceLabel: string;
+  confidenceScore: string;
+};
+
+function initialClassification(detail: ReviewCaseDetail): ClassificationDraft {
+  const analysis = detail.candidateAnalysis;
+  const suggestion = analysis?.candidateBestiarySuggestion;
+  const finding = analysis?.findings[suggestion?.candidateFindingIndex ?? 0];
+  const suggestedSeverity = finding?.suggestedSeverity ?? "";
+  const severityDefaults = { Informational: 1, Low: 3, Medium: 6, High: 9, Critical: 11 } as const;
+  return {
+    formalType: finding?.category ?? "",
+    primaryElement: suggestion?.suggestedPrimaryElement ?? "",
+    secondaryElements: suggestion?.suggestedSecondaryElements ?? [],
+    realm: suggestion?.suggestedCultivationRealm ?? "",
+    severityLabel: suggestedSeverity,
+    severityScore: suggestedSeverity ? String(severityDefaults[suggestedSeverity]) : "",
+    confidenceLabel: finding?.suggestedConfidence.label ?? "",
+    confidenceScore: finding ? String(finding.suggestedConfidence.score) : "",
+  };
+}
+
+function parseClassification(draft: ClassificationDraft): ReviewerFormalClassification | null {
+  const severityScore = Number(draft.severityScore);
+  const confidenceScore = Number(draft.confidenceScore);
+  if (
+    !FORMAL_VULNERABILITY_TYPES.includes(draft.formalType as ReviewerFormalClassification["formalType"]) ||
+    !isCultivationElement(draft.primaryElement) ||
+    draft.secondaryElements.length > 4 ||
+    !draft.secondaryElements.every(isCultivationElement) ||
+    new Set(draft.secondaryElements).size !== draft.secondaryElements.length ||
+    draft.secondaryElements.includes(draft.primaryElement) ||
+    !isCultivationRealm(draft.realm) ||
+    !FORMAL_SEVERITY_VALUES.includes(draft.severityLabel as ReviewerFormalClassification["severity"]["label"]) ||
+    !Number.isInteger(severityScore) || severityScore < 0 || severityScore > 12 ||
+    severityLabelForScore(severityScore) !== draft.severityLabel ||
+    !FORMAL_CONFIDENCE_VALUES.includes(draft.confidenceLabel as ReviewerFormalClassification["confidence"]["label"]) ||
+    !Number.isInteger(confidenceScore) || confidenceScore < 0 || confidenceScore > 100 ||
+    confidenceLabelForScore(confidenceScore) !== draft.confidenceLabel
+  ) return null;
+  return {
+    formalType: draft.formalType as ReviewerFormalClassification["formalType"],
+    primaryElement: draft.primaryElement,
+    secondaryElements: draft.secondaryElements,
+    realm: draft.realm,
+    severity: { label: draft.severityLabel as ReviewerFormalClassification["severity"]["label"], score: severityScore },
+    confidence: { label: draft.confidenceLabel as ReviewerFormalClassification["confidence"]["label"], score: confidenceScore },
+  };
+}
 
 function localTime(value: string): string {
   const date = new Date(value);
@@ -234,7 +307,7 @@ function AnalysisSection({ analysis }: { analysis: ReviewerAnalysis | null }) {
         <div className={styles.panelHeading}><span>壹</span><div><p>GUARDIAN DETERMINATION</p><h2 id="guardian-finding">Guardian 鉴定</h2></div></div>
         <dl className={styles.factGrid}>
           <div><dt>正式类型</dt><dd>{analysis.formalType}</dd></div>
-          <div><dt>五行</dt><dd>{analysis.primaryElementLabel} · {analysis.primaryElement}{analysis.secondaryElements.length ? ` / ${analysis.secondaryElements.join(" · ")}` : ""}</dd></div>
+          <div><dt>五行</dt><dd>{elementDisplay(analysis.primaryElement)}{analysis.secondaryElements.length ? ` / ${analysis.secondaryElements.map(elementDisplay).join(" / ")}` : ""}</dd></div>
           <div><dt>境界</dt><dd>{realmDisplay(analysis.realm, analysis.realmLabel)}</dd></div>
           <div><dt>Severity</dt><dd>{analysis.severity.level}{analysis.severity.score !== null ? ` · ${analysis.severity.score}/${analysis.severity.maxScore ?? 12}` : ""}</dd></div>
           <div><dt>Confidence</dt><dd>{analysis.confidence.label}{analysis.confidence.score !== null ? ` · ${analysis.confidence.score}/100` : ""}</dd></div>
@@ -296,7 +369,7 @@ function CandidateAnalysisSection({ analysis }: { analysis: ReviewerCandidateAna
     <section className={styles.dossierPanel} aria-labelledby="candidate-finding">
       <div className={styles.panelHeading}>
         <span>候</span>
-        <div><p>LLM CANDIDATE · HUMAN VERIFICATION REQUIRED</p><h2 id="candidate-finding">Guardian 候选发现</h2></div>
+        <div><p>LLM CANDIDATE · HUMAN VERIFICATION REQUIRED</p><h2 id="candidate-finding">Guardian 候选建议</h2></div>
         <strong className={styles.draftStamp}>候选 / Candidate</strong>
       </div>
       <p>{analysis.publicSummary}</p>
@@ -317,8 +390,8 @@ function CandidateAnalysisSection({ analysis }: { analysis: ReviewerCandidateAna
           </div>
           <p className={styles.legacyNotice}>以下内容为候选展示设定，不是正式属性、境界或发布依据。</p>
           <dl className={styles.factGrid}>
-            <div><dt>建议属性</dt><dd>{cultivationElementLabel(analysis.candidateBestiarySuggestion.suggestedPrimaryElement)}{analysis.candidateBestiarySuggestion.suggestedSecondaryElements.length ? ` / ${analysis.candidateBestiarySuggestion.suggestedSecondaryElements.map(cultivationElementLabel).join(" / ")}` : ""}</dd></div>
-            <div><dt>建议境界</dt><dd>{cultivationRealmLabel(analysis.candidateBestiarySuggestion.suggestedCultivationRealm)}</dd></div>
+            <div><dt>Guardian 建议属性</dt><dd>{cultivationElementLabel(analysis.candidateBestiarySuggestion.suggestedPrimaryElement)}{analysis.candidateBestiarySuggestion.suggestedSecondaryElements.length ? ` / ${analysis.candidateBestiarySuggestion.suggestedSecondaryElements.map(cultivationElementLabel).join(" / ")}` : ""}</dd></div>
+            <div><dt>Guardian 建议境界</dt><dd>{cultivationRealmLabel(analysis.candidateBestiarySuggestion.suggestedCultivationRealm)}</dd></div>
             <div className={styles.wideFact}><dt>妖兽特性</dt><dd>{analysis.candidateBestiarySuggestion.lore}</dd></div>
             <div className={styles.wideFact}><dt>攻击招式</dt><dd>{analysis.candidateBestiarySuggestion.attackTechnique}</dd></div>
             <div className={styles.wideFact}><dt>破阵之法</dt><dd>{analysis.candidateBestiarySuggestion.countermeasure}</dd></div>
@@ -413,10 +486,16 @@ function DecisionForm({ detail, onComplete }: { detail: ReviewCaseDetail; onComp
   const [rejectConfirmed, setRejectConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [classificationDraft, setClassificationDraft] = useState(() => initialClassification(detail));
   const parsedScores = parseScores(scores);
   const total = parsedScores ? Object.values(parsedScores).reduce((sum, value) => sum + value, 0) : null;
-  const valid = Boolean(decision && parsedScores && reviewSummary.trim() && (decision !== "rejected" || rejectConfirmed));
   const candidateOnly = detail.candidateAnalysis !== null;
+  const classification = candidateOnly ? parseClassification(classificationDraft) : null;
+  const valid = Boolean(
+    decision && parsedScores && reviewSummary.trim() &&
+    (decision !== "rejected" || rejectConfirmed) &&
+    (!candidateOnly || decision !== "approved" || classification),
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -428,6 +507,7 @@ function DecisionForm({ detail, onComplete }: { detail: ReviewCaseDetail; onComp
       ...parsedScores,
       reviewSummary: reviewSummary.trim(),
       reviewNotes,
+      ...(candidateOnly && decision === "approved" && classification ? { classification } : {}),
     };
     try {
       const result = await submitReviewDecision(detail.caseId, payload);
@@ -443,14 +523,33 @@ function DecisionForm({ detail, onComplete }: { detail: ReviewCaseDetail; onComp
     <section className={styles.decisionPanel} aria-labelledby="decision-heading">
       <div className={styles.panelHeading}><span>伍</span><div><p>HUMAN REVIEW GATE</p><h2 id="decision-heading">审核裁定</h2></div></div>
       <p>选择决定后填写正式审核表单。最终总分由服务端按冻结权重重新计算。</p>
+      {candidateOnly ? (
+        <section className={styles.classificationPanel} aria-labelledby="formal-classification-heading">
+          <div className={styles.formHeading}>
+            <h3 id="formal-classification-heading">人工鉴定</h3>
+            <strong>{classification ? "正式分类完整" : "请完成全部正式分类"}</strong>
+          </div>
+          <p>以下控件可由 Guardian 建议预填，但只有审核员本次提交的值会成为正式分类。</p>
+          <div className={styles.classificationGrid}>
+            <label><span>正式漏洞类型</span><select value={classificationDraft.formalType} onChange={(event) => setClassificationDraft((current) => ({ ...current, formalType: event.target.value }))}><option value="">请选择</option>{FORMAL_VULNERABILITY_TYPES.map((value) => <option key={value} value={value}>{formalVulnerabilityTypeLabelZh(value)}</option>)}</select></label>
+            <label><span>正式主属性</span><select value={classificationDraft.primaryElement} onChange={(event) => setClassificationDraft((current) => ({ ...current, primaryElement: event.target.value, secondaryElements: current.secondaryElements.filter((item) => item !== event.target.value) }))}><option value="">请选择</option>{CULTIVATION_ELEMENT_VALUES.map((value) => <option key={value} value={value}>{cultivationElementLabel(value)}</option>)}</select></label>
+            <fieldset className={styles.secondaryElements}><legend>正式次属性</legend>{CULTIVATION_ELEMENT_VALUES.map((value) => <label key={value}><input type="checkbox" disabled={classificationDraft.primaryElement === value} checked={classificationDraft.secondaryElements.includes(value)} onChange={(event) => setClassificationDraft((current) => ({ ...current, secondaryElements: event.target.checked ? [...current.secondaryElements, value] : current.secondaryElements.filter((item) => item !== value) }))} /><span>{cultivationElementLabel(value)}</span></label>)}</fieldset>
+            <label><span>正式境界</span><select value={classificationDraft.realm} onChange={(event) => setClassificationDraft((current) => ({ ...current, realm: event.target.value }))}><option value="">请选择</option>{CULTIVATION_REALM_VALUES.map((value) => <option key={value} value={value}>{cultivationRealmLabel(value)}</option>)}</select></label>
+            <label><span>正式严重度</span><select value={classificationDraft.severityLabel} onChange={(event) => setClassificationDraft((current) => ({ ...current, severityLabel: event.target.value }))}><option value="">请选择</option>{FORMAL_SEVERITY_VALUES.map((value) => <option key={value} value={value}>{guardianFindingSeverityLabelZh(value)}</option>)}</select></label>
+            <label><span>严重度评分（0—12）</span><input type="number" min={0} max={12} step={1} value={classificationDraft.severityScore} onChange={(event) => setClassificationDraft((current) => ({ ...current, severityScore: event.target.value }))} /></label>
+            <label><span>正式置信度</span><select value={classificationDraft.confidenceLabel} onChange={(event) => setClassificationDraft((current) => ({ ...current, confidenceLabel: event.target.value }))}><option value="">请选择</option>{FORMAL_CONFIDENCE_VALUES.map((value) => <option key={value} value={value}>{guardianConfidenceLabelZh(value)}</option>)}</select></label>
+            <label><span>置信度评分（0—100）</span><input type="number" min={0} max={100} step={1} value={classificationDraft.confidenceScore} onChange={(event) => setClassificationDraft((current) => ({ ...current, confidenceScore: event.target.value }))} /></label>
+          </div>
+        </section>
+      ) : null}
       <div className={styles.decisionChoices} role="group" aria-label="选择审核决定">
         {(Object.keys(DECISION_COPY) as ReviewDecision[]).map((value) => (
-          <button key={value} type="button" disabled={candidateOnly && value === "approved"} aria-pressed={decision === value} onClick={() => { setDecision(value); setError(null); setRejectConfirmed(false); }}>
+          <button key={value} type="button" disabled={candidateOnly && value === "approved" && !classification} aria-pressed={decision === value} onClick={() => { setDecision(value); setError(null); setRejectConfirmed(false); }}>
             <strong>{DECISION_COPY[value].label}</strong><span>{DECISION_COPY[value].description}</span>
           </button>
         ))}
       </div>
-      {candidateOnly ? <p className={styles.decisionNotice}>需先完成人工验证与正式分类，暂不可发布。当前仍可要求修改或驳回。</p> : null}
+      {candidateOnly ? <p className={styles.decisionNotice}>候选发现只有在人工鉴定完整并随“通过收录”一并提交后才可发布；要求修改与驳回无需正式分类。</p> : null}
       {decision ? (
         <form className={styles.reviewForm} onSubmit={submit} aria-busy={submitting}>
           <div className={styles.formHeading}><h3>{DECISION_COPY[decision].label} · 审核表</h3><strong>总 Merit：{total ?? "—"} / 100</strong></div>

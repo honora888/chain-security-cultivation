@@ -678,6 +678,64 @@
   background: rgba(3, 22, 22, 0.7);
 }
 
+.classificationPanel {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid rgba(200, 167, 101, 0.35);
+  background: rgba(3, 22, 22, 0.7);
+}
+
+.classificationPanel > p {
+  margin: 0;
+  color: var(--review-muted);
+}
+
+.classificationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.classificationGrid > label,
+.secondaryElements {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+}
+
+.classificationGrid select,
+.classificationGrid input[type="number"] {
+  width: 100%;
+  min-height: 46px;
+  padding: 9px 11px;
+  border: 1px solid rgba(114, 185, 170, 0.3);
+  border-radius: 0;
+  color: var(--review-ink);
+  background: #061c1d;
+  font: inherit;
+}
+
+.secondaryElements {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: 1px solid rgba(114, 185, 170, 0.22);
+}
+
+.secondaryElements legend {
+  padding: 0 6px;
+  font-weight: 700;
+}
+
+.secondaryElements label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .formHeading {
   display: flex;
   align-items: baseline;
@@ -851,6 +909,10 @@
   .scoreGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .classificationGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -900,7 +962,8 @@
 
   .factGrid,
   .scoreGrid,
-  .decisionChoices {
+  .decisionChoices,
+  .secondaryElements {
     grid-template-columns: minmax(0, 1fr);
   }
 

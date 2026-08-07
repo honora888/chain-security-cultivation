@@ -10,6 +10,18 @@ import {
   REVIEW_SUMMARY_MAX_CHARS,
   type ReviewDecision,
 } from "@/reviews/constants";
+import {
+  FORMAL_CONFIDENCE_VALUES,
+  FORMAL_SEVERITY_VALUES,
+  FORMAL_VULNERABILITY_TYPES,
+  confidenceLabelForScore,
+  severityLabelForScore,
+  type ReviewerFormalClassification,
+} from "@/reviews/formal-classification";
+import {
+  isCultivationElement,
+  isCultivationRealm,
+} from "@/features/guardian-security/cultivation-labels";
 
 export type ReviewErrorCode =
   | "INVALID_REQUEST"
@@ -178,10 +190,67 @@ export type ReviewDecisionInput = {
   contributionValue: number;
   reviewSummary: string;
   reviewNotes: string;
+  classification: ReviewerFormalClassification | null;
 };
 
-export function parseReviewDecision(value: unknown): ReviewDecisionInput {
+function formalClassification(value: unknown): ReviewerFormalClassification {
   const object = exactObject(value, [
+    "formalType",
+    "primaryElement",
+    "secondaryElements",
+    "realm",
+    "severity",
+    "confidence",
+  ]);
+  const severity = exactObject(object.severity, ["label", "score"]);
+  const confidence = exactObject(object.confidence, ["label", "score"]);
+  const secondaryElements = object.secondaryElements;
+  if (
+    !FORMAL_VULNERABILITY_TYPES.includes(
+      object.formalType as (typeof FORMAL_VULNERABILITY_TYPES)[number],
+    ) ||
+    !isCultivationElement(object.primaryElement) ||
+    !Array.isArray(secondaryElements) ||
+    secondaryElements.length > 4 ||
+    !secondaryElements.every(isCultivationElement) ||
+    new Set(secondaryElements).size !== secondaryElements.length ||
+    secondaryElements.includes(object.primaryElement) ||
+    !isCultivationRealm(object.realm) ||
+    !FORMAL_SEVERITY_VALUES.includes(
+      severity.label as (typeof FORMAL_SEVERITY_VALUES)[number],
+    ) ||
+    !Number.isSafeInteger(severity.score) ||
+    (severity.score as number) < 0 ||
+    (severity.score as number) > 12 ||
+    severity.label !== severityLabelForScore(severity.score as number) ||
+    !FORMAL_CONFIDENCE_VALUES.includes(
+      confidence.label as (typeof FORMAL_CONFIDENCE_VALUES)[number],
+    ) ||
+    !Number.isSafeInteger(confidence.score) ||
+    (confidence.score as number) < 0 ||
+    (confidence.score as number) > 100 ||
+    confidence.label !== confidenceLabelForScore(confidence.score as number)
+  ) {
+    throw new ReviewHttpError("INVALID_REQUEST");
+  }
+  return {
+    formalType: object.formalType as ReviewerFormalClassification["formalType"],
+    primaryElement: object.primaryElement,
+    secondaryElements,
+    realm: object.realm,
+    severity: {
+      label: severity.label as ReviewerFormalClassification["severity"]["label"],
+      score: severity.score as number,
+    },
+    confidence: {
+      label: confidence.label as ReviewerFormalClassification["confidence"]["label"],
+      score: confidence.score as number,
+    },
+  };
+}
+
+export function parseReviewDecision(value: unknown): ReviewDecisionInput {
+  const baseKeys = [
     "decision",
     "evidenceQuality",
     "reproducibility",
@@ -190,9 +259,15 @@ export function parseReviewDecision(value: unknown): ReviewDecisionInput {
     "contributionValue",
     "reviewSummary",
     "reviewNotes",
-  ]);
+  ];
+  const hasClassification = typeof value === "object" && value !== null &&
+    !Array.isArray(value) && Object.hasOwn(value, "classification");
+  const object = exactObject(value, hasClassification ? [...baseKeys, "classification"] : baseKeys);
   const decision = object.decision;
   if (decision !== "approved" && decision !== "changes_requested" && decision !== "rejected") {
+    throw new ReviewHttpError("INVALID_REQUEST");
+  }
+  if (decision !== "approved" && hasClassification) {
     throw new ReviewHttpError("INVALID_REQUEST");
   }
   const reviewSummary = requiredString(object.reviewSummary).trim();
@@ -213,6 +288,7 @@ export function parseReviewDecision(value: unknown): ReviewDecisionInput {
     contributionValue: score(object.contributionValue, REVIEW_SCORE_LIMITS.contributionValue),
     reviewSummary,
     reviewNotes,
+    classification: hasClassification ? formalClassification(object.classification) : null,
   };
 }
 
