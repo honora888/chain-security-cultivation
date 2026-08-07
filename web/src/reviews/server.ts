@@ -435,12 +435,34 @@ export async function applyReviewDecision(caseId: string, input: ReviewDecisionI
            uc.primary_element, uc.secondary_elements,
            uc.analysis_json #>> '{classification,realm,realm}',
            uc.severity_label, uc.confidence_label,
-           uc.analysis_json #>> '{analysis,impact}',
-           COALESCE(uc.analysis_json #> '{analysis,attackPath}', '[]'::jsonb),
-           COALESCE(uc.analysis_json #> '{analysis,prerequisites}', '[]'::jsonb),
-           uc.analysis_json #>> '{analysis,impact}',
-           COALESCE(uc.analysis_json #> '{analysis,mitigations}', '[]'::jsonb),
-           COALESCE(uc.analysis_json #> '{limitations}', '[]'::jsonb),
+           COALESCE(
+             uc.analysis_json #>> '{bestiaryDraft,summary}',
+             uc.analysis_json #>> '{analysis,impact}'
+           ),
+           COALESCE(
+             uc.analysis_json #> '{bestiaryDraft,attackPattern}',
+             uc.analysis_json #> '{analysis,attackPath}',
+             '[]'::jsonb
+           ),
+           COALESCE(
+             uc.analysis_json #> '{bestiaryDraft,prerequisites}',
+             uc.analysis_json #> '{analysis,prerequisites}',
+             '[]'::jsonb
+           ),
+           COALESCE(
+             uc.analysis_json #>> '{bestiaryDraft,impact}',
+             uc.analysis_json #>> '{analysis,impact}'
+           ),
+           COALESCE(
+             uc.analysis_json #> '{bestiaryDraft,mitigations}',
+             uc.analysis_json #> '{analysis,mitigations}',
+             '[]'::jsonb
+           ),
+           COALESCE(
+             uc.analysis_json #> '{bestiaryDraft,knownLimitations}',
+             uc.analysis_json #> '{limitations}',
+             '[]'::jsonb
+           ),
            NULL, 'summary_only'::source_disclosure,
            uc.contributor_address, $3, 'published'::bestiary_publication_status,
            'not_started'::quest_conversion_status, now()

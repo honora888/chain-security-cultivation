@@ -8,6 +8,10 @@ import {
   type MossNotApplicableEvidence,
 } from "@/features/guardian-security/analysis-types";
 import { analyzeGuardianSecurityCase } from "@/features/guardian-security/analyze";
+import {
+  createSampleBestiaryDraftName,
+  SAMPLE_BESTIARY_NAME_ATTEMPTS,
+} from "@/features/guardian-security/sample-draft-name";
 import { AUTH_COOKIE_NAME } from "@/auth/constants";
 import { readSession } from "@/auth/server";
 import { DatabaseConfigurationError, getNeonSql, type NeonSql } from "@/db/client";
@@ -20,6 +24,7 @@ import {
 } from "@/contributions/constants";
 import { type ContributionInput } from "@/contributions/http";
 import { normalizeBestiaryName, normalizeSourceForHash } from "@/contributions/normalize";
+import { guardianAnalysisDigest } from "@/lib/guardian-analysis-digest";
 
 type CaseRow = {
   case_id: string;
@@ -49,13 +54,23 @@ async function queryRows<T>(sql: NeonSql, query: string, params: unknown[]): Pro
   return rows as unknown as T[];
 }
 
+function databaseConstraint(error: unknown): string {
+  return typeof error === "object" && error !== null && "constraint" in error &&
+    typeof error.constraint === "string" ? error.constraint : "";
+}
+
+function isBestiaryNameCollision(error: unknown): boolean {
+  const constraint = databaseConstraint(error);
+  return constraint === "bestiary_name_reservations_normalized_name_unique" ||
+    constraint === "bestiary_name_reservations_active_name_unique" ||
+    constraint === "bestiary_entries_normalized_name_unique";
+}
+
 function mapDatabaseError(error: unknown): never {
   if (error instanceof DatabaseConfigurationError) {
     throw new ContributionHttpError("DATABASE_NOT_CONFIGURED");
   }
-  const constraint =
-    typeof error === "object" && error !== null && "constraint" in error &&
-    typeof error.constraint === "string" ? error.constraint : "";
+  const constraint = databaseConstraint(error);
   if (constraint === "security_cases_case_hash_unique") {
     throw new ContributionHttpError("CASE_ALREADY_EXISTS");
   }
@@ -146,25 +161,44 @@ async function analyzeContribution(input: ContributionInput): Promise<GuardianSe
   }
 }
 
-export async function createContribution(input: ContributionInput) {
+export async function createContribution(input: ContributionInput, expectedAnalysisDigest: string) {
   const contributorAddress = await requireAuthenticatedWallet();
-  const normalizedBestiaryName = normalizeBestiaryName(input.proposedBestiaryName);
-  if (CONTRIBUTION_RESERVED_BESTIARY_NAMES.has(normalizedBestiaryName)) {
-    throw new ContributionHttpError("BESTIARY_NAME_UNAVAILABLE");
-  }
-  const analysis = await analyzeContribution(input);
   const normalizedSources = [
     normalizeSourceForHash(input.vulnerableSource),
     normalizeSourceForHash(input.attackSource),
     normalizeSourceForHash(input.fixedSource),
   ];
   const caseHash = hashSecret(JSON.stringify(normalizedSources));
+  const analysis = await analyzeContribution(input);
+  if (guardianAnalysisDigest(analysis) !== expectedAnalysisDigest) {
+    throw new ContributionHttpError("ANALYSIS_CHANGED");
+  }
   const caseId = `case-${randomUUID()}`;
   const elements = analysis.classification.elements;
-  let rows: InsertedCaseRow[];
+  const draftNames = Array.from(
+    { length: SAMPLE_BESTIARY_NAME_ATTEMPTS },
+    (_, attempt) => createSampleBestiaryDraftName(
+      elements.primaryElement,
+      caseHash,
+      attempt,
+    ),
+  ).filter((name) => !CONTRIBUTION_RESERVED_BESTIARY_NAMES.has(normalizeBestiaryName(name)));
 
-  try {
-    rows = await queryRows<InsertedCaseRow>(
+  if (analysis.bestiaryDraft.name !== draftNames[0]) {
+    throw new ContributionHttpError("ANALYSIS_FAILED");
+  }
+
+  for (const proposedBestiaryName of draftNames) {
+    const normalizedBestiaryName = normalizeBestiaryName(proposedBestiaryName);
+    const storedAnalysis = proposedBestiaryName === analysis.bestiaryDraft.name
+      ? analysis
+      : {
+          ...analysis,
+          bestiaryDraft: { ...analysis.bestiaryDraft, name: proposedBestiaryName },
+        };
+    let rows: InsertedCaseRow[];
+    try {
+      rows = await queryRows<InsertedCaseRow>(
       getNeonSql(),
       `WITH inserted_case AS (
          INSERT INTO security_cases (
@@ -207,29 +241,34 @@ export async function createContribution(input: ContributionInput) {
         input.vulnerableSource,
         input.attackSource,
         input.fixedSource,
-        JSON.stringify(analysis),
-        analysis.analysis.formalType,
+        JSON.stringify(storedAnalysis),
+        storedAnalysis.analysis.formalType,
         elements.primaryElement,
         JSON.stringify(elements.secondaryElements),
-        analysis.severity.level,
-        analysis.severity.score,
-        analysis.confidence.label,
-        analysis.confidence.score,
-        input.proposedBestiaryName,
+        storedAnalysis.severity.level,
+        storedAnalysis.severity.score,
+        storedAnalysis.confidence.label,
+        storedAnalysis.confidence.score,
+        proposedBestiaryName,
         normalizedBestiaryName,
       ],
-    );
-  } catch (error) {
-    return mapDatabaseError(error);
+      );
+    } catch (error) {
+      if (isBestiaryNameCollision(error)) continue;
+      return mapDatabaseError(error);
+    }
+
+    const row = rows[0];
+    if (!row) throw new ContributionHttpError("DATABASE_UNAVAILABLE");
+    return {
+      ok: true as const,
+      schemaVersion: CONTRIBUTION_SCHEMA_VERSION,
+      case: toCaseMetadata(row),
+      analysis: storedAnalysis,
+    };
   }
 
-  const row = rows[0];
-  if (!row) throw new ContributionHttpError("DATABASE_UNAVAILABLE");
-  return {
-    ok: true as const,
-    schemaVersion: CONTRIBUTION_SCHEMA_VERSION,
-    case: toCaseMetadata(row),
-  };
+  throw new ContributionHttpError("BESTIARY_NAME_UNAVAILABLE");
 }
 
 export async function listContributions() {

@@ -139,7 +139,7 @@ export function RewardSequence({
             </div>
             <Link
               className={styles.guardianContributionLink}
-              href="/guardian-agent"
+              href="/contribute"
             >
               前往安全案例贡献工作台
             </Link>

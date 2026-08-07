@@ -10,11 +10,7 @@ import {
   CONTRIBUTION_TOTAL_SOURCE_MAX_CHARS,
   ContributionHttpError,
 } from "@/contributions/constants";
-import {
-  displayBestiaryName,
-  normalizeBestiaryName,
-  normalizeCaseName,
-} from "@/contributions/normalize";
+import { normalizeCaseName } from "@/contributions/normalize";
 
 export function noStoreJson<T>(body: T, status = 200): NextResponse<T> {
   return NextResponse.json(body, {
@@ -78,7 +74,6 @@ function requiredString(value: unknown): string {
 
 export type ContributionInput = {
   caseName: string;
-  proposedBestiaryName: string;
   vulnerableSource: string;
   attackSource: string;
   fixedSource: string;
@@ -87,13 +82,11 @@ export type ContributionInput = {
 export function parseContributionInput(value: unknown): ContributionInput {
   const object = exactObject(value, [
     "caseName",
-    "proposedBestiaryName",
     "vulnerableSource",
     "attackSource",
     "fixedSource",
   ]);
   const caseName = normalizeCaseName(requiredString(object.caseName));
-  const proposedBestiaryName = requiredString(object.proposedBestiaryName);
   const vulnerableSource = requiredString(object.vulnerableSource);
   const attackSource = requiredString(object.attackSource);
   const fixedSource = requiredString(object.fixedSource);
@@ -101,8 +94,6 @@ export function parseContributionInput(value: unknown): ContributionInput {
   if (Array.from(caseName).length < 1 || Array.from(caseName).length > CONTRIBUTION_CASE_NAME_MAX_CHARS) {
     throw new ContributionHttpError("INVALID_REQUEST");
   }
-  const displayName = displayBestiaryName(proposedBestiaryName);
-  normalizeBestiaryName(displayName);
   const sourceLengths = [vulnerableSource.length, attackSource.length, fixedSource.length];
   if (vulnerableSource.length < 1) {
     throw new ContributionHttpError("INVALID_REQUEST");
@@ -116,7 +107,6 @@ export function parseContributionInput(value: unknown): ContributionInput {
 
   return {
     caseName,
-    proposedBestiaryName: displayName,
     vulnerableSource,
     attackSource,
     fixedSource,

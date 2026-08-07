@@ -937,13 +937,11 @@
     width: min(calc(100% - 32px), 1380px);
   }
 
+  .catalogHeader { align-items: flex-start; flex-wrap: wrap; padding: 13px 0; }
+
   .catalogMain {
     gap: 34px;
     padding-top: 42px;
-  }
-
-  .catalogNav a:first-child {
-    display: none;
   }
 
   .catalogHero {

@@ -178,6 +178,7 @@ function hasRenderedBestiary(value: unknown): boolean {
     isOneOf(value.realm, REALM_VALUES) &&
     isOneOf(value.severity, SEVERITY_VALUES) &&
     isOneOf(value.confidence, CONFIDENCE_VALUES) &&
+    typeof value.summary === "string" &&
     isStringArray(value.attackPattern) &&
     isStringArray(value.prerequisites) &&
     typeof value.impact === "string" &&
@@ -213,7 +214,7 @@ function hasRenderedQuest(value: unknown): boolean {
   );
 }
 
-function isSampleSuccess(value: unknown): value is GuardianSecuritySuccess {
+export function isGuardianSampleSuccess(value: unknown): value is GuardianSecuritySuccess {
   return (
     isRecord(value) &&
     value.ok === true &&
@@ -261,7 +262,7 @@ function optionalSource(value: string): string | undefined {
 
 export async function analyzeGuardianSample(
   submission: GuardianSampleSubmission,
-): Promise<GuardianSecuritySuccess> {
+): Promise<{ result: GuardianSecuritySuccess; digest: string }> {
   const attackSource = optionalSource(submission.attackSource);
   const fixedSource = optionalSource(submission.fixedSource);
   const response = await fetch("/api/guardian/analyze", {
@@ -296,12 +297,17 @@ export async function analyzeGuardianSample(
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
 
-  if (!isSampleSuccess(payload)) {
+  if (!isGuardianSampleSuccess(payload)) {
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
   if (payload.mossEvidence.status !== "not-applicable") {
     throw new GuardianSecurityApiError("UNEXPECTED_MOSS_EVIDENCE");
   }
 
-  return payload;
+  const digest = response.headers.get("X-Guardian-Analysis-Digest")?.trim() ?? "";
+  if (!/^[0-9a-f]{64}$/u.test(digest)) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+
+  return { result: payload, digest };
 }

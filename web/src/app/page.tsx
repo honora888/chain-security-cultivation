@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { RecentBestiaryArchive } from "@/features/bestiary-ui/bestiary-pages";
 import styles from "@/features/guardian-security-ui/guardian-security-ui.module.css";
+import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
+import { ReviewerAccessLink } from "@/features/wallet-auth/reviewer-access-link";
 
 export const metadata: Metadata = {
   title: "链安修仙录",
@@ -29,7 +32,16 @@ export default function Home() {
             <small>智能合约安全修炼场</small>
           </span>
         </Link>
-        <span className={styles.headerNote}>攻防有据 · 草案必审</span>
+        <nav className={styles.topNav} aria-label="主要导航">
+          <Link href="/quests">秘境修炼</Link>
+          <Link href="/bestiary">异兽志</Link>
+          <Link href="/contribute">异兽献策</Link>
+          <Link href="/profile">我的修仙档案</Link>
+        </nav>
+        <div className={styles.identityCluster}>
+          <WalletIdentityControl />
+          <ReviewerAccessLink />
+        </div>
       </header>
 
       <main className={styles.homeMain}>
@@ -45,6 +57,11 @@ export default function Home() {
               <li key={tag}>{tag}</li>
             ))}
           </ul>
+          <div className={styles.homeWalletActions} aria-label="产品入口">
+            <Link href="/quests">开始秘境修炼</Link>
+            <Link href="/contribute">异兽献策</Link>
+            <Link href="/profile">我的修仙档案</Link>
+          </div>
         </section>
 
         <section className={styles.pathGrid} aria-label="选择修炼路径">
@@ -82,12 +99,14 @@ export default function Home() {
               <li>生成异兽志与 Quest 草案</li>
               <li>进入人工证据审核</li>
             </ol>
-            <Link className={styles.secondaryLink} href="/guardian-agent">
-              提交安全案例
+            <Link className={styles.secondaryLink} href="/contribute">
+              异兽献策
               <span aria-hidden="true">→</span>
             </Link>
           </article>
         </section>
+
+        <RecentBestiaryArchive />
       </main>
 
       <footer className={styles.homeFooter}>
@@ -99,7 +118,7 @@ export default function Home() {
           <span>链上验证</span>
         </div>
         <div className={styles.pathLoop} data-path="contribution">
-          <strong>提交新案例</strong>
+          <strong>异兽献策</strong>
           <span aria-hidden="true">→</span>
           <span>Agent 编纂草案</span>
           <span aria-hidden="true">→</span>

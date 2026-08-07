@@ -91,6 +91,14 @@
   border-bottom: 1px solid rgba(190, 204, 154, 0.36);
 }
 
+.identityCluster {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -146,6 +154,149 @@
 
 .topNav a:hover {
   color: var(--guardian-gold-soft);
+}
+
+.homeWalletActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.homeWalletActions a,
+.homeWalletActions button {
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid rgba(216, 183, 94, 0.78);
+  color: #081f19;
+  background: var(--guardian-gold-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.homeWalletActions a:not(:first-child) {
+  border-color: rgba(145, 216, 189, 0.54);
+  color: var(--guardian-jade-bright);
+  background: rgba(7, 37, 29, 0.72);
+}
+
+.homeWalletActions p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--guardian-red-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.homeWalletActions a:focus-visible,
+.homeWalletActions button:focus-visible {
+  outline: 2px solid var(--guardian-jade-bright);
+  outline-offset: 3px;
+}
+
+.guardianGuide {
+  display: grid;
+  gap: 20px;
+  padding: clamp(28px, 4vw, 52px);
+  border: 1px solid rgba(216, 183, 94, 0.38);
+  background: linear-gradient(135deg, rgba(9, 43, 34, 0.88), rgba(4, 24, 19, 0.8));
+}
+
+.guardianGuide h2 {
+  margin: 0;
+  color: var(--guardian-gold-soft);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(28px, 3vw, 42px);
+}
+
+.guardianGuide p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--guardian-ink-soft);
+  line-height: 1.8;
+}
+
+.guardianGuide ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--guardian-ink-soft);
+  line-height: 1.65;
+}
+
+.guardianGuideLink {
+  width: fit-content;
+  min-height: 44px;
+  padding: 12px 18px;
+  border: 1px solid rgba(216, 183, 94, 0.74);
+  color: #09231b;
+  background: var(--guardian-gold-soft);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.guardianGuideLink:focus-visible { outline: 2px solid var(--guardian-jade-bright); outline-offset: 3px; }
+
+.guardianProgress,
+.confirmContribution {
+  display: grid;
+  gap: 18px;
+  padding: clamp(24px, 3vw, 38px);
+  border: 1px solid rgba(216, 183, 94, 0.42);
+  background:
+    linear-gradient(115deg, rgba(9, 49, 39, 0.9), rgba(5, 28, 23, 0.86)),
+    radial-gradient(circle at 90% 20%, rgba(145, 216, 189, 0.12), transparent 18rem);
+  box-shadow: inset 4px 0 rgba(216, 183, 94, 0.28);
+}
+
+.guardianProgress h2,
+.confirmContribution h2 {
+  margin: 0;
+  color: var(--guardian-gold-soft);
+  font-family: "STKaiti", "KaiTi", var(--font-sans);
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.guardianProgress ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guardianProgress li {
+  min-height: 62px;
+  padding: 14px;
+  border: 1px solid rgba(145, 216, 189, 0.25);
+  color: var(--guardian-ink-soft);
+  background: rgba(6, 34, 27, 0.64);
+  line-height: 1.55;
+}
+
+.confirmContribution {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.confirmContribution > div > p:last-child,
+.confirmNotice {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: var(--guardian-ink-soft);
+  line-height: 1.7;
+}
+
+.confirmNotice {
+  grid-column: 1 / -1;
+  padding-left: 12px;
+  border-left: 2px solid var(--guardian-red-soft);
 }
 
 .homeMain {
@@ -280,6 +431,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
+  pointer-events: none;
   background: linear-gradient(90deg, var(--guardian-jade), transparent 74%);
   content: "";
 }
@@ -294,6 +446,7 @@
   bottom: -78px;
   width: 300px;
   aspect-ratio: 1;
+  pointer-events: none;
   border: 1px solid rgba(145, 216, 189, 0.22);
   border-radius: 50%;
   background:
@@ -1973,6 +2126,17 @@
     width: min(calc(100% - 32px), 1400px);
   }
 
+  .siteHeader { align-items: flex-start; flex-wrap: wrap; padding: 14px 0; }
+
+  .homeWalletActions { align-items: stretch; }
+  .homeWalletActions a,
+  .homeWalletActions button { flex: 1 1 190px; text-align: center; }
+
+  .guardianProgress ul,
+  .confirmContribution { grid-template-columns: minmax(0, 1fr); }
+
+  .confirmContribution button { width: 100%; }
+
   .headerNote {
     display: none;
   }
@@ -2070,8 +2234,7 @@
     min-height: 74px;
   }
 
-  .brandCopy small,
-  .topNav a:first-child {
+  .brandCopy small {
     display: none;
   }
 

@@ -4,10 +4,18 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import type { GuardianSecuritySuccess } from "@/features/guardian-security/analysis-types";
+import {
+  ContributorApiError,
+  createContribution,
+  type ContributionSummary,
+} from "@/features/contributor-ui/contributor-api-client";
+import { useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
+import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 
 import {
   analyzeGuardianSample,
   GuardianSecurityApiError,
+  isGuardianSampleSuccess,
   type GuardianSampleSubmission,
 } from "./guardian-security-api-client";
 import {
@@ -19,7 +27,7 @@ import {
 import { GuardianSecurityResults } from "./guardian-security-results";
 import styles from "./guardian-security-ui.module.css";
 
-type WorkbenchStatus = "idle" | "submitting" | "success" | "error";
+type WorkbenchStatus = "idle" | "submitting" | "success" | "saving" | "saved" | "error";
 type FieldName = keyof GuardianSampleSubmission;
 type FieldErrors = Partial<Record<FieldName | "form", string>>;
 type FlowStepState = "pending" | "current" | "complete" | "review" | "error";
@@ -89,11 +97,14 @@ function flowStepState(
   step: number,
   status: WorkbenchStatus,
   hasValidationErrors: boolean,
+  hasDraft: boolean,
 ): FlowStepState {
   if (status === "success") return step <= 4 ? "complete" : "review";
+  if (status === "saving") return step <= 4 ? "complete" : "current";
+  if (status === "saved") return step <= 4 ? "complete" : "review";
   if (status === "submitting") return step === 1 ? "complete" : step === 2 ? "current" : "pending";
   if (status === "error") {
-    const errorStep = hasValidationErrors ? 1 : 2;
+    const errorStep = hasDraft ? 5 : hasValidationErrors ? 1 : 2;
     return step === errorStep ? "error" : step < errorStep ? "complete" : "pending";
   }
   return step === 1 ? "current" : "pending";
@@ -147,6 +158,7 @@ function messageForError(error: unknown): string {
 }
 
 export function GuardianSecurityWorkbench() {
+  const wallet = useWalletAuth();
   const [form, setForm] = useState<GuardianSampleSubmission>(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<WorkbenchStatus>("idle");
@@ -154,22 +166,32 @@ export function GuardianSecurityWorkbench() {
     "准备提交新的安全案例。",
   );
   const [result, setResult] = useState<GuardianSecuritySuccess | null>(null);
+  const [analysisDigest, setAnalysisDigest] = useState<string | null>(null);
+  const [createdCase, setCreatedCase] = useState<ContributionSummary | null>(null);
 
   const totalSourceLength = SOURCE_FIELDS.reduce(
     (total, field) => total + form[field.name].length,
     0,
   );
   const isSubmitting = status === "submitting";
+  const isBusy = status === "submitting" || status === "saving";
   const hasValidationErrors = Object.values(fieldErrors).some(Boolean);
 
   function updateField(field: FieldName, value: string): void {
     setForm((current) => ({ ...current, [field]: value }));
     setFieldErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
+    if (result !== null) {
+      setResult(null);
+      setAnalysisDigest(null);
+      setCreatedCase(null);
+      setStatus("idle");
+      setStatusMessage("卷宗内容已改变，请重新进行 Guardian 鉴定。");
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (isBusy) return;
 
     const nextErrors = validateForm(form);
     if (Object.keys(nextErrors).length > 0) {
@@ -183,10 +205,11 @@ export function GuardianSecurityWorkbench() {
     setStatus("submitting");
     setStatusMessage("正在分析受限源码文本并生成安全案例草案……");
     try {
-      const nextResult = await analyzeGuardianSample(form);
-      setResult(nextResult);
+      const analyzed = await analyzeGuardianSample(form);
+      setResult(analyzed.result);
+      setAnalysisDigest(analyzed.digest);
       setStatus("success");
-      setStatusMessage("分析完成，等待人工审核。");
+      setStatusMessage("Guardian 鉴定完成，请核对异兽志草案后确认提交守阁人审核。");
     } catch (error) {
       setStatus("error");
       setStatusMessage(messageForError(error));
@@ -194,12 +217,44 @@ export function GuardianSecurityWorkbench() {
   }
 
   function clearForm(): void {
-    if (isSubmitting) return;
+    if (isBusy) return;
     setForm(EMPTY_FORM);
     setFieldErrors({});
     setResult(null);
+    setAnalysisDigest(null);
+    setCreatedCase(null);
     setStatus("idle");
     setStatusMessage("准备提交新的安全案例。");
+  }
+
+  async function confirmContribution(): Promise<void> {
+    if (!result || !analysisDigest || isBusy || createdCase) return;
+    if (!wallet.authenticated) {
+      setStatusMessage("请先连接钱包并签名入世，再确认提交守阁人审核。");
+      return;
+    }
+    setStatus("saving");
+    setStatusMessage("正在确认献策并提交守阁人审核……");
+    try {
+      const created = await createContribution({
+        caseName: form.name.trim(),
+        vulnerableSource: form.vulnerableSource,
+        attackSource: form.attackSource,
+        fixedSource: form.fixedSource,
+      }, analysisDigest);
+      if (!isGuardianSampleSuccess(created.analysis)) {
+        throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
+      }
+      setResult(created.analysis);
+      setCreatedCase(created.summary);
+      setStatus("saved");
+      setStatusMessage("异兽献策已进入守阁人审核，当前状态为待审核。");
+    } catch (error) {
+      setStatus("error");
+      setStatusMessage(error instanceof ContributorApiError
+        ? error.message
+        : "献策未能提交，请稍后重试。");
+    }
   }
 
   return (
@@ -213,16 +268,19 @@ export function GuardianSecurityWorkbench() {
           </span>
         </Link>
         <nav className={styles.topNav} aria-label="主要导航">
-          <Link href="/">双入口</Link>
           <Link href="/quests">秘境修炼</Link>
+          <Link href="/bestiary">异兽志</Link>
+          <Link href="/contribute">异兽献策</Link>
+          <Link href="/profile">我的修仙档案</Link>
         </nav>
+        <WalletIdentityControl />
       </header>
 
       <main className={styles.workbenchMain}>
         <section className={styles.workbenchHero} aria-labelledby="workbench-title">
           <div>
             <p className={styles.kicker}>Guardian Security Agent</p>
-            <h1 id="workbench-title">安全案例贡献工作台</h1>
+            <h1 id="workbench-title">异兽献策</h1>
             <p>
               提交漏洞代码、攻击样例与可选修复对照。系统将进行受限的确定性模式分析，并生成待人工审核的异兽志与 Quest 草案。
             </p>
@@ -238,14 +296,19 @@ export function GuardianSecurityWorkbench() {
         <section className={styles.submissionSection} aria-labelledby="submission-title">
           <div className={styles.submissionIntro}>
             <p className={styles.sectionIndex}>Submission dossier · Sample only</p>
-            <h2 id="submission-title">提交安全案例</h2>
+            <h2 id="submission-title">异兽献策</h2>
             <p>
               当前公开工作台只接受新的用户样例，不提供内置案例选择，也不会自动触发链上注册。
             </p>
-            <ol className={styles.processRail} aria-label="安全案例贡献流程">
+            <ol className={styles.processRail} aria-label="异兽献策流程">
               {FLOW_STEPS.map((label, index) => {
                 const step = index + 1;
-                const stepState = flowStepState(step, status, hasValidationErrors);
+                const stepState = flowStepState(
+                  step,
+                  status,
+                  hasValidationErrors,
+                  result !== null,
+                );
                 return (
                   <li
                     key={label}
@@ -266,7 +329,7 @@ export function GuardianSecurityWorkbench() {
           <form
             className={styles.sourceForm}
             onSubmit={handleSubmit}
-            aria-busy={isSubmitting}
+            aria-busy={isBusy}
             noValidate
           >
             <section className={`${styles.nameField} ${styles.dossierSection}`}>
@@ -364,7 +427,7 @@ export function GuardianSecurityWorkbench() {
                   <button
                     className={styles.clearButton}
                     type="button"
-                    disabled={isSubmitting}
+                    disabled={isBusy}
                     onClick={clearForm}
                   >
                     清空卷宗
@@ -372,9 +435,9 @@ export function GuardianSecurityWorkbench() {
                   <button
                     className={styles.submitButton}
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isBusy}
                   >
-                    {isSubmitting ? "正在生成草案" : "生成安全案例草案"}
+                    {isSubmitting ? "正在 Guardian 鉴兽" : "开始 Guardian 鉴兽"}
                   </button>
                 </div>
               </div>
@@ -392,7 +455,39 @@ export function GuardianSecurityWorkbench() {
           </form>
         </section>
 
-        {result ? <GuardianSecurityResults result={result} /> : null}
+        {isSubmitting ? <section className={styles.guardianProgress} aria-live="polite">
+          <h2>Guardian 鉴兽</h2>
+          <ul>
+            <li>正在鉴定漏洞类型</li>
+            <li>正在推演攻击路径</li>
+            <li>正在检查修复</li>
+            <li>正在生成异兽志草案</li>
+          </ul>
+        </section> : null}
+
+        {result ? <GuardianSecurityResults
+          result={result}
+          reviewState={createdCase ? "pending_review" : "draft"}
+        /> : null}
+
+        {result ? <section className={styles.confirmContribution} aria-labelledby="confirm-contribution-title">
+          <div>
+            <p className={styles.sectionIndex}>Keeper review gate</p>
+            <h2 id="confirm-contribution-title">提交守阁人审核</h2>
+            <p>{createdCase
+              ? `献策 ${createdCase.caseId} 已保存为待审核状态。`
+              : "请确认上方 Guardian 鉴定与异兽志草案。提交后进入人工审核，审核收录后才结算 Merit。"}</p>
+          </div>
+          {!wallet.authenticated ? <p className={styles.confirmNotice}>确认献策属于个人操作，请先使用全局钱包入口完成签名入世。</p> : null}
+          <button
+            className={styles.submitButton}
+            type="button"
+            disabled={isBusy || Boolean(createdCase) || !wallet.authenticated}
+            onClick={() => void confirmContribution()}
+          >
+            {status === "saving" ? "正在提交审核" : createdCase ? "已进入待审核" : "确认献策 · 提交人工审核"}
+          </button>
+        </section> : null}
       </main>
     </div>
   );

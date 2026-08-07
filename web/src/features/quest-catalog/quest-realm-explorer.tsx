@@ -155,7 +155,7 @@ function FutureQuestPage({ realm }: { realm: QuestRealmDefinition }) {
         新的漏洞案例经过 Guardian Security Agent 分析、人工审核与协议收录后，
         将在{realm.label}之境展开为新的修炼卷宗。
       </span>
-      <Link href="/guardian-agent">
+      <Link href="/contribute">
         贡献安全案例
         <span aria-hidden="true">→</span>
       </Link>
@@ -175,7 +175,7 @@ function EmptyRealm({ realm }: { realm: QuestRealmDefinition }) {
           ? "复杂安全案例经过 Guardian Security Agent 分析、人工审核和协议收录后，将在此开放为新的安全秘境。"
           : "新的漏洞案例经过 Guardian Security Agent 分析、人工审核与协议收录后，将在此开放为新的安全秘境。"}
       </span>
-      <Link href="/guardian-agent">
+      <Link href="/contribute">
         {isRare ? "贡献特殊安全案例" : "贡献此类安全案例"}
         <span aria-hidden="true">→</span>
       </Link>

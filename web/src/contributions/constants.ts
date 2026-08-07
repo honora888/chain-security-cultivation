@@ -20,6 +20,7 @@ export type ContributionErrorCode =
   | "INVALID_BESTIARY_NAME"
   | "ANALYSIS_UNSUPPORTED"
   | "ANALYSIS_FAILED"
+  | "ANALYSIS_CHANGED"
   | "DATABASE_NOT_CONFIGURED"
   | "DATABASE_UNAVAILABLE";
 
@@ -34,6 +35,7 @@ const CONTRIBUTION_ERROR_MESSAGES: Record<ContributionErrorCode, string> = {
   INVALID_BESTIARY_NAME: "异兽名称格式不符合要求。",
   ANALYSIS_UNSUPPORTED: "当前规则未识别出受支持的 Classic Reentrancy 模式。",
   ANALYSIS_FAILED: "安全案例分析未能完成，请稍后重试。",
+  ANALYSIS_CHANGED: "Guardian 鉴定结果已变化，请重新查看草案后再确认。",
   DATABASE_NOT_CONFIGURED: "贡献服务尚未完成数据库配置。",
   DATABASE_UNAVAILABLE: "贡献服务暂时不可用，请稍后重试。",
 };
@@ -49,6 +51,7 @@ const CONTRIBUTION_ERROR_STATUSES: Record<ContributionErrorCode, number> = {
   INVALID_BESTIARY_NAME: 422,
   ANALYSIS_UNSUPPORTED: 422,
   ANALYSIS_FAILED: 500,
+  ANALYSIS_CHANGED: 409,
   DATABASE_NOT_CONFIGURED: 503,
   DATABASE_UNAVAILABLE: 503,
 };

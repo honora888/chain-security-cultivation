@@ -247,6 +247,7 @@ export interface BestiaryDraft {
   realm: RealmName;
   severity: SeverityLevel;
   confidence: ConfidenceAssessment["label"];
+  summary: string;
   attackPattern: readonly string[];
   prerequisites: readonly string[];
   impact: string;

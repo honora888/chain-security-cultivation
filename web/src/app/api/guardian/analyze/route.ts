@@ -6,6 +6,10 @@ import {
   parseGuardianSecurityRequest,
   runGuardianSecurityAnalysis,
 } from "@/lib/guardian-security-server";
+import {
+  GUARDIAN_ANALYSIS_DIGEST_HEADER,
+  guardianAnalysisDigest,
+} from "@/lib/guardian-analysis-digest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,9 +54,13 @@ async function readJsonBody(request: Request): Promise<unknown> {
 export async function POST(request: Request) {
   try {
     const input = parseGuardianSecurityRequest(await readJsonBody(request));
-    return NextResponse.json(await runGuardianSecurityAnalysis(input), {
+    const result = await runGuardianSecurityAnalysis(input);
+    return NextResponse.json(result, {
       status: 200,
-      headers: NO_STORE_HEADERS,
+      headers: {
+        ...NO_STORE_HEADERS,
+        [GUARDIAN_ANALYSIS_DIGEST_HEADER]: guardianAnalysisDigest(result),
+      },
     });
   } catch (error) {
     const failure = guardianSecurityFailure(error);

@@ -13,6 +13,7 @@ import styles from "./guardian-security-ui.module.css";
 
 interface GuardianSecurityResultsProps {
   result: GuardianSecuritySuccess;
+  reviewState?: "draft" | "pending_review";
 }
 
 function TextList({ items }: { items: readonly string[] }) {
@@ -66,6 +67,7 @@ function SignalItem({ signal }: { signal: ReentrancySignal }) {
 
 export function GuardianSecurityResults({
   result,
+  reviewState = "draft",
 }: GuardianSecurityResultsProps) {
   const matchedSignals = result.signals.filter((signal) => signal.matched);
   const { analysis, classification, severity, confidence } = result;
@@ -360,6 +362,7 @@ export function GuardianSecurityResults({
             <div><dt>严重度</dt><dd>{bestiary.severity}</dd></div>
             <div><dt>置信度</dt><dd>{bestiary.confidence}</dd></div>
             <div><dt>审核状态</dt><dd>{bestiary.reviewStatus}</dd></div>
+            <div className={styles.wideFact}><dt>异兽形</dt><dd>{bestiary.summary}</dd></div>
             <div className={styles.wideFact}><dt>影响</dt><dd>{bestiary.impact}</dd></div>
           </dl>
           <div className={styles.detailGrid}>
@@ -416,13 +419,13 @@ export function GuardianSecurityResults({
       <section className={styles.reviewPanel} aria-labelledby="review-title">
         <div>
           <p>Human Review Gate</p>
-          <h3 id="review-title">待审核草案</h3>
+          <h3 id="review-title">{reviewState === "pending_review" ? "待审核草案" : "草案待确认"}</h3>
         </div>
         <dl>
           <div><dt>需要人工批准</dt><dd>是</dd></div>
           <div><dt>允许发布</dt><dd>否</dd></div>
-          <div><dt>贡献状态</dt><dd>待审核</dd></div>
-          <div><dt>贡献值</dt><dd>审核收录后结算</dd></div>
+          <div><dt>贡献状态</dt><dd>{reviewState === "pending_review" ? "待审核" : "尚未提交"}</dd></div>
+          <div><dt>贡献值</dt><dd>{reviewState === "pending_review" ? "审核收录后结算" : "确认提交并收录后结算"}</dd></div>
         </dl>
         <TextList items={result.review.reasons} />
         <p>

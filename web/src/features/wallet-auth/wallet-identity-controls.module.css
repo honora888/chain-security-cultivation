@@ -1,0 +1,63 @@
+.identity {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.identity a,
+.action,
+.exit {
+  min-height: 36px;
+  border: 1px solid currentColor;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.identityState { overflow-wrap: anywhere; }
+
+.reviewerBadge {
+  padding: 4px 7px;
+  border: 1px solid rgba(216, 183, 94, 0.68);
+  color: #e4c781;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.identity a,
+.action { padding: 9px 10px; }
+
+.exit {
+  padding: 7px 0;
+  border-width: 0 0 1px;
+  opacity: .84;
+}
+
+.status {
+  margin: 0;
+  color: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.identity a:focus-visible,
+.action:focus-visible,
+.exit:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .identity { flex-wrap: wrap; white-space: normal; }
+  .identity a,
+  .action { min-height: 40px; }
+}

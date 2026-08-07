@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   GuardianSecurityError,
   type FormalAnalysis,
@@ -18,6 +20,29 @@ import {
   supportsClassicReentrancy,
 } from "./reentrancy-rules";
 import { assessConfidence, assessSeverity } from "./severity";
+
+function normalizeDraftSource(value: string | undefined): string {
+  return (value ?? "")
+    .replace(/\r\n?/gu, "\n")
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+$/gu, ""))
+    .join("\n")
+    .trim();
+}
+
+function sourceFingerprint(sources: {
+  vulnerableSource: string;
+  attackSource?: string;
+  fixedSource?: string;
+}): string {
+  return createHash("sha256")
+    .update(JSON.stringify([
+      normalizeDraftSource(sources.vulnerableSource),
+      normalizeDraftSource(sources.attackSource),
+      normalizeDraftSource(sources.fixedSource),
+    ]), "utf8")
+    .digest("hex");
+}
 
 function buildFormalAnalysis(
   signals: readonly ReentrancySignal[],
@@ -138,6 +163,7 @@ export function analyzeGuardianSecurityCase(
     severity,
     confidence,
     limitations,
+    sourceFingerprint: sourceFingerprint(sources),
   } as const;
   const reviewReasons = [
     "Deterministic rules are not a formal audit.",

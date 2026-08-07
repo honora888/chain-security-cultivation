@@ -8,6 +8,12 @@ import type {
   ReentrancySignal,
   SeverityAssessment,
 } from "./analysis-types";
+import { createSampleBestiaryDraftName } from "./sample-draft-name";
+import {
+  CLASSIC_REENTRANCY_PUBLIC_COPY,
+  QUEST_ONE_PUBLIC_KNOWN_LIMITATIONS,
+  SAMPLE_PUBLIC_KNOWN_LIMITATIONS,
+} from "./public-bestiary-copy";
 
 interface DraftContext {
   inputMode: "builtin" | "sample";
@@ -19,6 +25,7 @@ interface DraftContext {
   severity: SeverityAssessment;
   confidence: ConfidenceAssessment;
   limitations: readonly string[];
+  sourceFingerprint: string;
 }
 
 export function createBestiaryDraft(context: DraftContext): BestiaryDraft {
@@ -27,22 +34,30 @@ export function createBestiaryDraft(context: DraftContext): BestiaryDraft {
     .map((entry) => `${entry.id}: ${entry.explanation}`);
 
   return {
-    name:
-      context.elements.primaryElement === "Water"
+    name: context.inputMode === "builtin"
+      ? context.elements.primaryElement === "Water"
         ? "噬灵回环兽"
-        : `${context.displayName}异兽草案`,
+        : `${context.displayName}异兽草案`
+      : createSampleBestiaryDraftName(
+          context.elements.primaryElement,
+          context.sourceFingerprint,
+        ),
     formalType: "Classic Reentrancy",
     primaryElement: context.elements.primaryElement,
     secondaryElements: context.elements.secondaryElements,
     realm: context.realm.realm,
     severity: context.severity.level,
     confidence: context.confidence.label,
-    attackPattern: context.analysis.attackPath,
-    prerequisites: context.analysis.prerequisites,
-    impact: context.analysis.impact,
+    summary: CLASSIC_REENTRANCY_PUBLIC_COPY.summary,
+    attackPattern: CLASSIC_REENTRANCY_PUBLIC_COPY.attackPattern,
+    prerequisites: CLASSIC_REENTRANCY_PUBLIC_COPY.prerequisites,
+    impact: CLASSIC_REENTRANCY_PUBLIC_COPY.impact,
     evidenceSummary,
-    mitigations: context.analysis.mitigations,
-    knownLimitations: context.limitations,
+    mitigations: CLASSIC_REENTRANCY_PUBLIC_COPY.mitigations,
+    knownLimitations:
+      context.inputMode === "builtin"
+        ? QUEST_ONE_PUBLIC_KNOWN_LIMITATIONS
+        : SAMPLE_PUBLIC_KNOWN_LIMITATIONS,
     reviewStatus: "draft",
   };
 }

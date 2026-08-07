@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { QuestRealmExplorer } from "@/features/quest-catalog/quest-realm-explorer";
+import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 
 import styles from "@/features/quest-catalog/quest-catalog.module.css";
 
@@ -41,10 +42,13 @@ export default function QuestCatalogPage() {
 
         <nav className={styles.catalogNav} aria-label="主要导航">
           <Link href="/quests" aria-current="page">
-            秘境图鉴
+            秘境修炼
           </Link>
-          <Link href="/guardian-agent">异兽献策</Link>
+          <Link href="/bestiary">异兽志</Link>
+          <Link href="/contribute">异兽献策</Link>
+          <Link href="/profile">我的修仙档案</Link>
         </nav>
+        <WalletIdentityControl />
       </header>
 
       <main className={styles.catalogMain}>
