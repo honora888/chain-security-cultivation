@@ -3,6 +3,38 @@ import type {
   GuardianSecurityFailure,
   GuardianSecuritySuccess,
 } from "@/features/guardian-security/analysis-types";
+import {
+  guardianDraftAnalysisMatchesVisible,
+  parseSignedGuardianDraftV1,
+} from "@/features/guardian-draft/client";
+import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
+import type {
+  GuardianCandidateOnlyAnalysisSuccess,
+  GuardianHybridPublicResponse,
+  GuardianPublicLlmEnhancement,
+} from "@/features/guardian-llm/hybrid-analysis-types";
+import type {
+  GuardianAffectedCode,
+  GuardianFindingConfidence,
+  GuardianFindingSeverity,
+  GuardianLlmCandidateEvidence,
+  GuardianLlmCandidateFinding,
+  GuardianVulnerabilityCategory,
+} from "@/features/guardian-llm/contracts";
+import {
+  MAX_LLM_AFFECTED_CODE_ITEMS,
+  MAX_LLM_BESTIARY_NAME_LENGTH,
+  MAX_LLM_CANDIDATE_FINDINGS,
+  MAX_LLM_EVIDENCE_ITEMS,
+  MAX_LLM_EVIDENCE_LOCATIONS,
+  MAX_LLM_EXPLANATION_LENGTH,
+  MAX_LLM_LIST_ITEMS,
+  MAX_LLM_LOCATION_LENGTH,
+  MAX_LLM_PUBLIC_SUMMARY_LENGTH,
+  MAX_LLM_TEXT_ITEM_LENGTH,
+  MAX_LLM_TITLE_LENGTH,
+} from "@/features/guardian-llm/response-schema";
+import { CONTRIBUTION_CASE_NAME_MAX_CHARS } from "@/contributions/constants";
 
 export interface GuardianSampleSubmission {
   name: string;
@@ -14,7 +46,9 @@ export interface GuardianSampleSubmission {
 type GuardianSecurityUiErrorCode =
   | GuardianSecurityErrorCode
   | "INVALID_RESPONSE"
-  | "UNEXPECTED_MOSS_EVIDENCE";
+  | "UNEXPECTED_MOSS_EVIDENCE"
+  | "DRAFT_SIGNING_NOT_CONFIGURED"
+  | "DRAFT_SIGNING_FAILED";
 
 export class GuardianSecurityApiError extends Error {
   readonly code: GuardianSecurityUiErrorCode;
@@ -42,6 +76,202 @@ function isFailure(value: unknown): value is GuardianSecurityFailure {
 
 function isStringArray(value: unknown): value is readonly string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function exactObject(
+  value: unknown,
+  expectedKeys: readonly string[],
+): Record<string, unknown> {
+  if (!isRecord(value)) throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  const actual = Object.keys(value).sort();
+  const expected = [...expectedKeys].sort();
+  if (
+    actual.length !== expected.length ||
+    actual.some((key, index) => key !== expected[index])
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return value;
+}
+
+function trimmedString(value: unknown, maxLength: number): string {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value.length > maxLength ||
+    value.trim() !== value
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return value;
+}
+
+function stringList(
+  value: unknown,
+  maxItems: number,
+  maxLength = MAX_LLM_TEXT_ITEM_LENGTH,
+): readonly string[] {
+  if (!Array.isArray(value) || value.length > maxItems) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return value.map((item) => trimmedString(item, maxLength));
+}
+
+const CANDIDATE_CATEGORIES = [
+  "reentrancy",
+  "access-control",
+  "unchecked-external-call",
+  "delegatecall",
+  "oracle-manipulation",
+  "economic-attack",
+  "signature-replay",
+  "authentication",
+  "denial-of-service",
+  "accounting",
+  "state-logic",
+  "initialization",
+  "upgradeability",
+  "arithmetic",
+  "precision-rounding",
+  "timestamp-dependence",
+  "randomness",
+  "frontrunning-mev",
+  "other",
+] as const satisfies readonly GuardianVulnerabilityCategory[];
+
+function candidateSeverity(value: unknown): GuardianFindingSeverity {
+  if (!isOneOf(value, SEVERITY_VALUES)) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return value;
+}
+
+function candidateConfidence(value: unknown): GuardianFindingConfidence {
+  const confidence = exactObject(value, ["label", "score"]);
+  if (
+    !isOneOf(confidence.label, CONFIDENCE_VALUES) ||
+    typeof confidence.score !== "number" ||
+    !Number.isFinite(confidence.score) ||
+    confidence.score < 0 ||
+    confidence.score > 100
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return { label: confidence.label, score: confidence.score };
+}
+
+function candidateAffectedCode(value: unknown): GuardianAffectedCode {
+  const affected = exactObject(value, ["source", "location", "explanation"]);
+  if (
+    affected.source !== "vulnerableSource" &&
+    affected.source !== "attackSource" &&
+    affected.source !== "fixedSource"
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return {
+    source: affected.source,
+    location: trimmedString(affected.location, MAX_LLM_LOCATION_LENGTH),
+    explanation: trimmedString(affected.explanation, MAX_LLM_TEXT_ITEM_LENGTH),
+  };
+}
+
+function candidateEvidence(value: unknown): GuardianLlmCandidateEvidence {
+  const evidence = exactObject(value, [
+    "source",
+    "description",
+    "locations",
+    "provenance",
+  ]);
+  if (evidence.provenance !== "llm_candidate") {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return {
+    source: trimmedString(evidence.source, MAX_LLM_TEXT_ITEM_LENGTH),
+    description: trimmedString(evidence.description, MAX_LLM_TEXT_ITEM_LENGTH),
+    locations: stringList(
+      evidence.locations,
+      MAX_LLM_EVIDENCE_LOCATIONS,
+      MAX_LLM_LOCATION_LENGTH,
+    ),
+    provenance: "llm_candidate",
+  };
+}
+
+function candidateFinding(value: unknown, index: number): GuardianLlmCandidateFinding {
+  const candidate = exactObject(value, [
+    "candidateId",
+    "category",
+    "title",
+    "verification",
+    "suggestedSeverity",
+    "suggestedConfidence",
+    "explanation",
+    "attackPath",
+    "affectedCode",
+    "evidence",
+    "suggestedFix",
+    "limitations",
+  ]);
+  if (
+    candidate.candidateId !== `llm-candidate-${index + 1}` ||
+    !isOneOf(candidate.category, CANDIDATE_CATEGORIES) ||
+    candidate.verification !== "llm_candidate" ||
+    !Array.isArray(candidate.affectedCode) ||
+    candidate.affectedCode.length > MAX_LLM_AFFECTED_CODE_ITEMS ||
+    !Array.isArray(candidate.evidence) ||
+    candidate.evidence.length > MAX_LLM_EVIDENCE_ITEMS
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return {
+    candidateId: candidate.candidateId,
+    category: candidate.category,
+    title: trimmedString(candidate.title, MAX_LLM_TITLE_LENGTH),
+    verification: "llm_candidate",
+    suggestedSeverity: candidateSeverity(candidate.suggestedSeverity),
+    suggestedConfidence: candidateConfidence(candidate.suggestedConfidence),
+    explanation: trimmedString(candidate.explanation, MAX_LLM_EXPLANATION_LENGTH),
+    attackPath: stringList(candidate.attackPath, MAX_LLM_LIST_ITEMS),
+    affectedCode: candidate.affectedCode.map(candidateAffectedCode),
+    evidence: candidate.evidence.map(candidateEvidence),
+    suggestedFix: stringList(candidate.suggestedFix, MAX_LLM_LIST_ITEMS),
+    limitations: stringList(candidate.limitations, MAX_LLM_LIST_ITEMS),
+  };
+}
+
+function publicLlmEnhancement(value: unknown): GuardianPublicLlmEnhancement {
+  const enhancement = exactObject(value, [
+    "status",
+    "candidateFindings",
+    "publicSummary",
+    "bestiaryNameCandidates",
+  ]);
+  if (
+    enhancement.status !== "enhanced" ||
+    !Array.isArray(enhancement.candidateFindings) ||
+    enhancement.candidateFindings.length > MAX_LLM_CANDIDATE_FINDINGS ||
+    !Array.isArray(enhancement.bestiaryNameCandidates) ||
+    enhancement.bestiaryNameCandidates.length !== 4
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  const names = enhancement.bestiaryNameCandidates.map((name) =>
+    trimmedString(name, MAX_LLM_BESTIARY_NAME_LENGTH),
+  );
+  if (new Set(names).size !== 4) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  const [first, second, third, fourth] = names;
+  return {
+    status: "enhanced",
+    candidateFindings: enhancement.candidateFindings.map(candidateFinding),
+    publicSummary: trimmedString(
+      enhancement.publicSummary,
+      MAX_LLM_PUBLIC_SUMMARY_LENGTH,
+    ),
+    bestiaryNameCandidates: [first, second, third, fourth],
+  };
 }
 
 function isOneOf<const T extends readonly string[]>(
@@ -256,13 +486,143 @@ export function isGuardianSampleSuccess(value: unknown): value is GuardianSecuri
   );
 }
 
+const DETERMINISTIC_RESPONSE_KEYS = [
+  "ok",
+  "schemaVersion",
+  "analyzedAt",
+  "agent",
+  "inputMode",
+  "case",
+  "mossEvidence",
+  "signals",
+  "analysis",
+  "classification",
+  "severity",
+  "confidence",
+  "bestiaryDraft",
+  "questDraft",
+  "review",
+  "limitations",
+] as const;
+
+function parseCandidateOnlyAnalysis(
+  value: unknown,
+): GuardianCandidateOnlyAnalysisSuccess {
+  const response = exactObject(value, [
+    "ok",
+    "schemaVersion",
+    "analyzedAt",
+    "agent",
+    "inputMode",
+    "case",
+    "deterministic",
+    "llmEnhancement",
+    "submission",
+    "review",
+    "limitations",
+  ]);
+  const agent = exactObject(response.agent, ["mode", "externalModelConnected"]);
+  const caseValue = exactObject(response.case, [
+    "caseId",
+    "displayName",
+    "provenance",
+  ]);
+  const submission = exactObject(response.submission, ["allowed", "reason"]);
+  const review = exactObject(response.review, [
+    "requiresHumanApproval",
+    "publishAllowed",
+  ]);
+  const analyzedAt = trimmedString(response.analyzedAt, 64);
+  if (
+    !Number.isFinite(Date.parse(analyzedAt)) ||
+    new Date(Date.parse(analyzedAt)).toISOString() !== analyzedAt ||
+    response.ok !== true ||
+    response.schemaVersion !== "guardian-security-candidate-analysis-v1" ||
+    response.inputMode !== "sample" ||
+    response.deterministic !== null ||
+    agent.mode !== "hybrid-llm-candidate" ||
+    agent.externalModelConnected !== true ||
+    caseValue.caseId !== "user-sample" ||
+    caseValue.provenance !== "user-provided-unverified" ||
+    submission.allowed !== false ||
+    submission.reason !==
+      "LLM_CANDIDATE_REQUIRES_SIGNED_DRAFT_OR_VERIFICATION" ||
+    review.requiresHumanApproval !== true ||
+    review.publishAllowed !== false
+  ) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return {
+    ok: true,
+    schemaVersion: "guardian-security-candidate-analysis-v1",
+    analyzedAt,
+    agent: {
+      mode: "hybrid-llm-candidate",
+      externalModelConnected: true,
+    },
+    inputMode: "sample",
+    case: {
+      caseId: "user-sample",
+      displayName: trimmedString(
+        caseValue.displayName,
+        CONTRIBUTION_CASE_NAME_MAX_CHARS,
+      ),
+      provenance: "user-provided-unverified",
+    },
+    deterministic: null,
+    llmEnhancement: publicLlmEnhancement(response.llmEnhancement),
+    submission: {
+      allowed: false,
+      reason: "LLM_CANDIDATE_REQUIRES_SIGNED_DRAFT_OR_VERIFICATION",
+    },
+    review: {
+      requiresHumanApproval: true,
+      publishAllowed: false,
+    },
+    limitations: stringList(response.limitations, MAX_LLM_LIST_ITEMS),
+  };
+}
+
+export function parseGuardianHybridPublicResponse(
+  value: unknown,
+): GuardianHybridPublicResponse {
+  if (
+    isRecord(value) &&
+    value.schemaVersion === "guardian-security-candidate-analysis-v1"
+  ) {
+    return parseCandidateOnlyAnalysis(value);
+  }
+
+  const hasEnhancement = isRecord(value) && Object.hasOwn(value, "llmEnhancement");
+  exactObject(
+    value,
+    hasEnhancement
+      ? [...DETERMINISTIC_RESPONSE_KEYS, "llmEnhancement"]
+      : DETERMINISTIC_RESPONSE_KEYS,
+  );
+  if (!isGuardianSampleSuccess(value)) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  if (!hasEnhancement) return value;
+  return {
+    ...value,
+    llmEnhancement: publicLlmEnhancement(value.llmEnhancement),
+  };
+}
+
 function optionalSource(value: string): string | undefined {
-  return value.trim().length > 0 ? value : undefined;
+  return value.length > 0 ? value : undefined;
+}
+
+export interface GuardianSampleAnalysisResult {
+  readonly result: GuardianHybridPublicResponse;
+  readonly digest: string | null;
+  readonly signedDraft: SignedGuardianDraftV1 | null;
 }
 
 export async function analyzeGuardianSample(
   submission: GuardianSampleSubmission,
-): Promise<{ result: GuardianSecuritySuccess; digest: string }> {
+): Promise<GuardianSampleAnalysisResult> {
   const attackSource = optionalSource(submission.attackSource);
   const fixedSource = optionalSource(submission.fixedSource);
   const response = await fetch("/api/guardian/analyze", {
@@ -297,17 +657,50 @@ export async function analyzeGuardianSample(
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
 
-  if (!isGuardianSampleSuccess(payload)) {
-    throw new GuardianSecurityApiError("INVALID_RESPONSE");
-  }
-  if (payload.mossEvidence.status !== "not-applicable") {
+  if (!isRecord(payload)) throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  const hasSignedDraft = Object.hasOwn(payload, "signedDraft");
+  const basePayload = Object.fromEntries(
+    Object.entries(payload).filter(([key]) => key !== "signedDraft"),
+  );
+  const visibleResult = parseGuardianHybridPublicResponse(basePayload);
+  if (
+    visibleResult.schemaVersion === "guardian-security-analysis-v1" &&
+    visibleResult.mossEvidence.status !== "not-applicable"
+  ) {
     throw new GuardianSecurityApiError("UNEXPECTED_MOSS_EVIDENCE");
   }
 
-  const digest = response.headers.get("X-Guardian-Analysis-Digest")?.trim() ?? "";
-  if (!/^[0-9a-f]{64}$/u.test(digest)) {
+  let signedDraft: SignedGuardianDraftV1 | null = null;
+  if (hasSignedDraft) {
+    try {
+      signedDraft = parseSignedGuardianDraftV1(
+        payload.signedDraft,
+        parseGuardianHybridPublicResponse,
+      );
+    } catch {
+      throw new GuardianSecurityApiError("INVALID_RESPONSE");
+    }
+  }
+  if (
+    signedDraft !== null &&
+    !guardianDraftAnalysisMatchesVisible(
+      visibleResult,
+      signedDraft.claims.draft.analysis,
+    )
+  ) {
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
 
-  return { result: payload, digest };
+  const digest = response.headers.get("X-Guardian-Analysis-Digest")?.trim() ?? "";
+  if (visibleResult.schemaVersion === "guardian-security-candidate-analysis-v1") {
+    if (digest.length > 0) throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  } else if (!/^[0-9a-f]{64}$/u.test(digest)) {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+
+  return {
+    result: signedDraft?.claims.draft.analysis ?? visibleResult,
+    digest: digest.length > 0 ? digest : null,
+    signedDraft,
+  };
 }

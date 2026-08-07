@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
-import type { GuardianSecuritySuccess } from "@/features/guardian-security/analysis-types";
+import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
+import { guardianDraftInputChanged } from "@/features/guardian-draft/client";
+import type { GuardianHybridPublicResponse } from "@/features/guardian-llm/hybrid-analysis-types";
 import {
   ContributorApiError,
   createContribution,
@@ -25,6 +27,7 @@ import {
   MAX_TOTAL_SOURCE_LENGTH,
 } from "./guardian-security-copy";
 import { GuardianSecurityResults } from "./guardian-security-results";
+import { GuardianCandidateResults } from "./guardian-candidate-results";
 import styles from "./guardian-security-ui.module.css";
 
 type WorkbenchStatus = "idle" | "submitting" | "success" | "saving" | "saved" | "error";
@@ -152,6 +155,12 @@ function messageForError(error: unknown): string {
     if (error.code === "INVALID_RESPONSE") {
       return "服务返回了无法验证的响应，请稍后重试。";
     }
+    if (error.code === "DRAFT_SIGNING_NOT_CONFIGURED") {
+      return "Guardian 签名草案服务尚未配置，请稍后重试。";
+    }
+    if (error.code === "DRAFT_SIGNING_FAILED") {
+      return "Guardian 签名草案暂时无法生成，请稍后重试。";
+    }
     return ERROR_COPY[error.code];
   }
   return ERROR_COPY.INTERNAL_ERROR;
@@ -165,8 +174,9 @@ export function GuardianSecurityWorkbench() {
   const [statusMessage, setStatusMessage] = useState(
     "准备提交新的安全案例。",
   );
-  const [result, setResult] = useState<GuardianSecuritySuccess | null>(null);
+  const [result, setResult] = useState<GuardianHybridPublicResponse | null>(null);
   const [analysisDigest, setAnalysisDigest] = useState<string | null>(null);
+  const [signedDraft, setSignedDraft] = useState<SignedGuardianDraftV1 | null>(null);
   const [createdCase, setCreatedCase] = useState<ContributionSummary | null>(null);
 
   const totalSourceLength = SOURCE_FIELDS.reduce(
@@ -178,11 +188,13 @@ export function GuardianSecurityWorkbench() {
   const hasValidationErrors = Object.values(fieldErrors).some(Boolean);
 
   function updateField(field: FieldName, value: string): void {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextForm = { ...form, [field]: value };
+    setForm(nextForm);
     setFieldErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
-    if (result !== null) {
+    if (result !== null && guardianDraftInputChanged(form, nextForm)) {
       setResult(null);
       setAnalysisDigest(null);
+      setSignedDraft(null);
       setCreatedCase(null);
       setStatus("idle");
       setStatusMessage("卷宗内容已改变，请重新进行 Guardian 鉴定。");
@@ -208,6 +220,7 @@ export function GuardianSecurityWorkbench() {
       const analyzed = await analyzeGuardianSample(form);
       setResult(analyzed.result);
       setAnalysisDigest(analyzed.digest);
+      setSignedDraft(analyzed.signedDraft);
       setStatus("success");
       setStatusMessage("Guardian 鉴定完成，请核对异兽志草案后确认提交守阁人审核。");
     } catch (error) {
@@ -222,13 +235,20 @@ export function GuardianSecurityWorkbench() {
     setFieldErrors({});
     setResult(null);
     setAnalysisDigest(null);
+    setSignedDraft(null);
     setCreatedCase(null);
     setStatus("idle");
     setStatusMessage("准备提交新的安全案例。");
   }
 
   async function confirmContribution(): Promise<void> {
-    if (!result || !analysisDigest || isBusy || createdCase) return;
+    if (
+      !result ||
+      !isGuardianSampleSuccess(result) ||
+      !analysisDigest ||
+      isBusy ||
+      createdCase
+    ) return;
     if (!wallet.authenticated) {
       setStatusMessage("请先连接钱包并签名入世，再确认提交守阁人审核。");
       return;
@@ -246,6 +266,7 @@ export function GuardianSecurityWorkbench() {
         throw new ContributorApiError("INVALID_RESPONSE", "服务返回了无法验证的 Guardian 鉴定结果。", 200);
       }
       setResult(created.analysis);
+      setSignedDraft(null);
       setCreatedCase(created.summary);
       setStatus("saved");
       setStatusMessage("异兽献策已进入守阁人审核，当前状态为待审核。");
@@ -465,12 +486,33 @@ export function GuardianSecurityWorkbench() {
           </ul>
         </section> : null}
 
-        {result ? <GuardianSecurityResults
-          result={result}
-          reviewState={createdCase ? "pending_review" : "draft"}
-        /> : null}
+        {result ? (
+          <p className={styles.formStatus} role="status" aria-live="polite">
+            <strong>Guardian 草案状态</strong>
+            <span>
+              {signedDraft
+                ? "Guardian 签名草案已生成；当前显示内容与签名内容一致。"
+                : "连接钱包并完成签名入世后，可在重新鉴定时生成与身份绑定的 Guardian 签名草案。"}
+            </span>
+          </p>
+        ) : null}
 
-        {result ? <section className={styles.confirmContribution} aria-labelledby="confirm-contribution-title">
+        {result?.schemaVersion === "guardian-security-candidate-analysis-v1" ? (
+          <GuardianCandidateResults
+            result={result}
+            selectedBestiaryName={
+              signedDraft?.claims.draft.selectedBestiaryName ??
+              result.llmEnhancement.bestiaryNameCandidates[0]
+            }
+          />
+        ) : result ? (
+          <GuardianSecurityResults
+            result={result}
+            reviewState={createdCase ? "pending_review" : "draft"}
+          />
+        ) : null}
+
+        {result?.schemaVersion === "guardian-security-analysis-v1" ? <section className={styles.confirmContribution} aria-labelledby="confirm-contribution-title">
           <div>
             <p className={styles.sectionIndex}>Keeper review gate</p>
             <h2 id="confirm-contribution-title">提交守阁人审核</h2>
@@ -488,6 +530,18 @@ export function GuardianSecurityWorkbench() {
             {status === "saving" ? "正在提交审核" : createdCase ? "已进入待审核" : "确认献策 · 提交人工审核"}
           </button>
         </section> : null}
+
+        {result?.schemaVersion === "guardian-security-candidate-analysis-v1" ? (
+          <section className={styles.confirmContribution} aria-labelledby="candidate-stage-title">
+            <div>
+              <p className={styles.sectionIndex}>Stage 34.3 · Signed carriage only</p>
+              <h2 id="candidate-stage-title">候选草案尚未接入提交</h2>
+              <p>
+                当前仅生成并保留待人工审核的候选草案。数据库提交、审核批准与发布能力将在后续阶段接入。
+              </p>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );
