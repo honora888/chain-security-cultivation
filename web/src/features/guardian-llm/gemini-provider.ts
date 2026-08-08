@@ -8,6 +8,7 @@ import {
 } from "./provider";
 import { parseGuardianLlmResponse } from "./response-parser";
 import { GUARDIAN_LLM_RESPONSE_SCHEMA } from "./response-schema";
+import { scanGuardianLlmSources } from "./sensitive-source";
 
 const GEMINI_API_ORIGIN = "https://generativelanguage.googleapis.com";
 export const GEMINI_REQUEST_TIMEOUT_MS = 30_000;
@@ -110,6 +111,10 @@ export class GeminiGuardianLlmProvider implements GuardianLlmProvider {
       this.timeoutMs <= 0
     ) {
       throw new GuardianLlmProviderError("NOT_CONFIGURED");
+    }
+
+    if (scanGuardianLlmSources(input.untrustedSources).blocked) {
+      throw new GuardianLlmProviderError("SENSITIVE_SOURCE");
     }
 
     const prompt = buildGuardianLlmPrompt(input);

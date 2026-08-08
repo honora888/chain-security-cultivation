@@ -2,6 +2,7 @@ import type { GuardianLlmRequest, GuardianLlmResponse } from "./contracts";
 
 export type GuardianLlmProviderErrorCode =
   | "NOT_CONFIGURED"
+  | "SENSITIVE_SOURCE"
   | "REQUEST_FAILED"
   | "TIMEOUT"
   | "INVALID_RESPONSE"

@@ -862,6 +862,28 @@
   grid-column: 1 / -1;
 }
 
+.externalModelDisclosure {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid rgba(216, 183, 94, 0.38);
+  border-radius: 10px;
+  color: #cbdcd4;
+  background: rgba(35, 51, 42, 0.72);
+}
+
+.externalModelDisclosure strong {
+  color: var(--guardian-gold-bright);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.externalModelDisclosure p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
 .fieldHint,
 .fieldError {
   margin: 7px 0 0;

@@ -71,7 +71,9 @@ export function toPublicLlmEnhancement(
   return {
     status: "enhanced",
     candidateFindings: response.candidateFindings,
-    candidateBestiarySuggestion: response.candidateBestiarySuggestion,
+    ...(response.candidateBestiarySuggestion !== undefined
+      ? { candidateBestiarySuggestion: response.candidateBestiarySuggestion }
+      : {}),
     publicSummary: response.publicSummary,
     bestiaryNameCandidates: response.bestiaryNameCandidates,
   };

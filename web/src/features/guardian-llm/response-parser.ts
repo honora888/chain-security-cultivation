@@ -13,6 +13,7 @@ import {
   isCultivationRealm,
 } from "../guardian-security/cultivation-labels";
 import { GuardianLlmProviderError } from "./provider";
+import { isSimplifiedChineseOrientedText } from "./language-policy";
 import {
   isGuardianConfidenceScore,
   normalizeGuardianSuggestedConfidence,
@@ -125,10 +126,20 @@ function parseStringArray(
 
 function parseChinesePresentationString(value: unknown, maxLength: number): string {
   const text = parseTrimmedString(value, maxLength);
-  if (!/\p{Script=Han}/u.test(text)) {
+  if (!isSimplifiedChineseOrientedText(text)) {
     return invalidResponse();
   }
   return text;
+}
+
+function parseChinesePresentationArray(
+  value: unknown,
+  maxItems: number,
+  maxItemLength = MAX_LLM_TEXT_ITEM_LENGTH,
+): readonly string[] {
+  return parseStringArray(value, maxItems, maxItemLength).map((item) =>
+    parseChinesePresentationString(item, maxItemLength),
+  );
 }
 
 function parseCategory(value: unknown): GuardianVulnerabilityCategory {
@@ -204,7 +215,7 @@ function parseAffectedCode(value: unknown): GuardianAffectedCode {
       affectedCode.location,
       MAX_LLM_LOCATION_LENGTH,
     ),
-    explanation: parseTrimmedString(
+    explanation: parseChinesePresentationString(
       affectedCode.explanation,
       MAX_LLM_TEXT_ITEM_LENGTH,
     ),
@@ -216,7 +227,7 @@ function parseEvidence(value: unknown): GuardianLlmCandidateEvidence {
 
   return {
     source: parseTrimmedString(evidence.source, MAX_LLM_TEXT_ITEM_LENGTH),
-    description: parseTrimmedString(
+    description: parseChinesePresentationString(
       evidence.description,
       MAX_LLM_TEXT_ITEM_LENGTH,
     ),
@@ -247,19 +258,19 @@ function parseCandidateFinding(
   return {
     candidateId: `llm-candidate-${index + 1}`,
     category: parseCategory(candidate.category),
-    title: parseTrimmedString(candidate.title, MAX_LLM_TITLE_LENGTH),
+    title: parseChinesePresentationString(candidate.title, MAX_LLM_TITLE_LENGTH),
     verification: "llm_candidate",
     suggestedSeverity: parseSeverity(candidate.suggestedSeverity),
     suggestedConfidence: parseConfidence(candidate.suggestedConfidence),
-    explanation: parseTrimmedString(
+    explanation: parseChinesePresentationString(
       candidate.explanation,
       MAX_LLM_EXPLANATION_LENGTH,
     ),
-    attackPath: parseStringArray(candidate.attackPath, MAX_LLM_LIST_ITEMS),
+    attackPath: parseChinesePresentationArray(candidate.attackPath, MAX_LLM_LIST_ITEMS),
     affectedCode: candidate.affectedCode.map(parseAffectedCode),
     evidence: candidate.evidence.map(parseEvidence),
-    suggestedFix: parseStringArray(candidate.suggestedFix, MAX_LLM_LIST_ITEMS),
-    limitations: parseStringArray(candidate.limitations, MAX_LLM_LIST_ITEMS),
+    suggestedFix: parseChinesePresentationArray(candidate.suggestedFix, MAX_LLM_LIST_ITEMS),
+    limitations: parseChinesePresentationArray(candidate.limitations, MAX_LLM_LIST_ITEMS),
   };
 }
 
@@ -303,10 +314,10 @@ function parseCandidateBestiarySuggestion(
       suggestion.lore,
       MAX_LLM_EXPLANATION_LENGTH,
     ),
-    behavior: parseStringArray(
+    behavior: parseChinesePresentationArray(
       suggestion.behavior,
       MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
-    ).map((item) => parseChinesePresentationString(item, MAX_LLM_TEXT_ITEM_LENGTH)),
+    ),
     attackTechnique: parseChinesePresentationString(
       suggestion.attackTechnique,
       MAX_LLM_TEXT_ITEM_LENGTH,
@@ -330,7 +341,7 @@ function parseBestiaryNames(
   }
 
   const names = value.map((name) =>
-    parseTrimmedString(name, MAX_LLM_BESTIARY_NAME_LENGTH),
+    parseChinesePresentationString(name, MAX_LLM_BESTIARY_NAME_LENGTH),
   );
   const uniqueNames = new Set(names);
 
@@ -371,7 +382,7 @@ export function parseGuardianLlmResponse(value: unknown): GuardianLlmResponse {
           ),
         }
       : {}),
-    publicSummary: parseTrimmedString(
+    publicSummary: parseChinesePresentationString(
       response.publicSummary,
       MAX_LLM_PUBLIC_SUMMARY_LENGTH,
     ),

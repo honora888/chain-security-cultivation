@@ -82,37 +82,37 @@ function rawFinding(category, title) {
     title,
     suggestedSeverity: "High",
     suggestedConfidence: { label: "Medium", score: 72 },
-    explanation: "The submitted source exposes a candidate security issue.",
-    attackPath: ["Reach the affected function.", "Trigger the unsafe path."],
+    explanation: "提交的源码暴露了候选安全问题。",
+    attackPath: ["调用受影响函数。", "触发不安全路径。"],
     affectedCode: [
       {
         source: "vulnerableSource",
         location: "Example.sol:10-14",
-        explanation: "The candidate behavior is visible in this range.",
+        explanation: "该范围内可见候选风险行为。",
       },
     ],
     evidence: [
       {
         source: "vulnerableSource",
-        description: "A source-level candidate signal is present.",
+        description: "源码中存在候选风险信号。",
         locations: ["Example.sol:10-14"],
       },
     ],
-    suggestedFix: ["Add the appropriate authorization or result check."],
-    limitations: ["This candidate has not been deterministically verified."],
+    suggestedFix: ["增加适当的授权或返回值检查。"],
+    limitations: ["该候选尚未经过确定性验证。"],
   };
 }
 
 function validRawResponse() {
   return {
     candidateFindings: [
-      rawFinding("access-control", "Missing privileged-action authorization"),
+      rawFinding("access-control", "敏感操作缺少授权检查"),
       rawFinding(
         "unchecked-external-call",
-        "Unchecked external call result",
+        "外部调用返回值未检查",
       ),
     ],
-    publicSummary: "Two additional candidate findings require human review.",
+    publicSummary: "两个额外候选发现需要人工审核。",
     bestiaryNameCandidates: [
       "越权噬印兽",
       "失验回声兽",

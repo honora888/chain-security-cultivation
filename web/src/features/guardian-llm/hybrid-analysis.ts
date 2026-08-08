@@ -8,6 +8,7 @@ import {
 
 import type { GuardianLlmMode } from "./config";
 import type { GuardianLlmProvider } from "./provider";
+import { filterGuardianLlmCandidates } from "./candidate-filter";
 import { runGuardianLlmEnhancement } from "./runner";
 import {
   type GuardianCandidateOnlyAnalysisSuccess,
@@ -120,11 +121,13 @@ export async function runHybridGuardianAnalysis(
       throw error;
     }
 
+    const filteredResponse = filterGuardianLlmCandidates(llmResult.response, []);
+
     return {
       kind: "candidate-only",
       response: candidateOnlyResponse(
         options.request.sample.name,
-        llmResult.response,
+        filteredResponse,
         (options.now ?? (() => new Date()))().toISOString(),
       ),
       deterministicResult: null,
@@ -148,11 +151,25 @@ export async function runHybridGuardianAnalysis(
     };
   }
 
+  const verifiedFindings = guardianSecuritySuccessToVerifiedFindings(deterministicResult);
+  const filteredResponse = filterGuardianLlmCandidates(
+    llmResult.response,
+    verifiedFindings,
+  );
+
+  if (filteredResponse.candidateFindings.length === 0) {
+    return {
+      kind: "deterministic",
+      response: deterministicResult,
+      deterministicResult,
+    };
+  }
+
   return {
     kind: "deterministic",
     response: {
       ...deterministicResult,
-      llmEnhancement: toPublicLlmEnhancement(llmResult.response),
+      llmEnhancement: toPublicLlmEnhancement(filteredResponse),
     },
     deterministicResult,
   };

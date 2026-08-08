@@ -5,6 +5,7 @@ import {
   GuardianLlmProviderError,
   type GuardianLlmProviderErrorCode,
 } from "./provider";
+import { scanGuardianLlmSources } from "./sensitive-source";
 
 export type GuardianLlmRunResult =
   | {
@@ -39,6 +40,14 @@ export async function runGuardianLlmEnhancement(
       status: "fallback",
       response: null,
       errorCode: "NOT_CONFIGURED",
+    };
+  }
+
+  if (scanGuardianLlmSources(options.input.untrustedSources).blocked) {
+    return {
+      status: "fallback",
+      response: null,
+      errorCode: "SENSITIVE_SOURCE",
     };
   }
 

@@ -382,7 +382,7 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
           </div>
           <ul className={styles.statusTags} aria-label="分析边界">
             <li>Deterministic Rules</li>
-            <li>No External Model</li>
+            <li>Optional Model Enrichment</li>
             <li>Source Text Only</li>
             <li>Human Review Required</li>
           </ul>
@@ -493,6 +493,15 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
                 );
               })}
             </div>
+
+            <aside className={styles.externalModelDisclosure} aria-label="外部模型隐私提示">
+              <strong>外部模型增强 · 可选</strong>
+              <p>
+                Guardian 的外部模型增强为可选能力。若服务端启用该能力，提交的 Solidity
+                源码可能发送给外部模型提供商用于候选分析。请勿在源码中提交私钥、助记词、
+                API Key、访问令牌或其他敏感凭据。确定性 Guardian 无需外部模型也可独立工作。
+              </p>
+            </aside>
 
             <aside className={styles.reviewCriteria} aria-labelledby="review-criteria-title">
               <div>

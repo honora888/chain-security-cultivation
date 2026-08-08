@@ -23,11 +23,28 @@ import {
 } from "@/features/guardian-draft/contracts";
 import type { GuardianHybridPublicResponse } from "@/features/guardian-llm/hybrid-analysis-types";
 import {
+  GUARDIAN_AFFECTED_CODE_SOURCES,
+  GUARDIAN_FINDING_SEVERITIES,
+  GUARDIAN_VULNERABILITY_CATEGORIES,
+  MAX_LLM_AFFECTED_CODE_ITEMS,
   MAX_LLM_BESTIARY_BEHAVIOR_ITEMS,
   MAX_LLM_BESTIARY_NAME_LENGTH,
+  MAX_LLM_CANDIDATE_FINDINGS,
+  MAX_LLM_EVIDENCE_ITEMS,
+  MAX_LLM_EVIDENCE_LOCATIONS,
   MAX_LLM_EXPLANATION_LENGTH,
+  MAX_LLM_LIST_ITEMS,
+  MAX_LLM_LOCATION_LENGTH,
+  MAX_LLM_PUBLIC_SUMMARY_LENGTH,
   MAX_LLM_TEXT_ITEM_LENGTH,
+  MAX_LLM_TITLE_LENGTH,
 } from "@/features/guardian-llm/response-schema";
+import {
+  guardianConfidenceLabelForScore,
+  isGuardianConfidenceLabel,
+  isGuardianConfidenceScore,
+} from "@/features/guardian-llm/confidence";
+import { isSimplifiedChineseOrientedText } from "@/features/guardian-llm/language-policy";
 import {
   isCultivationElement,
   isCultivationRealm,
@@ -204,12 +221,28 @@ function stringArray(value: unknown): readonly string[] {
   return value;
 }
 
+function boundedStringArray(
+  value: unknown,
+  maxItems: number,
+  maxCharacters: number,
+  chinesePresentation: boolean,
+): readonly string[] {
+  const items = stringArray(value);
+  if (items.length > maxItems) return fail("MALFORMED");
+  return items.map((item) =>
+    chinesePresentation
+      ? validateChinesePresentationString(item, maxCharacters)
+      : validateBoundedDisplayString(item, maxCharacters),
+  );
+}
+
 function validateBoundedDisplayString(value: unknown, maxCharacters: number): string {
   const result = stringValue(value);
   if (
     result.length === 0 ||
     result.trim() !== result ||
     CONTROL_CHARACTER_PATTERN.test(result) ||
+    result.length > maxCharacters ||
     Array.from(result).length > maxCharacters
   ) {
     return fail("MALFORMED");
@@ -320,16 +353,12 @@ function exactSourceHashes(input: {
   };
 }
 
-function validateStringArrayFields(value: unknown): void {
-  stringArray(value);
-}
-
 function validateChinesePresentationString(
   value: unknown,
   maxCharacters: number,
 ): string {
   const text = validateBoundedDisplayString(value, maxCharacters);
-  if (!/\p{Script=Han}/u.test(text)) return fail("MALFORMED");
+  if (!isSimplifiedChineseOrientedText(text)) return fail("MALFORMED");
   return text;
 }
 
@@ -386,70 +415,109 @@ function validatePublicLlmEnhancement(value: unknown): void {
   ]);
   if (
     enhancement.status !== "enhanced" ||
-    typeof enhancement.publicSummary !== "string" ||
-    !Array.isArray(enhancement.candidateFindings)
+    !Array.isArray(enhancement.candidateFindings) ||
+    enhancement.candidateFindings.length > MAX_LLM_CANDIDATE_FINDINGS
   ) {
     return fail("MALFORMED");
   }
+  validateChinesePresentationString(
+    enhancement.publicSummary,
+    MAX_LLM_PUBLIC_SUMMARY_LENGTH,
+  );
   const names = stringArray(enhancement.bestiaryNameCandidates).map((name) =>
-    validateBoundedDisplayString(name, MAX_LLM_BESTIARY_NAME_LENGTH),
+    validateChinesePresentationString(name, MAX_LLM_BESTIARY_NAME_LENGTH),
   );
   if (names.length !== 4 || new Set(names).size !== 4) {
     return fail("MALFORMED");
   }
 
-  for (const candidateValue of enhancement.candidateFindings) {
+  for (const [candidateIndex, candidateValue] of enhancement.candidateFindings.entries()) {
     const candidate = exactRecord(candidateValue, PUBLIC_CANDIDATE_KEYS);
     if (
-      typeof candidate.candidateId !== "string" ||
+      candidate.candidateId !== `llm-candidate-${candidateIndex + 1}` ||
       typeof candidate.category !== "string" ||
-      typeof candidate.title !== "string" ||
+      !GUARDIAN_VULNERABILITY_CATEGORIES.includes(candidate.category as never) ||
       candidate.verification !== "llm_candidate" ||
       typeof candidate.suggestedSeverity !== "string" ||
-      typeof candidate.explanation !== "string" ||
+      !GUARDIAN_FINDING_SEVERITIES.includes(candidate.suggestedSeverity as never) ||
       !Array.isArray(candidate.affectedCode) ||
-      !Array.isArray(candidate.evidence)
+      candidate.affectedCode.length > MAX_LLM_AFFECTED_CODE_ITEMS ||
+      !Array.isArray(candidate.evidence) ||
+      candidate.evidence.length > MAX_LLM_EVIDENCE_ITEMS
     ) {
       return fail("MALFORMED");
     }
+
+    validateChinesePresentationString(candidate.title, MAX_LLM_TITLE_LENGTH);
+    validateChinesePresentationString(
+      candidate.explanation,
+      MAX_LLM_EXPLANATION_LENGTH,
+    );
 
     const confidence = exactRecord(candidate.suggestedConfidence, [
       "label",
       "score",
     ]);
     if (
-      typeof confidence.label !== "string" ||
-      typeof confidence.score !== "number" ||
-      !Number.isFinite(confidence.score)
+      !isGuardianConfidenceLabel(confidence.label) ||
+      !isGuardianConfidenceScore(confidence.score) ||
+      confidence.label !== guardianConfidenceLabelForScore(confidence.score)
     ) {
       return fail("MALFORMED");
     }
 
-    validateStringArrayFields(candidate.attackPath);
-    validateStringArrayFields(candidate.suggestedFix);
-    validateStringArrayFields(candidate.limitations);
+    boundedStringArray(
+      candidate.attackPath,
+      MAX_LLM_LIST_ITEMS,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+      true,
+    );
+    boundedStringArray(
+      candidate.suggestedFix,
+      MAX_LLM_LIST_ITEMS,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+      true,
+    );
+    boundedStringArray(
+      candidate.limitations,
+      MAX_LLM_LIST_ITEMS,
+      MAX_LLM_TEXT_ITEM_LENGTH,
+      true,
+    );
 
     for (const affectedValue of candidate.affectedCode) {
       const affected = exactRecord(affectedValue, AFFECTED_CODE_KEYS);
       if (
         typeof affected.source !== "string" ||
-        typeof affected.location !== "string" ||
-        typeof affected.explanation !== "string"
+        !GUARDIAN_AFFECTED_CODE_SOURCES.includes(affected.source as never)
       ) {
         return fail("MALFORMED");
       }
+      validateBoundedDisplayString(affected.location, MAX_LLM_LOCATION_LENGTH);
+      validateChinesePresentationString(
+        affected.explanation,
+        MAX_LLM_TEXT_ITEM_LENGTH,
+      );
     }
 
     for (const evidenceValue of candidate.evidence) {
       const evidence = exactRecord(evidenceValue, CANDIDATE_EVIDENCE_KEYS);
       if (
-        typeof evidence.source !== "string" ||
-        typeof evidence.description !== "string" ||
         evidence.provenance !== "llm_candidate"
       ) {
         return fail("MALFORMED");
       }
-      validateStringArrayFields(evidence.locations);
+      validateBoundedDisplayString(evidence.source, MAX_LLM_TEXT_ITEM_LENGTH);
+      validateChinesePresentationString(
+        evidence.description,
+        MAX_LLM_TEXT_ITEM_LENGTH,
+      );
+      boundedStringArray(
+        evidence.locations,
+        MAX_LLM_EVIDENCE_LOCATIONS,
+        MAX_LLM_LOCATION_LENGTH,
+        false,
+      );
     }
   }
 

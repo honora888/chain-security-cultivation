@@ -145,7 +145,8 @@ test("submitting state is visible and disables both submit actions", () => {
 });
 
 test("synchronous in-flight guard prevents concurrent double submission", () => {
-  const guardIndex = confirmSource.indexOf("submissionInFlight.current\n    ) return");
+  const guardMatch = /submissionInFlight\.current\r?\n    \) return/u.exec(confirmSource);
+  const guardIndex = guardMatch?.index ?? -1;
   const lockIndex = confirmSource.indexOf("submissionInFlight.current = true");
   const requestIndex = confirmSource.indexOf("await createSignedContribution", lockIndex);
   const unlockIndex = confirmSource.indexOf("submissionInFlight.current = false", requestIndex);

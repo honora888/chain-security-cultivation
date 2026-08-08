@@ -117,43 +117,43 @@ const ORIGINAL_DETERMINISTIC = analyzeGuardianSecurityCase(
   NOT_APPLICABLE_MOSS,
 );
 
-function llmCandidateResponse(summary = "One candidate requires review.") {
+function llmCandidateResponse(summary = "一个候选发现需要人工审核。") {
   return {
     candidateFindings: [
       {
         candidateId: "llm-candidate-1",
         category: "access-control",
-        title: "Missing authorization candidate",
+        title: "缺少授权检查的候选问题",
         verification: "llm_candidate",
         suggestedSeverity: "High",
         suggestedConfidence: { label: "Medium", score: 74 },
-        explanation: "A privileged state change may be callable by any account.",
-        attackPath: ["Call the state-changing function without authorization."],
+        explanation: "任意账户都可能调用敏感状态变更。",
+        attackPath: ["在未授权时调用状态变更函数。"],
         affectedCode: [
           {
             source: "vulnerableSource",
             location: "Vault.sol:setOwner",
-            explanation: "No authorization condition is visible.",
+            explanation: "此处未见授权条件。",
           },
         ],
         evidence: [
           {
             source: "vulnerableSource",
-            description: "The function changes the owner value.",
+            description: "该函数会变更 owner 状态。",
             locations: ["Vault.sol:setOwner"],
             provenance: "llm_candidate",
           },
         ],
-        suggestedFix: ["Require an authorized caller."],
-        limitations: ["This finding has not been deterministically verified."],
+        suggestedFix: ["要求调用者通过授权检查。"],
+        limitations: ["该发现尚未经过确定性验证。"],
       },
     ],
     publicSummary: summary,
     bestiaryNameCandidates: [
-      "Unbound Warden",
-      "Open Gate Beast",
-      "Seal Thief",
-      "Owner Eater",
+      "无界守门兽",
+      "洞门越权兽",
+      "窃印潜行兽",
+      "噬主夺权兽",
     ],
     candidateBestiarySuggestion: {
       candidateFindingIndex: 0,
@@ -300,7 +300,7 @@ test("different candidate fields cannot affect deterministic digest", async () =
   );
   assert.notEqual(
     outcome.response.llmEnhancement.publicSummary,
-    "One candidate requires review.",
+    "一个候选发现需要人工审核。",
   );
 });
 
