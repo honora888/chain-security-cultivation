@@ -18,6 +18,7 @@ import {
   guardianConfidenceLabelZh,
   guardianFindingSeverityLabelZh,
 } from "@/features/guardian-llm/confidence";
+import { Stage38ExecutionPanel } from "@/features/guardian-agent/stage38-execution-panel";
 import {
   cultivationElementLabel,
   cultivationRealmLabel,
@@ -434,6 +435,7 @@ export function ProfilePageClient() {
         />
         <ContributionProfileCard merit={merit} statusCounts={statusCounts} />
       </div>
+      <Stage38ExecutionPanel />
       <section className={styles.caseList} aria-labelledby="my-cases-title"><div className={styles.sectionHeader}><h2 id="my-cases-title">我的异兽献策</h2><Link href="/contribute">前往异兽献策</Link></div>
         {cases.length ? cases.map((item) => <article className={styles.caseCard} key={item.caseId}><div><p className={styles.statusPill} data-status={item.status}>{STATUS_COPY[item.status]}</p><h3>{item.caseName}</h3><p>{item.proposedBestiaryName ?? "未命名异兽"} · {item.formalType ?? "等待分析"}</p></div><CaseFacts item={item}/><div><time dateTime={item.createdAt}>{dateText(item.createdAt)}</time><Link href={`/profile/cases/${item.caseId}`}>查看详情</Link></div></article>) : <div className={styles.emptyState}><h3>尚未完成异兽献策</h3><Link href="/contribute">前往异兽献策</Link></div>}
       </section>
