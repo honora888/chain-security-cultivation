@@ -5,6 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { AUTH_CHAIN_ID, AUTH_CHAIN_NAME, useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 import {
+  CultivationApiError,
+  getCultivationProfile,
+} from "@/features/cultivation/cultivation-api-client";
+import type { CultivationProfile } from "@/features/cultivation/contracts";
+import {
   guardianConfidenceLabelZh,
   guardianFindingSeverityLabelZh,
 } from "@/features/guardian-llm/confidence";
@@ -26,6 +31,7 @@ import {
   type ContributorReviewSummary,
   type MeritSummary,
 } from "./contributor-api-client";
+import { deriveContributorReputation } from "./contributor-reputation";
 import styles from "./contributor-ui.module.css";
 
 const STATUS_COPY: Record<ContributionStatus, string> = {
@@ -34,6 +40,8 @@ const STATUS_COPY: Record<ContributionStatus, string> = {
   approved: "已通过 / 已收录",
   rejected: "未通过",
 };
+
+const CULTIVATION_ELEMENTS = ["Metal", "Wood", "Water", "Fire", "Earth"] as const;
 
 const ERROR_COPY: Record<string, string> = {
   AUTH_REQUIRED: "请先完成钱包签名登录。",
@@ -60,6 +68,10 @@ function dateText(value: string | undefined): string {
 
 function errorText(error: unknown): string {
   if (error instanceof ContributorApiError) return ERROR_COPY[error.code] ?? "请求未能完成，请稍后重试。";
+  if (error instanceof CultivationApiError) {
+    if (error.code === "AUTH_REQUIRED") return "请先完成钱包签名登录。";
+    return "修炼档案暂时无法读取，请稍后重试。";
+  }
   return "请求未能完成，请稍后重试。";
 }
 
@@ -187,21 +199,150 @@ function CaseFacts({ item }: { item: ContributionSummary }) {
   );
 }
 
+function ProfileIdentityHeader({ walletAddress }: { walletAddress: string | null }) {
+  return (
+    <section className={styles.profileIdentityHeader} aria-labelledby="profile-identity-title">
+      <div>
+        <p className={styles.eyebrow}>CULTIVATOR IDENTITY</p>
+        <h2 id="profile-identity-title">修仙档案</h2>
+      </div>
+      <dl>
+        <div><dt>当前钱包</dt><dd>{compactAddress(walletAddress)}</dd></div>
+        <div><dt>修炼网络</dt><dd>{AUTH_CHAIN_NAME}</dd></div>
+      </dl>
+    </section>
+  );
+}
+
+function CultivationProfileCard({ profile }: { profile: CultivationProfile }) {
+  const progression = profile.progression;
+  const expDisplay = progression.nextRealmExp === null
+    ? `${profile.totalExp} EXP`
+    : `${profile.totalExp} / ${progression.nextRealmExp} EXP`;
+
+  return (
+    <section className={styles.profileCard} data-profile="cultivation" aria-labelledby="cultivation-profile-title">
+      <header className={styles.profileCardHeader}>
+        <p>SECRET REALM CULTIVATION</p>
+        <h2 id="cultivation-profile-title">修炼档案</h2>
+      </header>
+      <div className={styles.profileLeadStats}>
+        <div><span>当前境界</span><strong>{cultivationRealmLabel(progression.realm)}</strong></div>
+        <div><span>修为</span><strong>{expDisplay}</strong></div>
+      </div>
+      <div className={styles.profileProgress}>
+        <div
+          role="progressbar"
+          aria-label="当前境界修为进度"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progression.progressPercent)}
+        >
+          <span style={{ width: `${progression.progressPercent}%` }} />
+        </div>
+        <p>{progression.nextRealm
+          ? `距离${cultivationRealmLabel(progression.nextRealm)} ${progression.expToNextRealm} EXP`
+          : "当前已达渡劫期"}</p>
+      </div>
+      <div className={styles.profileSingleStat}>
+        <span>已降伏异兽</span>
+        <strong>{profile.completedQuestCount}</strong>
+      </div>
+      <section className={styles.profileDetailSection} aria-labelledby="profile-mastery-title">
+        <h3 id="profile-mastery-title">五行熟练度</h3>
+        <dl className={styles.masteryGrid}>
+          {CULTIVATION_ELEMENTS.map((element) => (
+            <div key={element}>
+              <dt>{cultivationElementLabel(element)}</dt>
+              <dd>{profile.mastery[element]}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <section className={styles.profileDetailSection} aria-labelledby="profile-badges-title">
+        <h3 id="profile-badges-title">修炼徽记</h3>
+        <p>{profile.badges.length
+          ? profile.badges.map((badge) => badge.label).join("、")
+          : "尚未获得修炼徽记"}</p>
+      </section>
+    </section>
+  );
+}
+
+function ContributionProfileCard({
+  merit,
+  statusCounts,
+}: {
+  merit: MeritSummary;
+  statusCounts: Record<ContributionStatus, number>;
+}) {
+  const reputation = deriveContributorReputation(merit.totalMerit);
+  const meritDisplay = reputation.nextTitleMerit === null
+    ? `${reputation.totalMerit} 功德`
+    : `${reputation.totalMerit} / ${reputation.nextTitleMerit} 功德`;
+
+  return (
+    <section className={styles.profileCard} data-profile="contribution" aria-labelledby="contribution-profile-title">
+      <header className={styles.profileCardHeader}>
+        <p>COMMUNITY CONTRIBUTION</p>
+        <h2 id="contribution-profile-title">贡献档案</h2>
+      </header>
+      <div className={styles.profileLeadStats}>
+        <div><span>当前贡献称号</span><strong>{reputation.title}</strong></div>
+        <div><span>累计功德</span><strong>{meritDisplay}</strong></div>
+      </div>
+      <div className={styles.profileProgress}>
+        <div
+          role="progressbar"
+          aria-label="当前贡献称号功德进度"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(reputation.progressPercent)}
+        >
+          <span style={{ width: `${reputation.progressPercent}%` }} />
+        </div>
+        <p>{reputation.nextTitle
+          ? `距离${reputation.nextTitle} ${reputation.meritToNextTitle} 功德`
+          : "当前已达最高贡献称号"}</p>
+      </div>
+      <dl className={styles.contributionStatusGrid}>
+        <div><dt>已收录贡献</dt><dd>{statusCounts.approved}</dd></div>
+        <div><dt>待守阁人审核</dt><dd>{statusCounts.pending_review}</dd></div>
+        <div><dt>待返修</dt><dd>{statusCounts.changes_requested}</dd></div>
+        <div><dt>未通过</dt><dd>{statusCounts.rejected}</dd></div>
+      </dl>
+    </section>
+  );
+}
+
 export function ProfilePageClient() {
   const wallet = useWalletAuth();
   const { authenticated, refreshSession } = wallet;
   const [cases, setCases] = useState<readonly ContributionSummary[] | null>(null);
   const [merit, setMerit] = useState<MeritSummary | null>(null);
+  const [cultivation, setCultivation] = useState<CultivationProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authenticated) return;
     const controller = new AbortController();
-    void Promise.all([getContributions(controller.signal), getMerit(controller.signal)])
-      .then(([nextCases, nextMerit]) => { setCases(nextCases); setMerit(nextMerit); setError(null); })
+    void Promise.all([
+      getContributions(controller.signal),
+      getMerit(controller.signal),
+      getCultivationProfile(controller.signal),
+    ])
+      .then(([nextCases, nextMerit, nextCultivation]) => {
+        setCases(nextCases);
+        setMerit(nextMerit);
+        setCultivation(nextCultivation);
+        setError(null);
+      })
       .catch((requestError) => {
         if (!controller.signal.aborted) {
-          if (requestError instanceof ContributorApiError && requestError.status === 401) void refreshSession();
+          if (
+            (requestError instanceof ContributorApiError || requestError instanceof CultivationApiError) &&
+            requestError.status === 401
+          ) void refreshSession();
           setError(errorText(requestError));
         }
       });
@@ -215,24 +356,20 @@ export function ProfilePageClient() {
   }, [cases]);
 
   return <ContributorShell current="profile">
-    <section className={styles.hero}><p className={styles.eyebrow}>CULTIVATOR PROFILE</p><h1>我的修仙档案</h1><p>仅显示当前 HttpOnly Session 所属钱包的异兽献策与 Merit 记录。</p></section>
-    <WalletStatusCard />
+    <section className={styles.hero}><p className={styles.eyebrow}>CULTIVATOR PROFILE</p><h1>我的修仙档案</h1><p>秘境修为与社区功德各自独立归档，均以当前认证钱包的服务端记录为准。</p></section>
+    {wallet.authenticated ? <ProfileIdentityHeader walletAddress={wallet.walletAddress} /> : <WalletStatusCard />}
     {!wallet.authenticated ? <section className={styles.emptyState}><h2>完成钱包签名后查看档案</h2><p>连接 Monad Testnet 钱包并签名登录后，系统才会读取你的贡献与 Merit。</p></section> : null}
     {wallet.authenticated && error ? <p className={styles.errorMessage} role="status">{error}</p> : null}
-    {wallet.authenticated && !cases ? <p className={styles.loading}>正在读取我的贡献与 Merit…</p> : null}
-    {wallet.authenticated && cases && merit ? <>
-      <section className={styles.profileSummary}>
-        <div><span>当前钱包</span><strong>{compactAddress(wallet.walletAddress)}</strong></div>
-        <div><span>网络</span><strong>{AUTH_CHAIN_NAME}</strong></div>
-        <div><span>贡献值</span><strong>{merit.totalMerit}</strong></div>
-        <div><span>贡献总数</span><strong>{cases.length}</strong></div>
-      </section>
-      <section className={styles.statusGrid} aria-label="案例状态统计">{(Object.keys(STATUS_COPY) as ContributionStatus[]).map((status) => <div key={status}><span>{STATUS_COPY[status]}</span><strong>{statusCounts[status]}</strong></div>)}</section>
-      <section className={styles.cultivationProgress} aria-labelledby="cultivation-progress-title"><h2 id="cultivation-progress-title">修炼进度</h2><p>秘境修为记录将在 Quest 完成验证接入后开放。</p></section>
+    {wallet.authenticated && (!cases || !merit || !cultivation) && !error ? <p className={styles.loading}>正在读取修炼与贡献档案…</p> : null}
+    {wallet.authenticated && cases && merit && cultivation ? <>
+      <div className={styles.dualProfileGrid}>
+        <CultivationProfileCard profile={cultivation} />
+        <ContributionProfileCard merit={merit} statusCounts={statusCounts} />
+      </div>
       <section className={styles.caseList} aria-labelledby="my-cases-title"><div className={styles.sectionHeader}><h2 id="my-cases-title">我的异兽献策</h2><Link href="/contribute">前往异兽献策</Link></div>
         {cases.length ? cases.map((item) => <article className={styles.caseCard} key={item.caseId}><div><p className={styles.statusPill} data-status={item.status}>{STATUS_COPY[item.status]}</p><h3>{item.caseName}</h3><p>{item.proposedBestiaryName ?? "未命名异兽"} · {item.formalType ?? "等待分析"}</p></div><CaseFacts item={item}/><div><time dateTime={item.createdAt}>{dateText(item.createdAt)}</time><Link href={`/profile/cases/${item.caseId}`}>查看详情</Link></div></article>) : <div className={styles.emptyState}><h3>尚未完成异兽献策</h3><Link href="/contribute">前往异兽献策</Link></div>}
       </section>
-      <section className={styles.meritSection}><h2>Merit 明细</h2>{merit.entries.length ? <ul>{merit.entries.map((entry) => <li key={entry.idempotencyKey}><strong>+{entry.amount}</strong><span>{entry.reason}</span><time dateTime={entry.createdAt}>{dateText(entry.createdAt)}</time></li>)}</ul> : <p className={styles.mutedCopy}>审核收录后结算贡献值。</p>}</section>
+      <section className={styles.meritSection}><h2>功德明细</h2>{merit.entries.length ? <ul>{merit.entries.map((entry) => <li key={entry.idempotencyKey}><strong>+{entry.amount}</strong><span>{entry.reason}</span><time dateTime={entry.createdAt}>{dateText(entry.createdAt)}</time></li>)}</ul> : <p className={styles.mutedCopy}>审核收录后结算功德。</p>}</section>
     </> : null}
   </ContributorShell>;
 }
