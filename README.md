@@ -1,310 +1,154 @@
-# 链安修仙录
+# 链安修仙录 Chain Security Cultivation
 
-> 以东方修仙与妖兽战斗为叙事框架的智能合约安全学习项目。
+一个把智能合约安全学习变成「AI 安全分析 → 修仙闯关 → 社区共建 → Monad 可验证凭证」完整体验的 Web3 安全学习平台。
 
-《链安修仙录》将智能合约漏洞转化为可学习、可验证的“妖兽关卡”。学习者通过识别危险代码、复现攻击、理解修复方式、查看安全证据，并在 Monad Testnet 上核验学习凭证，完成从漏洞理解到链上存证的完整闭环。
+- 线上体验：[chain-security-cultivation-mo.vercel.app](https://chain-security-cultivation-mo.vercel.app/)
+- 当前完整关卡：Quest I「噬灵回环兽」
+- 目标网络：Monad Testnet（Chain ID `10143`）
 
-## 当前进度
+## 项目概述
 
-| 模块 | 状态 |
+链安修仙录以东方修仙叙事重新组织智能合约安全学习：学习者识别漏洞、观察攻击、理解修复、完成确定性挑战，并把通过结果转化为可公开核验的 Monad 链上成长记录。同时，贡献者可以提交安全案例，由 Guardian 分析、守阁人审核并沉淀进异兽志。
+
+它不是把课程内容简单搬上链，而是把安全学习拆分为适合链上与链下各自承担的部分，在隐私、成本、可验证性与可持续社区协作之间保持清晰边界。
+
+## 为谁解决什么问题
+
+- 为智能合约初学者提供从漏洞现象到修复原理的完整、可操作学习路径。
+- 为 Monad Builder 提供可验证的安全成长记录，而不是一次性的课程完成页面。
+- 为安全贡献者建立候选案例、审核反馈、返修、收录与 Merit 声誉闭环。
+- 为 Agent 链上操作探索“先模拟、再授权、后回读验证”的安全执行边界。
+
+## 核心体验
+
+1. 在 Quest I 中对抗经典重入漏洞异兽「噬灵回环兽」。
+2. 观察真实资金流、识别漏洞类型并学习 Checks-Effects-Interactions 修复。
+3. 完成确定性挑战，获得 EXP、五行熟练度与修炼徽记。
+4. 核验 GuardianQuest 中的 completion proof、`reportHash` 与 ERC-1155 Soulbound 凭证。
+5. 在个人档案查看修炼档案、贡献档案和真实 Stage38 Agent 链上执行证据。
+
+## 核心功能
+
+- Guardian 多层安全分析与 Signed Guardian Draft
+- 候选案例贡献、Guardian Draft 确认和异兽志共建
+- 守阁人漏洞分类、`changes_requested` 与返修重提
+- Merit 贡献声誉与称号
+- Quest I 确定性安全挑战及六幕沉浸式流程
+- EXP、五行熟练度、境界与徽记
+- 修炼档案与贡献档案双栏 Profile
+- Monad GuardianQuest ERC-1155 Soulbound Credential
+- Stage37 登录后真实链上凭证状态：`LEGACY_CREDENTIAL`、`READY_FOR_ONCHAIN`、`VERIFIED`
+- Stage38 Moss 模拟 → 用户授权 → Monad 执行 → 状态回读验证
+
+## Why Monad
+
+链安修仙录围绕 Monad Builder 建立三层价值：
+
+```text
+Learn  培养更安全的 Builder
+Prove  让安全学习成果成为 Monad 上可验证的成长记录
+Act    探索 Agent 在模拟、授权和验证边界下安全操作 Monad
+```
+
+长期生态价值：
+
+```text
+更安全的 Builder
+→ 更安全的应用
+→ 更可信的 Agent
+→ 更健康的 Monad 生态
+```
+
+Monad 在这里承担公共身份、完成证明、Soulbound 凭证和可回读状态的验证层，而不是仅仅用于“把数据放上链”。
+
+## Learn → Prove → Act
+
+| 阶段 | 当前实现 |
 |---|---|
-| Quest 1 漏洞合约与攻击演示 | 已完成 |
-| Foundry 单元测试与 Invariant | 已完成 |
-| Slither 漏洞/修复对照 | 已完成 |
-| GuardianQuest 合约 | 已完成 |
-| Monad Testnet 部署 | 已完成 |
-| Quest 1 注册与报告存证 | 已完成 |
-| ERC-1155 不可转让勋章 | 已铸造 |
-| 前端视觉与开发规格 | 已完成 |
-| Quest 1 Boss 战前端 | 已完成六幕与只读链上核验 |
+| Learn | Guardian 安全分析、漏洞挑战、攻击复现、修复理解、EXP 与五行成长 |
+| Prove | GuardianQuest completion proof、`reportHash`、ERC-1155 Soulbound Credential、链上凭证一致性状态 |
+| Act | Moss 准备并模拟精确交易，用户通过 EIP-1193 钱包明确授权，执行后独立回读 Monad 合约状态 |
 
-当前版本聚焦 **Quest 1：噬灵回环兽**。前端只实现这一关，不虚构其他关卡。
+## Monad Integration
 
-## 在线体验
+### 链下
 
-- [稳定生产首页](https://chain-security-cultivation-mo.vercel.app/)
-- [Quest 1：噬灵回环兽](https://chain-security-cultivation-mo.vercel.app/quests/1)
-- [生产 API 示例](https://chain-security-cultivation-mo.vercel.app/api/quest-1/chain-status?address=0x000000000000000000000000000000000000dEaD)
+- Guardian 原始分析与完整证据
+- 私有守阁人数据与审核过程
+- 学习中间状态
+- EXP 与 Merit
+- 贡献案例全文和应用会话
 
-生产环境运行于 Vercel，链上查询目标为 Monad Testnet。API 只读，不连接钱包、不请求签名，也不发送交易。
+### 链上
 
-上线记录与链上验收边界：
+- Quest identity / registry
+- completion proof
+- `reportHash`
+- ERC-1155 Soulbound Credential
+- 公共资助与状态回读验证
 
-- [Quest 1 Vercel 生产部署](docs/quest-1-production-deployment.md)
-- [Quest 1 Monad Testnet 只读验收](docs/quest-1-chain-verification.md)
+链下负责需要隐私、快速迭代或高信息密度的数据；链上负责需要公共可验证性、不可抵赖性和生态可组合性的证明。
 
-## 学习闭环
+## Moss Agent Execution
 
-```text
-识别危险代码
-→ 判断漏洞类型
-→ 复现攻击过程
-→ 学习安全修复
-→ 验证修复结果
-→ 固化审计证据
-→ 核验链上完成状态
-→ 获得不可转让勋章
-```
+Moss prepared and simulated the exact GuardianQuest action. The user explicitly authorized the reviewed transaction through an EIP-1193 wallet. After execution on Monad Testnet, the resulting contract state was independently read back and verified.
 
-## Quest 1：噬灵回环兽
+Moss 没有持有私钥，也没有不受限制的钱包控制权。生产前端仅展示只读证据，不提供 Agent 执行、签名或广播入口。
 
-| 字段 | 内容 |
-|---|---|
-| Quest ID | 1 |
-| 境界 | 金丹期 |
-| 五行 | 水 |
-| 漏洞 | 经典重入漏洞 |
-| 风险等级 | High |
-| 修复原则 | Checks-Effects-Interactions |
-| 勋章 | 水系守护者 |
-| Token ID | 1 |
+未来可在同样的“模拟 + 明确授权 + 回读验证”边界下支持自动凭证封印、Quest 运维、社区资助和 Agent 驱动的安全工作流；这些能力目前不声明为已实现。
 
-关键资料：
-
-- [Quest 原文](quests/1-reentrancy.md)
-- [Quest 元数据](metadata/1.json)
-- [审计报告](reports/quest-1-audit-report.md)
-- [Slither 验证记录](reports/slither-checklist.md)
-- [前端开发规格](docs/quest-1-frontend-spec.md)
-
-## 漏洞与修复
-
-### 漏洞版本
-
-`VulnerableCharityVault` 在更新余额前执行外部调用：
-
-```solidity
-(bool success,) = msg.sender.call{value: amount}("");
-require(success, "Transfer failed");
-
-balances[msg.sender] = 0;
-```
-
-接收方可在 `receive()` 中再次调用 `withdraw()`，重复读取尚未清零的余额。
-
-### 修复版本
-
-`FixedCharityVault` 使用 Checks-Effects-Interactions：
-
-```solidity
-balances[msg.sender] = 0;
-emit Withdrawn(msg.sender, amount);
-
-(bool success,) = msg.sender.call{value: amount}("");
-require(success, "Transfer failed");
-```
-
-执行顺序变为：
+## Architecture
 
 ```text
-检查余额 → 更新内部状态 → 记录事件 → 执行外部交互
+Browser / Wallet
+       │ EIP-1193 identity and explicit authorization
+       ▼
+Next.js App Router
+  ├─ Quest I immersive learning UI
+  ├─ Guardian deterministic + optional model analysis
+  ├─ Contributor / reviewer / cultivation APIs
+  ├─ Stage37 credential consistency derivation
+  └─ Stage38 public read-only execution evidence
+       │
+       ├─ Neon Postgres + Drizzle
+       │    private learning, contribution, review, EXP and Merit state
+       │
+       └─ Monad Testnet RPC
+            GuardianQuest registry, proof, reportHash,
+            Soulbound credential and public funding state
 ```
 
-## 安全验证
+安全合约、Foundry 测试、Invariant、Slither 结果、Quest 内容和审计报告均保存在同一仓库中，形成可复现证据链。
 
-### Foundry
+## Tech Stack
 
-已覆盖：
+- Frontend / API：Next.js 16、React 19、TypeScript、CSS Modules
+- Data：Neon Postgres、Drizzle ORM
+- Chain：Solidity、Foundry、OpenZeppelin ERC-1155、viem、Monad Testnet
+- Security：Foundry unit tests、Invariant、Slither
+- Agent / AI：Moss、确定性 Guardian 分析、可选 Gemini hybrid 模式
+- Deployment：Vercel
 
-- 漏洞金库可被重入抽空；
-- 修复版本阻止攻击；
-- 正常提款不受影响；
-- GuardianQuest 注册、验证、勋章、权限和资助流程。
-
-攻击场景：
-
-```text
-金库原有：10 ETH
-攻击者存入：1 ETH
-攻击后金库：0 ETH
-攻击合约最终：11 ETH
-重入次数：大于 1
-```
-
-### Invariant
-
-```text
-Runs: 64
-Depth: 32
-Calls: 2,048
-Unexpected reverts: 0
-```
-
-验证属性：
-
-```text
-FixedCharityVault 实际余额
-=
-所有用户账面余额之和
-```
-
-### Slither
-
-使用 Slither `0.11.5`，启用：
-
-- `reentrancy-eth`
-- `reentrancy-events`
-
-| 合约 | reentrancy-eth | reentrancy-events | 结果 |
-|---|---:|---:|---:|
-| VulnerableCharityVault | 检测到 | 检测到 | 2 |
-| FixedCharityVault | 未检测到 | 未检测到 | 0 |
-
-原始结果：
-
-- [漏洞版本扫描](reports/slither-reentrancy.txt)
-- [修复版本扫描](reports/slither-fixed.txt)
-
-> Slither 对照只代表当前代码未触发所选检测器，不等同于完整安全审计。
-
-## GuardianQuest
-
-`GuardianQuest` 负责：
-
-- 注册和启停 Quest；
-- 保存 Quest 内容 Hash；
-- 保存学习者审计报告 Hash；
-- 管理验证者角色；
-- 记录学习者完成状态；
-- 铸造不可转让 ERC-1155 勋章；
-- 支持测试公益资金资助与管理员提取。
-
-前端第一版只进行只读查询，不请求钱包签名，也不发送链上交易。
-
-## Monad Testnet
-
-| 字段 | 内容 |
-|---|---|
-| Network | Monad Testnet |
-| Chain ID | 10143 |
-| GuardianQuest | `0x131DEbd042208A327841128e5800dd4a833032ab` |
-| Demo Learner | `0x0A31d11Fd14029c12Ef07c2c200085aE622c1541` |
-
-交易记录：
-
-| 操作 | Transaction Hash |
-|---|---|
-| 部署 GuardianQuest | `0x577d17c114c2c22d9b1e467e67649cd82217d7a4ba19f41e4526ba66cc9602e2` |
-| 注册 Quest 1 | `0x79596150497251cb506eb25eee28f9b9b5bb3e801da49ebf4dfd4416d283f648` |
-| 验证通关并铸造勋章 | `0x3b336c8f9d208e2492309f8db252a889ca9cfe6f61814321f4f48dd4ffdfc5e8` |
-
-详细记录：
-
-- [Monad Testnet 部署](deployments/monad-testnet.md)
-- [Quest 1 注册](deployments/quest-1.md)
-- [Quest 1 通关](deployments/quest-1-completion.md)
-
-## Monad Testnet 只读验证
-
-Quest 1 本地六幕完成后，`ACT6_COMPLETE` 支持查询 GuardianQuest 中指定地址的只读状态。目标网络为 Monad Testnet（Chain ID `10143`）；查询不连接钱包、不请求签名，也不发送交易。
-
-当前已使用真实 RPC 验证公共测试地址的 `completed=false` 结果。`completed=true` 分支仍需要可信、已登记且可公开的地址完成真实验证。
-
-完整验收范围、实际返回结果和安全复现步骤见：
-
-- [Quest 1 Monad Testnet 只读验收](docs/quest-1-chain-verification.md)
-
-## 可复现证据
-
-### Quest Content Hash
-
-```text
-0x1935647cb838b5dd3caa4448702b2928cfc4532381fe7a9b1f84481029253f69
-```
-
-对应文件：
-
-```text
-quests/1-reentrancy.md
-```
-
-### Audit Report Hash
-
-```text
-0xef3b4f9d8637a0a9b30e5dcba100216506a7844eea31c9ea107c08c29d4f306c
-```
-
-对应文件：
-
-```text
-reports/quest-1-audit-report.md
-```
-
-`.gitattributes` 已固定证据文件的字节与换行规则，确保可从 Git 仓库复现链上 Hash。
-
-## 前端方向
-
-前端采用：
-
-- Next.js App Router
-- React
-- TypeScript
-- Tailwind CSS
-- ESLint
-
-视觉基线为：
-
-```text
-云海伏妖 · 水灵秘境
-```
-
-Quest 1 将实现六幕 Boss 战：
-
-```text
-妖兽现身
-→ 寻出妖气
-→ 识破妖法
-→ 回环噬灵
-→ 布阵封印
-→ 战利品与升级
-```
-
-数据边界：
-
-| 数据类型 | 内容 |
-|---|---|
-| 本地学习数据 | Boss HP、EXP、修为、水熟练度、动画、异兽志 |
-| 仓库安全证据 | Foundry、Invariant、Slither、Quest、审计报告 |
-| Monad 实时数据 | Quest 状态、completed、reportHash、勋章余额、URI |
-
-本地通关不会被描述为链上通关。
-
-## 项目结构
-
-```text
-chain-security-cultivation/
-├─ src/
-│  ├─ VulnerableCharityVault.sol
-│  ├─ FixedCharityVault.sol
-│  ├─ ReentrancyAttacker.sol
-│  └─ GuardianQuest.sol
-├─ test/
-│  ├─ CharityVault.t.sol
-│  ├─ GuardianQuest.t.sol
-│  └─ invariant/
-├─ script/
-│  └─ DeployGuardianQuest.s.sol
-├─ quests/
-│  └─ 1-reentrancy.md
-├─ metadata/
-│  └─ 1.json
-├─ reports/
-├─ deployments/
-├─ docs/
-│  └─ quest-1-frontend-spec.md
-└─ web/
-```
-
-## 本地运行
-
-### 1. 克隆仓库
+## Getting Started
 
 ```bash
 git clone --recurse-submodules https://github.com/honora888/chain-security-cultivation.git
-cd chain-security-cultivation
+cd chain-security-cultivation/web
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-### 2. 合约检查
+生产校验：
+
+```bash
+cd web
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+合约校验：
 
 ```bash
 forge fmt --check
@@ -312,45 +156,115 @@ forge build
 forge test
 ```
 
-### 3. Slither 对照
+## Environment Variables
 
-```bash
-slither src/VulnerableCharityVault.sol \
-  --detect reentrancy-eth,reentrancy-events
+变量值只应配置在本地或部署平台，不应提交 `.env.local`。
 
-slither src/FixedCharityVault.sol \
-  --detect reentrancy-eth,reentrancy-events
+| 名称 | 用途 | 要求 |
+|---|---|---|
+| `DATABASE_URL` | 登录会话、贡献、审核、修炼进度、EXP 与 Merit | 完整应用必需 |
+| `GUARDIAN_DRAFT_SIGNING_SECRET` | 签署并校验 Guardian Draft | 贡献流程必需 |
+| `REVIEWER_WALLET_ADDRESSES` | 守阁人钱包 allowlist | 审核流程必需 |
+| `MONAD_RPC_URL` | Monad Testnet 只读 RPC 与 Moss 模拟 | 链上核验必需 |
+| `GUARDIAN_QUEST_ADDRESS` | 已部署 GuardianQuest 地址 | 链上核验必需 |
+| `MONAD_CHAIN_ID` | 目标链 ID，必须与 Monad Testnet 一致 | 链上核验必需 |
+| `GUARDIAN_LLM_MODE` | Guardian 模式：默认关闭外部模型，`hybrid` 时启用模型补充 | 可选 |
+| `GEMINI_API_KEY` | Gemini hybrid 模式服务端密钥 | hybrid 模式必需 |
+| `GUARDIAN_LLM_MODEL` | 覆盖默认模型名称 | 可选 |
+| `DATABASE_URL_UNPOOLED` | Drizzle 迁移使用的非池化连接 | 仅迁移时可选 |
+
+根目录 Foundry 脚本另使用 `MONAD_TESTNET_RPC_URL` 与 `ADMIN_ADDRESS`；它们不属于生产前端运行时配置。
+
+## Smart Contract
+
+`GuardianQuest` 提供：
+
+- Quest 注册、启停与内容 Hash
+- 学习完成状态及不可变 `reportHash`
+- 验证者角色与完成证明
+- ERC-1155 Soulbound 凭证
+- Quest 公共资助状态
+
+Quest I：
+
+| 字段 | 值 |
+|---|---|
+| Quest ID | `1` |
+| 异兽 | 噬灵回环兽 |
+| 漏洞 | Classic Reentrancy |
+| 五行 | Water |
+| 徽记 | 水系守护者 |
+| Token ID | `1` |
+
+合约与安全证据：[`src/GuardianQuest.sol`](src/GuardianQuest.sol)、[`test/GuardianQuest.t.sol`](test/GuardianQuest.t.sol)、[`reports/quest-1-audit-report.md`](reports/quest-1-audit-report.md)。
+
+## On-chain Evidence
+
+| 字段 | 值 |
+|---|---|
+| Network | Monad Testnet |
+| Chain ID | `10143` |
+| GuardianQuest | `0x131debd042208a327841128e5800dd4a833032ab` |
+| Historical Quest1 completion tx | `0x3b336c8f9d208e2492309f8db252a889ca9cfe6f61814321f4f48dd4ffdfc5e8` |
+| Stage38 Moss execution tx | `0x9858f3cc68f8324afda69be1d7d7dad4a49d9f5c052b53b8ae8bea7c598d2fad` |
+
+Stage38 状态回读：
+
+```text
+before:    0 wei
+funded:    1000000000000 wei (0.000001 MON)
+after:     1000000000000 wei
+delta:     1000000000000 wei
+read-back: EXACT MATCH
 ```
 
-### 4. 前端
+完整证据：[`docs/stage38-moss-monad-execution.md`](docs/stage38-moss-monad-execution.md)。仓库未采用未经核验的区块浏览器 URL。
 
-```bash
-cd web
-npm install
-npm run dev
-```
+## Demo Flow
 
-正式构建：
+1. 从首页进入 Quest I，观察噬灵回环兽与重入资金流。
+2. 完成漏洞识别、修复理解与确定性挑战，查看 EXP / 五行成长。
+3. 使用 Monad Testnet 钱包签名登录 `/profile`。
+4. 查看修炼档案与贡献档案双栏布局。
+5. 打开 Stage37 镇兽灵契，解释 Legacy / Ready / Verified 的链上—链下关系。
+6. 查看 Stage38「链上行录」，依次说明真实执行成功、Before → Funded → After、Verified Delta、交易回执与 Moss 生命周期。
+7. 如需展示社区共建，进入贡献与守阁人审核流程。
 
-```bash
-npm run lint
-npm run build
-```
+## Mock / Known Issues
 
-## 安全声明
+### Implemented
 
-- 漏洞合约与攻击合约只用于本地教学和受控测试；
-- 不应使用漏洞版本承载真实资产；
-- 仓库不保存私钥、恢复短语或 Keystore 密码；
-- 前端第一版只读 Monad Testnet，不请求钱包签名；
-- 本项目尚未经过完整生产级安全审计。
+- Quest I、Guardian 分析、贡献审核、EXP / Merit、双档案、Stage37 凭证和 Stage38 只读执行证据均已实现。
 
-## 下一步
+### Mock / Demo Data
 
-1. 实现 Quest 1 入口与妖兽现身；
-2. 实现危险代码定位和 Boss HP；
-3. 实现重入资金流动画；
-4. 实现 CEI 修复封印；
-5. 实现 EXP、水属性熟练度和异兽志结算；
-6. 接入 Monad Testnet 只读凭证查询；
-7. 完成移动端、Reduced Motion 和可访问性验收。
+- 部分异兽志展示内容与演示账户数据用于叙事和演示；链上交易、回执、合约状态及 Stage38 delta 使用真实 Monad Testnet 数据。
+
+### Known Issues
+
+- 当前仅 Quest I 完整实现。
+- 外部模型可用性可能影响 hybrid AI 分析；确定性分析仍可独立工作。
+- 早期历史 Quest1 凭证使用旧 `reportHash`，因此相对 Stage36 新 `completionHash` 正确派生为 `LEGACY_CREDENTIAL`，不是错误状态。
+- EXP 与 Merit 有意保持链下。
+- Stage38 生产面板只读；生产前端不暴露执行授权。
+
+### Future
+
+- 更多漏洞 Quest、自动凭证封印、Quest 运维、社区资助和受模拟/授权边界约束的 Agent 安全工作流。
+
+## Roadmap
+
+- 扩展更多确定性智能合约漏洞关卡。
+- 增强跨 Quest 的修炼成长与异兽志检索。
+- 在明确模拟、授权与回读边界下研究更多 Monad Agent 操作。
+- 完善生产监控、可访问性与公开证据归档。
+
+## Team
+
+**Solo Builder / 独立开发**
+
+产品设计、前端、后端、Solidity、Monad 集成、AI / 安全工作流、测试和 Demo 均由一位 Builder 完成，并使用 AI 辅助开发与调试。
+
+## License
+
+仓库目前尚未添加独立许可证文件。除非另有书面说明，使用或复用前请先联系作者。
