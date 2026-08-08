@@ -2,7 +2,7 @@
 
 一个把智能合约安全学习变成「AI 安全分析 → 修仙闯关 → 社区共建 → Monad 可验证凭证」完整体验的 Web3 安全学习平台。
 
-- 线上体验：[chain-security-cultivation-mo.vercel.app](https://chain-security-cultivation-mo.vercel.app/)
+- 线上体验：[chain-security-cultivation.vercel.app](https://chain-security-cultivation.vercel.app/)
 - 当前完整关卡：Quest I「噬灵回环兽」
 - 目标网络：Monad Testnet（Chain ID `10143`）
 
