@@ -73,7 +73,7 @@ function mapDatabaseError(error: unknown): never {
   throw new CultivationHttpError("DATABASE_UNAVAILABLE");
 }
 
-async function requireAuthenticatedWallet(): Promise<string> {
+export async function requireAuthenticatedWallet(): Promise<string> {
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
   if (!token) throw new CultivationHttpError("AUTH_REQUIRED");
   const session = await readSession(token);

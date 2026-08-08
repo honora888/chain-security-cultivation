@@ -6,9 +6,14 @@ import { AUTH_CHAIN_ID, AUTH_CHAIN_NAME, useWalletAuth } from "@/features/wallet
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 import {
   CultivationApiError,
+  getCultivationCredential,
   getCultivationProfile,
 } from "@/features/cultivation/cultivation-api-client";
-import type { CultivationProfile } from "@/features/cultivation/contracts";
+import { CultivationCredentialCard } from "@/features/cultivation/cultivation-credential";
+import type {
+  CultivationCredential,
+  CultivationProfile,
+} from "@/features/cultivation/contracts";
 import {
   guardianConfidenceLabelZh,
   guardianFindingSeverityLabelZh,
@@ -214,7 +219,17 @@ function ProfileIdentityHeader({ walletAddress }: { walletAddress: string | null
   );
 }
 
-function CultivationProfileCard({ profile }: { profile: CultivationProfile }) {
+function CultivationProfileCard({
+  credential,
+  credentialError,
+  credentialLoading,
+  profile,
+}: {
+  credential: CultivationCredential | null;
+  credentialError: string | null;
+  credentialLoading: boolean;
+  profile: CultivationProfile;
+}) {
   const progression = profile.progression;
   const expDisplay = progression.nextRealmExp === null
     ? `${profile.totalExp} EXP`
@@ -264,6 +279,14 @@ function CultivationProfileCard({ profile }: { profile: CultivationProfile }) {
         <p>{profile.badges.length
           ? profile.badges.map((badge) => badge.label).join("、")
           : "尚未获得修炼徽记"}</p>
+      </section>
+      <section className={styles.profileDetailSection} aria-labelledby="profile-credential-title">
+        <h3 id="profile-credential-title">镇兽灵契</h3>
+        <CultivationCredentialCard
+          credential={credential}
+          error={credentialError}
+          loading={credentialLoading}
+        />
       </section>
     </section>
   );
@@ -317,10 +340,15 @@ function ContributionProfileCard({
 
 export function ProfilePageClient() {
   const wallet = useWalletAuth();
-  const { authenticated, refreshSession } = wallet;
+  const { authenticated, refreshSession, walletAddress } = wallet;
   const [cases, setCases] = useState<readonly ContributionSummary[] | null>(null);
   const [merit, setMerit] = useState<MeritSummary | null>(null);
   const [cultivation, setCultivation] = useState<CultivationProfile | null>(null);
+  const [credentialResult, setCredentialResult] = useState<{
+    credential: CultivationCredential | null;
+    error: string | null;
+    walletAddress: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -349,6 +377,41 @@ export function ProfilePageClient() {
     return () => controller.abort();
   }, [authenticated, refreshSession]);
 
+  useEffect(() => {
+    if (!authenticated || !walletAddress) return;
+    const controller = new AbortController();
+    const requestedWallet = walletAddress;
+    void getCultivationCredential(controller.signal)
+      .then((nextCredential) => {
+        setCredentialResult({
+          credential: nextCredential,
+          error: null,
+          walletAddress: requestedWallet,
+        });
+      })
+      .catch((requestError) => {
+        if (controller.signal.aborted) return;
+        if (requestError instanceof CultivationApiError && requestError.status === 401) {
+          void refreshSession();
+        }
+        setCredentialResult({
+          credential: null,
+          error: requestError instanceof CultivationApiError
+            ? requestError.message
+            : "链上灵契暂时无法读取，请稍后重试。",
+          walletAddress: requestedWallet,
+        });
+      });
+    return () => controller.abort();
+  }, [authenticated, refreshSession, walletAddress]);
+
+  const currentCredentialResult = credentialResult?.walletAddress === walletAddress
+    ? credentialResult
+    : null;
+  const credential = currentCredentialResult?.credential ?? null;
+  const credentialError = currentCredentialResult?.error ?? null;
+  const credentialLoading = authenticated && walletAddress !== null && currentCredentialResult === null;
+
   const statusCounts = useMemo(() => {
     const initial: Record<ContributionStatus, number> = { pending_review: 0, changes_requested: 0, approved: 0, rejected: 0 };
     for (const item of cases ?? []) initial[item.status] += 1;
@@ -363,7 +426,12 @@ export function ProfilePageClient() {
     {wallet.authenticated && (!cases || !merit || !cultivation) && !error ? <p className={styles.loading}>正在读取修炼与贡献档案…</p> : null}
     {wallet.authenticated && cases && merit && cultivation ? <>
       <div className={styles.dualProfileGrid}>
-        <CultivationProfileCard profile={cultivation} />
+        <CultivationProfileCard
+          profile={cultivation}
+          credential={credential}
+          credentialError={credentialError}
+          credentialLoading={credentialLoading}
+        />
         <ContributionProfileCard merit={merit} statusCounts={statusCounts} />
       </div>
       <section className={styles.caseList} aria-labelledby="my-cases-title"><div className={styles.sectionHeader}><h2 id="my-cases-title">我的异兽献策</h2><Link href="/contribute">前往异兽献策</Link></div>

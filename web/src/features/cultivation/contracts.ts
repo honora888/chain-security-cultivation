@@ -2,6 +2,7 @@ import type { ElementName, RealmName } from "@/features/guardian-security/analys
 
 export const CULTIVATION_COMPLETION_SCHEMA_VERSION = "cultivation-completion-v1" as const;
 export const CULTIVATION_PROFILE_SCHEMA_VERSION = "cultivation-profile-v1" as const;
+export const CULTIVATION_CREDENTIAL_SCHEMA_VERSION = "cultivation-credential-v1" as const;
 export const QUEST_ONE_COMPLETION_EVIDENCE_SCHEMA_VERSION = "quest-1-completion-evidence-v1" as const;
 
 export type QuestOneCompletionEvidence = {
@@ -67,4 +68,52 @@ export type CultivationCompletionResponse = {
     badgeLabel: string;
   };
   profile: CultivationProfile;
+};
+
+export type CultivationCredentialState =
+  | "not_earned"
+  | "ready_for_onchain"
+  | "verified"
+  | "legacy_credential"
+  | "inconsistent";
+
+export type CultivationCredential = {
+  schema: typeof CULTIVATION_CREDENTIAL_SCHEMA_VERSION;
+  quest: {
+    id: 1;
+    name: "噬灵回环兽";
+    realm: "金丹期";
+    element: "水";
+    badgeKey: "water-guardian";
+    badgeName: "水系守护者徽记";
+  };
+  network: {
+    name: "Monad Testnet";
+    chainId: 10143;
+    contractAddress: string;
+  };
+  cultivation: {
+    completed: boolean;
+    completionHash: string | null;
+    completedAt: string | null;
+    expAwarded: number;
+    masteryElement: "Water" | null;
+    masteryAwarded: number;
+  };
+  chain: {
+    completed: boolean;
+    reportHash: string;
+    badgeTokenId: "1";
+    badgeBalance: string;
+  };
+  credential: {
+    state: CultivationCredentialState;
+    hashMatches: boolean;
+  };
+};
+
+export type CultivationCredentialResponse = {
+  ok: true;
+  schemaVersion: typeof CULTIVATION_CREDENTIAL_SCHEMA_VERSION;
+  credential: CultivationCredential;
 };

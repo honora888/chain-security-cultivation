@@ -1,7 +1,10 @@
 import {
   CULTIVATION_COMPLETION_SCHEMA_VERSION,
+  CULTIVATION_CREDENTIAL_SCHEMA_VERSION,
   CULTIVATION_PROFILE_SCHEMA_VERSION,
   type CultivationCompletionResponse,
+  type CultivationCredential,
+  type CultivationCredentialResponse,
   type CultivationProfile,
   type CultivationProfileResponse,
   type QuestOneCompletionEvidence,
@@ -76,6 +79,43 @@ export async function getCultivationProfile(signal?: AbortSignal): Promise<Culti
   const profile = parseProfile(body.profile);
   if (!profile) throw new CultivationApiError("INVALID_RESPONSE", "修炼档案格式无法识别。", 200);
   return (body as unknown as CultivationProfileResponse).profile;
+}
+
+function parseCredential(value: unknown): CultivationCredential | null {
+  if (!isRecord(value) || value.schema !== CULTIVATION_CREDENTIAL_SCHEMA_VERSION) return null;
+  if (
+    !isRecord(value.quest) ||
+    !isRecord(value.network) ||
+    !isRecord(value.cultivation) ||
+    !isRecord(value.chain) ||
+    !isRecord(value.credential)
+  ) return null;
+  const state = value.credential.state;
+  if (
+    state !== "not_earned" &&
+    state !== "ready_for_onchain" &&
+    state !== "verified" &&
+    state !== "legacy_credential" &&
+    state !== "inconsistent"
+  ) return null;
+  if (
+    typeof value.chain.completed !== "boolean" ||
+    typeof value.chain.reportHash !== "string" ||
+    typeof value.chain.badgeBalance !== "string" ||
+    typeof value.cultivation.completed !== "boolean" ||
+    (value.cultivation.completionHash !== null && typeof value.cultivation.completionHash !== "string")
+  ) return null;
+  return value as unknown as CultivationCredential;
+}
+
+export async function getCultivationCredential(signal?: AbortSignal): Promise<CultivationCredential> {
+  const body = await request("/api/cultivation/quests/1/credential", {}, signal);
+  if (body.schemaVersion !== CULTIVATION_CREDENTIAL_SCHEMA_VERSION) {
+    throw new CultivationApiError("INVALID_RESPONSE", "链上灵契版本无法识别。", 200);
+  }
+  const credential = parseCredential(body.credential);
+  if (!credential) throw new CultivationApiError("INVALID_RESPONSE", "链上灵契格式无法识别。", 200);
+  return (body as unknown as CultivationCredentialResponse).credential;
 }
 
 export async function completeQuestOne(evidence: QuestOneCompletionEvidence): Promise<CultivationCompletionResponse> {
