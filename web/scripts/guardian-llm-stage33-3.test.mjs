@@ -4,12 +4,23 @@ import { registerHooks } from "node:module";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
+const sourceRoot = new URL("../src/", import.meta.url);
+
 registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") {
       return {
         shortCircuit: true,
         url: "data:text/javascript,export%20{}",
+      };
+    }
+
+    if (specifier.startsWith("@/")) {
+      const path = specifier.slice(2);
+      return {
+        shortCircuit: true,
+        url: new URL(path.endsWith(".ts") ? path : `${path}.ts`, sourceRoot)
+          .href,
       };
     }
 

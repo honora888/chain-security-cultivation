@@ -233,7 +233,7 @@ export function analyzeReentrancySignals(
       "strong",
       "vulnerableSource",
       evidenceType,
-      "A low-level native-value call is present in the candidate vulnerable source.",
+      "候选漏洞源码中存在低级原生资产 call。",
     ),
     signal(
       "withdrawal-semantics",
@@ -241,7 +241,7 @@ export function analyzeReentrancySignals(
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "A single payout function reads per-account state, performs a native-value call, and finalizes the same account state afterward.",
+      "同一支付函数先读取账户状态，再执行原生资产 call，最后才更新同一账户状态。",
     ),
     signal(
       "state-update-after-external-call",
@@ -249,7 +249,7 @@ export function analyzeReentrancySignals(
       "strong",
       "vulnerableSource",
       evidenceType,
-      "The same per-account mapping is updated after its value-bearing external call in the matched payout function.",
+      "匹配到的支付函数在携带价值的外部调用之后才更新同一账户 mapping。",
     ),
     signal(
       "callback-entry",
@@ -257,7 +257,7 @@ export function analyzeReentrancySignals(
       "strong",
       "attackSource",
       evidenceType,
-      "The supplied attack structure contains a receive or fallback callback.",
+      "提交的攻击结构包含 receive() 或 fallback() 回调。",
     ),
     signal(
       "callback-reentry",
@@ -265,7 +265,7 @@ export function analyzeReentrancySignals(
       "strong",
       "attackSource",
       evidenceType,
-      "The callback invokes the same vulnerable payout function identified by the source-ordering evidence.",
+      "回调再次调用了源码顺序证据所识别的同一漏洞支付函数。",
     ),
     signal(
       "fixed-state-before-call",
@@ -273,7 +273,7 @@ export function analyzeReentrancySignals(
       "strong",
       "fixedSource",
       evidenceType,
-      "The comparison source updates the same per-account state before its value-bearing external call.",
+      "修复对照源码在携带价值的外部调用之前更新了同一账户状态。",
     ),
     signal(
       "fixed-non-reentrant",
@@ -281,7 +281,7 @@ export function analyzeReentrancySignals(
       "moderate",
       "fixedSource",
       evidenceType,
-      "The comparison source includes a nonReentrant guard as a supplemental defense.",
+      "修复对照源码包含 nonReentrant 重入保护，作为补充防线。",
     ),
     signal(
       "accounting-state",
@@ -289,7 +289,7 @@ export function analyzeReentrancySignals(
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "A per-account mapping read is linked to a later write of the same mapping entry.",
+      "检测到账户 mapping 的读取操作，且随后写入同一 mapping 条目。",
     ),
     signal(
       "fund-flow",
@@ -297,7 +297,7 @@ export function analyzeReentrancySignals(
       "moderate",
       "vulnerableSource",
       evidenceType,
-      "The linked account state and native-value call describe a custody and payout flow.",
+      "关联的账户状态与原生资产 call 构成了资金托管与支付流程。",
     ),
     signal(
       "access-control",
@@ -307,7 +307,7 @@ export function analyzeReentrancySignals(
       "weak",
       "vulnerableSource",
       evidenceType,
-      "An access-control pattern is present in the analyzed source.",
+      "分析源码中存在访问控制模式。",
     ),
     signal(
       "state-lifecycle",
@@ -317,7 +317,7 @@ export function analyzeReentrancySignals(
       "weak",
       "vulnerableSource",
       evidenceType,
-      "A lifecycle or phase-state pattern is present in the analyzed source.",
+      "分析源码中存在生命周期或阶段状态模式。",
     ),
     signal(
       "price-oracle-arithmetic",
@@ -325,7 +325,7 @@ export function analyzeReentrancySignals(
       "weak",
       "vulnerableSource",
       evidenceType,
-      "A price, oracle, or explicit arithmetic-risk pattern is present.",
+      "分析源码中存在价格、预言机或显式算术风险模式。",
     ),
   ];
 
@@ -337,7 +337,7 @@ export function analyzeReentrancySignals(
         "strong",
         "frozenEvidence",
         "frozen-repository-evidence",
-        "Frozen Foundry evidence records successful reproduction of the intentional attack fixture.",
+        "冻结的 Foundry 证据记录了教学攻击样例的成功复现。",
       ),
       signal(
         "verified-fixed-regression",
@@ -345,7 +345,7 @@ export function analyzeReentrancySignals(
         "strong",
         "frozenEvidence",
         "frozen-repository-evidence",
-        "Frozen regression evidence records that the fixed fixture blocks the same attack path.",
+        "冻结的回归证据记录了修复样例能够阻断同一攻击路径。",
       ),
       signal(
         "verified-invariant",
@@ -353,7 +353,7 @@ export function analyzeReentrancySignals(
         "moderate",
         "frozenEvidence",
         "frozen-repository-evidence",
-        "The frozen accounting invariant passed 64 runs and 2,048 calls with zero reverts.",
+        "冻结的记账 Invariant 完成 64 轮、2,048 次调用，且没有 revert。",
       ),
       signal(
         "verified-slither-contrast",
@@ -361,7 +361,7 @@ export function analyzeReentrancySignals(
         "moderate",
         "frozenEvidence",
         "frozen-repository-evidence",
-        "Frozen Slither evidence finds reentrancy detectors on the vulnerable fixture but not the same target path on the fixed fixture.",
+        "冻结的 Slither 证据在漏洞样例中命中重入检测器，而修复样例的同一目标路径未命中。",
       ),
       signal(
         "verified-human-conclusion",
@@ -369,7 +369,7 @@ export function analyzeReentrancySignals(
         "strong",
         "frozenEvidence",
         "human-reviewed",
-        "The frozen case conclusion was reviewed as an intentional Classic Reentrancy teaching fixture.",
+        "冻结案例已经人工复核，确认为经典重入漏洞（Classic Reentrancy）教学样例。",
       ),
     );
   }

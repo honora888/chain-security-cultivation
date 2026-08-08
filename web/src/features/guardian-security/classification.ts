@@ -26,27 +26,29 @@ export function classifyElements(
 
   function add(element: ElementName, points: number, reason: string): void {
     scores[element] += points;
-    rationale.push(`${element} +${points}: ${reason}`);
+    rationale.push(
+      `${cultivationElementLabel(element)} · ${element} +${points}：${reason}`,
+    );
   }
 
   if (signalMatched(signals, "external-native-value-call"))
-    add("Water", 2, "external native-value flow");
+    add("Water", 2, "存在原生资产外部流动");
   if (signalMatched(signals, "callback-entry"))
-    add("Water", 3, "receive/fallback callback");
+    add("Water", 3, "存在 receive()/fallback() 回调");
   if (signalMatched(signals, "callback-reentry"))
-    add("Water", 3, "callback re-entry");
+    add("Water", 3, "回调可重新进入目标函数");
   if (signalMatched(signals, "fund-flow"))
-    add("Water", 1, "custodied fund flow");
+    add("Water", 1, "存在托管资金流");
   if (signalMatched(signals, "accounting-state"))
-    add("Earth", 2, "internal balance accounting");
+    add("Earth", 2, "涉及内部余额记账");
   if (signalMatched(signals, "state-update-after-external-call"))
-    add("Earth", 3, "possible internal/external balance mismatch");
+    add("Earth", 3, "内部与外部余额可能失配");
   if (signalMatched(signals, "access-control"))
-    add("Metal", 2, "access-control signal");
+    add("Metal", 2, "命中访问控制信号");
   if (signalMatched(signals, "state-lifecycle"))
-    add("Wood", 2, "state-lifecycle signal");
+    add("Wood", 2, "命中状态生命周期信号");
   if (signalMatched(signals, "price-oracle-arithmetic"))
-    add("Fire", 2, "price, oracle, or arithmetic signal");
+    add("Fire", 2, "命中价格、预言机或算术风险信号");
 
   const ranked = (Object.keys(scores) as ElementName[]).sort(
     (left, right) => scores[right] - scores[left],
@@ -83,67 +85,67 @@ export function classifyRealm(
       "singleFunction",
       signalMatched(signals, "withdrawal-semantics"),
       1,
-      "The vulnerable state-ordering defect is concentrated in a withdrawal-like function.",
+      "危险的状态更新顺序集中在单个提款类函数中。",
     ],
     [
       "multipleFunctions",
       false,
       2,
-      "No separate multi-function state machine is established by the current evidence.",
+      "当前证据未建立独立的多函数状态机。",
     ],
     [
       "crossContract",
       signalMatched(signals, "callback-reentry"),
       2,
-      "The attack path crosses between the vault and a callback-capable contract.",
+      "攻击路径跨越资产合约与可执行回调的攻击合约。",
     ],
     [
       "callbackSemantics",
       signalMatched(signals, "callback-entry"),
       2,
-      "Understanding receive/fallback callback execution is required.",
+      "需要理解 receive()/fallback() 回调的执行语义。",
     ],
     [
       "attackerContract",
       signalMatched(signals, "callback-reentry"),
       2,
-      "An attacker-contract structure is part of the evidence.",
+      "证据中包含攻击合约结构。",
     ],
     [
       "proofOfConcept",
       signalMatched(signals, "verified-attack-test"),
       1,
-      "A proof-of-concept execution is recorded only for the frozen builtin case.",
+      "只有冻结的内置案例记录了攻击 PoC 执行证据。",
     ],
     [
       "invariantReasoning",
       signalMatched(signals, "verified-invariant"),
       1,
-      "The frozen builtin case includes accounting-invariant reasoning.",
+      "冻结的内置案例包含记账 Invariant 推理。",
     ],
     [
       "protocolAccounting",
       false,
       2,
-      "The present rules do not establish protocol-wide accounting dependencies.",
+      "当前规则未建立协议级记账依赖。",
     ],
     [
       "multiTransaction",
       false,
       2,
-      "The core exploit does not require a multi-transaction workflow.",
+      "核心利用路径不需要多笔交易流程。",
     ],
     [
       "crossProtocol",
       false,
       3,
-      "No cross-protocol dependency is established.",
+      "当前证据未建立跨协议依赖。",
     ],
     [
       "crossChainOrMEV",
       false,
       4,
-      "No cross-chain or MEV dependency is established.",
+      "当前证据未建立跨链或 MEV 依赖。",
     ],
   ];
 
@@ -167,8 +169,8 @@ export function classifyRealm(
     realmScore,
     complexityFactors,
     rationale: [
-      `The learning-complexity score is ${realmScore}; it does not measure financial impact.`,
-      "Cross-contract callback semantics and attacker structure drive the principal complexity.",
+      `学习复杂度评分为 ${realmScore}；该评分不衡量资金影响。`,
+      "跨合约回调语义与攻击合约结构构成主要学习复杂度。",
     ],
   };
 }

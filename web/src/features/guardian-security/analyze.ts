@@ -66,40 +66,40 @@ function buildFormalAnalysis(
     formalType: "Classic Reentrancy",
     category: "Reentrancy",
     rootCause:
-      "A native-value external interaction can occur before the caller's internal accounting state is finalized, allowing callback control flow to observe stale state.",
-    affectedFunctions: ["withdraw-like payout function"],
+      "提款类函数在完成调用者内部记账状态更新之前先执行原生资产外部调用；接收方可在旧状态仍可见时通过 receive()/fallback() 回调重新进入同一提款路径。",
+    affectedFunctions: ["匹配到的提款类支付函数"],
     prerequisites: [
-      "The target holds native value and records per-caller accounting state.",
-      "The payout recipient can execute code during the external value call.",
-      "The same withdrawal path remains callable before internal state is finalized.",
+      "目标合约持有原生资产，并按调用者记录可提款的内部余额。",
+      "收款地址能够在外部价值调用期间执行 receive() 或 fallback() 代码。",
+      "内部余额完成更新之前，同一提款路径仍可再次调用。",
     ],
     attackPath: [
-      "Establish a positive internal balance.",
-      "Invoke the withdrawal-like function.",
-      "Receive native value before the target finalizes accounting.",
-      "Re-enter the withdrawal-like function from receive/fallback.",
-      "Repeat while the stale balance remains observable.",
+      "攻击者先建立可提款的内部余额。",
+      "攻击者调用匹配到的提款类函数。",
+      "目标合约在完成内部记账之前先向攻击合约发送原生资产。",
+      "转账触发攻击合约的 receive()/fallback()，回调再次进入同一提款函数。",
+      "旧余额仍然可见时，攻击者可重复执行提款路径。",
     ],
     impact:
-      "Repeated payouts may cause the contract's external native balance to diverge from its internal accounting and may drain custodied funds.",
+      "重复支付可能使合约的实际原生资产余额与内部记账失配，并可能耗尽合约托管的资金。",
     repeatability: attackStructurePresent
-      ? "The observed callback structure can repeat the withdrawal path while the target balance permits it."
-      : "Repeatability is inferred from the vulnerable ordering and requires separate execution evidence.",
+      ? "已观察到的回调结构可在目标合约余额允许时重复进入提款路径。"
+      : "当前仅根据危险执行顺序推断可重复性，仍需独立执行证据确认。",
     privilegeRequired:
-      "No privileged role is required by the matched classic pattern; the caller needs a positive withdrawable balance and callback-capable recipient code.",
+      "匹配到的经典模式不要求特权角色；攻击者需要可提款余额，以及能够执行回调的收款合约。",
     mitigations: [
-      "Apply Checks-Effects-Interactions and finalize internal state before the external value call.",
-      "Verify normal withdrawal behavior and the adversarial callback regression path.",
-      "Use a reentrancy guard as supplemental defense where appropriate, not as a substitute for correct accounting order.",
+      "采用 Checks-Effects-Interactions（检查-效果-交互）原则，在外部价值调用之前完成内部状态更新。",
+      "同时验证正常提款路径与恶意 receive()/fallback() 回调的回归路径。",
+      "可按需使用 nonReentrant / Reentrancy Guard（重入保护）作为补充防线，但不能替代正确的记账顺序。",
     ],
     evidence: matchedEvidence,
     inferences: [
       {
-        text: "The combined source patterns are consistent with Classic Reentrancy.",
+        text: "组合源码模式与经典重入漏洞（Classic Reentrancy）一致。",
         provenance: "generated-inference",
       },
       {
-        text: "Potential fund loss follows from the value-flow and stale-accounting structure; the rules do not calculate a monetary amount.",
+        text: "潜在资金损失源于价值流与旧记账状态并存；当前规则不会估算具体损失金额。",
         provenance: "generated-inference",
       },
     ],
@@ -107,13 +107,13 @@ function buildFormalAnalysis(
       {
         text:
           inputMode === "sample"
-            ? "The supplied source text is unverified and was not compiled or executed."
-            : "The conclusion is scoped to the frozen teaching case and its recorded evidence.",
+            ? "用户提交的源码文本未经验证，当前未对其进行编译或执行。"
+            : "该结论仅适用于冻结教学案例及其已记录证据。",
         provenance:
           inputMode === "sample" ? sourceProvenance : "known-limitation",
       },
       {
-        text: "Deterministic pattern matching is not a complete formal security audit.",
+        text: "确定性文本模式匹配不等同于完整的正式安全审计。",
         provenance: "known-limitation",
       },
     ],
@@ -149,9 +149,9 @@ export function analyzeGuardianSecurityCase(
   const limitations = isBuiltin
     ? QUEST_ONE_EVIDENCE_PROFILE.knownLimitations.map((entry) => entry.value)
     : [
-        "User-provided source text is unverified.",
-        "No proof of concept, Foundry test, invariant, or Slither scan was executed.",
-        "No on-chain Guardian Quest identity applies to a user-provided sample.",
+        "用户提交的源码文本未经验证。",
+        "当前未执行攻击 PoC、Foundry 测试、Invariant 或 Slither 扫描。",
+        "用户样例尚未注册为 Guardian Quest，因此没有适用的链上 Quest 身份。",
       ];
   const draftContext = {
     inputMode: request.mode,
@@ -166,15 +166,15 @@ export function analyzeGuardianSecurityCase(
     sourceFingerprint: sourceFingerprint(sources),
   } as const;
   const reviewReasons = [
-    "Deterministic rules are not a formal audit.",
-    "Generated drafts require editorial and security review.",
+    "确定性规则分析不等同于正式安全审计。",
+    "生成的草案仍需进行内容编辑与人工安全复核。",
     ...(isBuiltin
       ? [
-          "Moss verifies the registered Quest identity, not the complete security conclusion.",
+          "Moss 只核验已注册的 Quest 身份，不核验完整安全结论。",
         ]
       : [
-          "Source text is user-provided and unverified.",
-          "No proof of concept, Slither, Foundry, or invariant was executed.",
+          "源码文本由用户提供，尚未经过验证。",
+          "当前未执行攻击 PoC、Slither、Foundry 或 Invariant。",
         ]),
   ];
 

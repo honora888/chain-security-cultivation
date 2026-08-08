@@ -51,10 +51,10 @@ export function assessSeverity(
       privilegeExposure,
     },
     rationale: [
-      `Impact ${impact}/4 reflects native-fund flow and the possible accounting mismatch.`,
-      `Exploitability ${exploitability}/4 reflects the observed callback, re-entry, and ordering structure.`,
-      `Repeatability ${repeatability}/2 reflects whether the callback can invoke the target repeatedly.`,
-      `Privilege exposure ${privilegeExposure}/2 is scored independently from the fund-loss path.`,
+      `影响评分 ${impact}/4：反映原生资产流动与潜在记账失配。`,
+      `可利用性评分 ${exploitability}/4：反映已观察到的回调、重入与执行顺序结构。`,
+      `可重复性评分 ${repeatability}/2：反映回调能否重复调用目标函数。`,
+      `权限暴露评分 ${privilegeExposure}/2：与资金损失路径独立计算。`,
     ],
   };
 }
@@ -66,37 +66,37 @@ export function assessConfidence(
 ): ConfidenceAssessment {
   const factors: readonly [string, boolean, number][] = [
     [
-      "Strong vulnerable-source pattern quality",
+      "漏洞源码模式证据较强",
       signalMatched(signals, "external-native-value-call") &&
         signalMatched(signals, "state-update-after-external-call"),
       15,
     ],
-    ["Callback structure present", signalMatched(signals, "callback-entry"), 15],
-    ["Callback re-entry present", signalMatched(signals, "callback-reentry"), 15],
+    ["存在回调结构", signalMatched(signals, "callback-entry"), 15],
+    ["存在回调重入", signalMatched(signals, "callback-reentry"), 15],
     [
-      "Fixed-code ordering contrast present",
+      "存在修复代码的执行顺序对照",
       signalMatched(signals, "fixed-state-before-call"),
       15,
     ],
-    ["Verified attack test", signalMatched(signals, "verified-attack-test"), 10],
+    ["攻击测试已经验证", signalMatched(signals, "verified-attack-test"), 10],
     [
-      "Verified fixed regression",
+      "修复回归已经验证",
       signalMatched(signals, "verified-fixed-regression"),
       10,
     ],
-    ["Verified invariant evidence", signalMatched(signals, "verified-invariant"), 5],
+    ["Invariant 证据已经验证", signalMatched(signals, "verified-invariant"), 5],
     [
-      "Verified Slither contrast",
+      "Slither 对照已经验证",
       signalMatched(signals, "verified-slither-contrast"),
       5,
     ],
-    ["Fixed commit and content hash", inputMode === "builtin", 5],
+    ["具备冻结 commit 与 Content Hash", inputMode === "builtin", 5],
     [
-      "Human-reviewed frozen conclusion",
+      "冻结结论已经人工复核",
       signalMatched(signals, "verified-human-conclusion"),
       3,
     ],
-    ["Moss registered-content identity match", mossEvidence.status === "verified", 2],
+    ["Moss 已匹配注册内容身份", mossEvidence.status === "verified", 2],
   ];
   const supportingFactors = factors
     .filter(([, matched]) => matched)

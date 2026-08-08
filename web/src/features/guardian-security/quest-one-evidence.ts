@@ -12,13 +12,13 @@ export const QUEST_ONE_EVIDENCE_PROFILE: QuestOneEvidenceProfile = {
   value: "ce7bf31240c39eee46936a5a06de580e6c0f9281",
   provenance: "frozen-repository-evidence",
   note:
-    "Source snapshot commit; the three core teaching contracts remain unchanged through the final security-freeze baseline.",
+    "源码快照 commit；三个核心教学合约在最终安全冻结基线前保持不变。",
   },
   freezeBaselineCommit: {
   value: "a43a7c5da76a7046008b9820bb1a76d91fcb62b1",
   provenance: "frozen-repository-evidence",
   note:
-    "Final Quest 1 security-freeze merge baseline; Foundry 14/14 and the reviewed security conclusion are recorded against this baseline.",
+    "Quest 1 最终安全冻结合并基线；Foundry 14/14 与人工复核的安全结论均记录于该基线。",
   },
   vulnerabilityType: {
     value: "Classic Reentrancy",
@@ -50,7 +50,7 @@ export const QUEST_ONE_EVIDENCE_PROFILE: QuestOneEvidenceProfile = {
       fixedRegressionPassed: true,
     },
     provenance: "frozen-repository-evidence",
-    note: "Recorded by the final Quest 1 security freeze and reverified locally: 14/14 tests passed.",
+    note: "Quest 1 最终安全冻结已记录并在本地复核：14/14 项测试通过。",
   },
   invariant: {
     value: {
@@ -69,40 +69,40 @@ export const QUEST_ONE_EVIDENCE_PROFILE: QuestOneEvidenceProfile = {
       guardianTargetHighMedium: 0,
     },
     provenance: "frozen-repository-evidence",
-    note: "Project-wide build-info produced known transitive findings; target conclusions are scoped to the named contracts.",
+    note: "项目级 build-info 包含已知的传递依赖发现；目标结论仅适用于具名合约。",
   },
   humanConclusion: {
     value:
-      "The vulnerable teaching fixture demonstrates classic reentrancy; the fixed fixture applies Checks-Effects-Interactions and did not reproduce the same path in frozen regression evidence.",
+      "漏洞教学样例展示了经典重入漏洞（Classic Reentrancy）；修复样例采用 Checks-Effects-Interactions（检查-效果-交互），且冻结回归证据未复现同一路径。",
     provenance: "human-reviewed",
   },
   contentHash: {
   value: QUEST_ONE_CONTENT_HASH,
   provenance: "on-chain-fact",
   note:
-    "Registered Quest 1 content hash verified through Moss guardian.quest on Monad Testnet.",
+    "已通过 Monad Testnet 上的 Moss guardian.quest 核验 Quest 1 注册 Content Hash。",
   },
   reportHash: {
   value:
     "0xef3b4f9d8637a0a9b30e5dcba100216506a7844eea31c9ea107c08c29d4f306c",
   provenance: "on-chain-fact",
   note:
-    "Report hash recorded by the Phase 8B Monad chain-status evidence; guardian.quest does not return learner report hashes.",
+    "Report Hash 由 Phase 8B Monad 链上状态证据记录；guardian.quest 不返回学习者 Report Hash。",
   },
   knownLimitations: [
     {
       value:
-        "Deterministic text rules and frozen evidence are educational evidence, not a complete formal security audit.",
+        "确定性文本规则与冻结证据属于教学证据，不等同于完整的正式安全审计。",
       provenance: "known-limitation",
     },
     {
       value:
-        "Moss guardian.quest verifies registered Quest identity and content hash, not the vulnerability conclusion itself.",
+        "Moss guardian.quest 核验已注册的 Quest 身份与 Content Hash，不核验漏洞结论本身。",
       provenance: "known-limitation",
     },
     {
       value:
-        "The frozen Slither build-info is project-wide and includes intentional fixture and dependency findings.",
+        "冻结的 Slither build-info 覆盖整个项目，包含教学样例与依赖项的预期发现。",
       provenance: "known-limitation",
     },
   ],
