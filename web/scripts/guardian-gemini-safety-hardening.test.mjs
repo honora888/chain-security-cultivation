@@ -59,7 +59,10 @@ const { GuardianSecurityError } = await import(
 const { QUEST_ONE_BUILTIN_SOURCES } = await import(
   "../src/features/guardian-security/quest-one-evidence.ts"
 );
-const { runHybridGuardianAnalysis } = await import(
+const {
+  externalModelStatusForHybridError,
+  runHybridGuardianAnalysis,
+} = await import(
   "../src/features/guardian-llm/hybrid-analysis.ts"
 );
 const { runGuardianLlmEnhancement } = await import(
@@ -86,6 +89,15 @@ const { guardianSecuritySuccessToVerifiedFindings } = await import(
 );
 const { toPublicLlmEnhancement } = await import(
   "../src/features/guardian-llm/hybrid-analysis-types.ts"
+);
+const { guardianAnalysisDigest } = await import(
+  "../src/lib/guardian-analysis-digest.ts"
+);
+const {
+  analyzeGuardianSample,
+  GuardianSecurityApiError,
+} = await import(
+  "../src/features/guardian-security-ui/guardian-security-api-client.ts"
 );
 const {
   GuardianDraftError,
@@ -116,6 +128,20 @@ const DETERMINISTIC = analyzeGuardianSecurityCase(
   SAMPLE_REQUEST,
   NOT_APPLICABLE_MOSS,
 );
+
+async function withJsonFetch(body, status, headers, callback) {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...headers },
+    });
+  try {
+    return await callback();
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
 
 function rawCandidate(category = "access-control", title = "敏感操作缺少授权检查") {
   return {
@@ -319,10 +345,46 @@ test("supported deterministic analysis remains exact when source is blocked", as
   });
   assert.equal(calls, 0);
   assert.strictEqual(outcome.response, DETERMINISTIC);
+  assert.deepEqual(outcome.externalModel, {
+    status: "skipped",
+    reason: "SENSITIVE_SOURCE",
+  });
+  assert.deepEqual(Object.keys(outcome.externalModel).sort(), ["reason", "status"]);
+});
+
+test("ordinary supported enhancement is not marked as privacy-skipped", async () => {
+  const outcome = await runHybridGuardianAnalysis({
+    request: SAMPLE_REQUEST,
+    mode: "hybrid",
+    provider: {
+      providerName: "ordinary-enhancement",
+      async enhance() {
+        return parseGuardianLlmResponse(rawResponse());
+      },
+    },
+    runDeterministic: async () => DETERMINISTIC,
+  });
+  assert.equal(Object.hasOwn(outcome, "externalModel"), false);
+  assert.equal(outcome.response.llmEnhancement.status, "enhanced");
+});
+
+test("client preserves safe privacy status beside a signed deterministic result", async () => {
+  const signedDraft = issue(DETERMINISTIC);
+  const externalModel = { status: "skipped", reason: "SENSITIVE_SOURCE" };
+  const analyzed = await withJsonFetch(
+    { ...DETERMINISTIC, signedDraft, externalModel },
+    200,
+    { "X-Guardian-Analysis-Digest": guardianAnalysisDigest(DETERMINISTIC) },
+    () => analyzeGuardianSample({ name: CASE_NAME, ...SOURCES }),
+  );
+  assert.deepEqual(analyzed.externalModel, externalModel);
+  assert.deepEqual(analyzed.signedDraft, signedDraft);
+  assert.deepEqual(analyzed.result, DETERMINISTIC);
 });
 
 test("unsupported analysis keeps sanitized unsupported behavior when source is blocked", async () => {
   let calls = 0;
+  let rejectedError;
   await assert.rejects(
     () => runHybridGuardianAnalysis({
       request: {
@@ -341,11 +403,47 @@ test("unsupported analysis keeps sanitized unsupported behavior when source is b
         throw new GuardianSecurityError("UNSUPPORTED_VULNERABILITY");
       },
     }),
-    (error) =>
-      error instanceof GuardianSecurityError &&
-      error.code === "UNSUPPORTED_VULNERABILITY",
+    (error) => {
+      rejectedError = error;
+      return (
+        error instanceof GuardianSecurityError &&
+        error.code === "UNSUPPORTED_VULNERABILITY"
+      );
+    },
   );
   assert.equal(calls, 0);
+  const externalModel = externalModelStatusForHybridError(rejectedError);
+  assert.deepEqual(externalModel, {
+    status: "skipped",
+    reason: "SENSITIVE_SOURCE",
+  });
+  assert.equal(
+    JSON.stringify(externalModel),
+    '{"status":"skipped","reason":"SENSITIVE_SOURCE"}',
+  );
+});
+
+test("client carries privacy status with the existing unsupported error", async () => {
+  const externalModel = { status: "skipped", reason: "SENSITIVE_SOURCE" };
+  await withJsonFetch(
+    {
+      ok: false,
+      error: {
+        code: "UNSUPPORTED_VULNERABILITY",
+        message: "sanitized",
+      },
+      externalModel,
+    },
+    422,
+    {},
+    () => assert.rejects(
+      () => analyzeGuardianSample({ name: CASE_NAME, ...SOURCES }),
+      (error) =>
+        error instanceof GuardianSecurityApiError &&
+        error.code === "UNSUPPORTED_VULNERABILITY" &&
+        JSON.stringify(error.externalModel) === JSON.stringify(externalModel),
+    ),
+  );
 });
 
 test("source scan does not mutate sources, hashes, or deterministic analysis", () => {
@@ -551,6 +649,25 @@ test("Guardian sample UI discloses optional external source processing", () => {
   assert.match(workbench, /Solidity\s*源码可能发送给外部模型提供商/u);
   assert.match(workbench, /请勿在源码中提交私钥、助记词/u);
   assert.match(workbench, /确定性 Guardian 无需外部模型也可独立工作/u);
+  assert.match(workbench, /externalModel\?\.reason === "SENSITIVE_SOURCE"/u);
+  assert.match(
+    workbench,
+    /隐私保护已启用：本次提交可能包含敏感凭据模式，因此已跳过外部模型增强。源码未发送给外部模型，确定性 Guardian 分析仍可正常使用。/u,
+  );
+  assert.match(
+    workbench,
+    /本次提交因隐私保护未调用外部模型。请确认源码中不包含私钥、助记词、API Key、访问令牌或其他敏感凭据后再尝试分析。/u,
+  );
+});
+
+test("route exposes only the safe privacy status alongside success or failure", () => {
+  const route = readFileSync(
+    new URL("../src/app/api/guardian/analyze/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(route, /externalModelStatusForHybridError\(error\)/u);
+  assert.match(route, /externalModel:\s*outcome\.externalModel/u);
+  assert.doesNotMatch(route, /match(?:ed)?(?:Text|Line|Type|Credential)/u);
 });
 
 let passed = 0;

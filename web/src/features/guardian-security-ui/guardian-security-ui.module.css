@@ -884,6 +884,29 @@
   line-height: 1.75;
 }
 
+.externalModelPrivacyNotice {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(121, 182, 165, 0.42);
+  border-radius: 10px;
+  color: #cbdcd4;
+  background: rgba(16, 45, 39, 0.72);
+}
+
+.externalModelPrivacyNotice strong {
+  color: var(--guardian-jade);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.externalModelPrivacyNotice p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
 .fieldHint,
 .fieldError {
   margin: 7px 0 0;

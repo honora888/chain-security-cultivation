@@ -5,7 +5,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
 import { guardianDraftInputChanged } from "@/features/guardian-draft/client";
-import type { GuardianHybridPublicResponse } from "@/features/guardian-llm/hybrid-analysis-types";
+import type {
+  GuardianExternalModelSkippedStatus,
+  GuardianHybridPublicResponse,
+} from "@/features/guardian-llm/hybrid-analysis-types";
 import {
   ContributorApiError,
   createContribution,
@@ -202,6 +205,8 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
   const [result, setResult] = useState<GuardianHybridPublicResponse | null>(null);
   const [analysisDigest, setAnalysisDigest] = useState<string | null>(null);
   const [signedDraft, setSignedDraft] = useState<SignedGuardianDraftV1 | null>(null);
+  const [externalModel, setExternalModel] =
+    useState<GuardianExternalModelSkippedStatus | null>(null);
   const [createdCase, setCreatedCase] = useState<ContributionSummary | null>(null);
   const [contributionFeedback, setContributionFeedback] = useState<ContributionFeedback | null>(null);
 
@@ -214,6 +219,7 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
       }
       setForm({ name: detail.caseName, vulnerableSource: detail.vulnerableSource, attackSource: detail.attackSource, fixedSource: detail.fixedSource });
       setContributionFeedback(null);
+      setExternalModel(null);
       setStatus("idle");
       setStatusMessage("待返修案例已载入。修改源码后请重新进行 Guardian 鉴定。");
     }).catch((error) => {
@@ -236,6 +242,7 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
   function updateField(field: FieldName, value: string): void {
     const nextForm = { ...form, [field]: value };
     setForm(nextForm);
+    setExternalModel(null);
     setFieldErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
     setContributionFeedback(null);
     if (result !== null && guardianDraftInputChanged(form, nextForm)) {
@@ -262,6 +269,7 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
 
     setFieldErrors({});
     setContributionFeedback(null);
+    setExternalModel(null);
     setStatus("submitting");
     setStatusMessage("正在分析受限源码文本并生成安全案例草案……");
     try {
@@ -269,9 +277,13 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
       setResult(analyzed.result);
       setAnalysisDigest(analyzed.digest);
       setSignedDraft(analyzed.signedDraft);
+      setExternalModel(analyzed.externalModel);
       setStatus("success");
       setStatusMessage("Guardian 鉴定完成，请核对异兽志草案后确认提交守阁人审核。");
     } catch (error) {
+      setExternalModel(
+        error instanceof GuardianSecurityApiError ? error.externalModel : null,
+      );
       setStatus("error");
       setStatusMessage(messageForError(error));
     }
@@ -284,6 +296,7 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
     setResult(null);
     setAnalysisDigest(null);
     setSignedDraft(null);
+    setExternalModel(null);
     setCreatedCase(null);
     setContributionFeedback(null);
     setStatus("idle");
@@ -569,6 +582,21 @@ export function GuardianSecurityWorkbench({ revisionCaseId }: { revisionCaseId?:
             <li>正在生成异兽志草案</li>
           </ul>
         </section> : null}
+
+        {externalModel?.reason === "SENSITIVE_SOURCE" ? (
+          <aside
+            className={styles.externalModelPrivacyNotice}
+            aria-label="外部模型隐私保护状态"
+            role="status"
+          >
+            <strong>隐私保护 · 外部模型已跳过</strong>
+            <p>
+              {status === "success"
+                ? "隐私保护已启用：本次提交可能包含敏感凭据模式，因此已跳过外部模型增强。源码未发送给外部模型，确定性 Guardian 分析仍可正常使用。"
+                : "本次提交因隐私保护未调用外部模型。请确认源码中不包含私钥、助记词、API Key、访问令牌或其他敏感凭据后再尝试分析。"}
+            </p>
+          </aside>
+        ) : null}
 
         {result ? (
           <p className={styles.formStatus} role="status" aria-live="polite">

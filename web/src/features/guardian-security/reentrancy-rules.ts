@@ -122,10 +122,16 @@ function normalizeKey(key: string): string {
 
 function findAccountingReads(source: string): readonly AccountingReference[] {
   const reads: AccountingReference[] = [];
-  const pattern =
-    /\b(?:u?int(?:\d+)?|address|bool|bytes(?:\d+)?|string)\s+[A-Za-z_]\w*\s*=\s*([A-Za-z_]\w*)\s*\[\s*([^\]]+)\s*\]/g;
+  const pattern = /\b([A-Za-z_]\w*)\s*\[\s*([^\]]+)\s*\]/g;
 
   for (const match of findMatches(source, pattern)) {
+    const before = source.slice(0, match.index);
+    const after = source.slice(match.index + match[0].length);
+    const isWrite =
+      /(?:\bdelete|\+\+|--)\s*$/.test(before) ||
+      /^\s*(?:\+\+|--|(?:[+\-*/%&|^]|<<|>>)?=(?!=))/.test(after);
+    if (isWrite) continue;
+
     reads.push({ mapping: match[1], key: normalizeKey(match[2]), index: match.index });
   }
 

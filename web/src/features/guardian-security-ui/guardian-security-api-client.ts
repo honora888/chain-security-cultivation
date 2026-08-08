@@ -10,6 +10,7 @@ import {
 import type { SignedGuardianDraftV1 } from "@/features/guardian-draft/contracts";
 import type {
   GuardianCandidateOnlyAnalysisSuccess,
+  GuardianExternalModelSkippedStatus,
   GuardianHybridPublicResponse,
   GuardianPublicLlmEnhancement,
 } from "@/features/guardian-llm/hybrid-analysis-types";
@@ -62,10 +63,15 @@ type GuardianSecurityUiErrorCode =
 
 export class GuardianSecurityApiError extends Error {
   readonly code: GuardianSecurityUiErrorCode;
+  readonly externalModel: GuardianExternalModelSkippedStatus | null;
 
-  constructor(code: GuardianSecurityUiErrorCode) {
+  constructor(
+    code: GuardianSecurityUiErrorCode,
+    externalModel: GuardianExternalModelSkippedStatus | null = null,
+  ) {
     super(code);
     this.code = code;
+    this.externalModel = externalModel;
     this.name = "GuardianSecurityApiError";
   }
 }
@@ -82,6 +88,17 @@ function isFailure(value: unknown): value is GuardianSecurityFailure {
     typeof value.error.code === "string" &&
     typeof value.error.message === "string"
   );
+}
+
+function externalModelStatus(
+  value: unknown,
+): GuardianExternalModelSkippedStatus | null {
+  if (!isRecord(value) || !Object.hasOwn(value, "externalModel")) return null;
+  const status = exactObject(value.externalModel, ["status", "reason"]);
+  if (status.status !== "skipped" || status.reason !== "SENSITIVE_SOURCE") {
+    throw new GuardianSecurityApiError("INVALID_RESPONSE");
+  }
+  return { status: "skipped", reason: "SENSITIVE_SOURCE" };
 }
 
 function isStringArray(value: unknown): value is readonly string[] {
@@ -709,6 +726,7 @@ export interface GuardianSampleAnalysisResult {
   readonly result: GuardianHybridPublicResponse;
   readonly digest: string | null;
   readonly signedDraft: SignedGuardianDraftV1 | null;
+  readonly externalModel: GuardianExternalModelSkippedStatus | null;
 }
 
 export async function analyzeGuardianSample(
@@ -741,9 +759,11 @@ export async function analyzeGuardianSample(
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
 
+  const externalModel = externalModelStatus(payload);
+
   if (!response.ok) {
     if (isFailure(payload)) {
-      throw new GuardianSecurityApiError(payload.error.code);
+      throw new GuardianSecurityApiError(payload.error.code, externalModel);
     }
     throw new GuardianSecurityApiError("INVALID_RESPONSE");
   }
@@ -751,7 +771,9 @@ export async function analyzeGuardianSample(
   if (!isRecord(payload)) throw new GuardianSecurityApiError("INVALID_RESPONSE");
   const hasSignedDraft = Object.hasOwn(payload, "signedDraft");
   const basePayload = Object.fromEntries(
-    Object.entries(payload).filter(([key]) => key !== "signedDraft"),
+    Object.entries(payload).filter(
+      ([key]) => key !== "signedDraft" && key !== "externalModel",
+    ),
   );
   const visibleResult = parseGuardianHybridPublicResponse(basePayload);
   if (
@@ -793,5 +815,6 @@ export async function analyzeGuardianSample(
     result: signedDraft?.claims.draft.analysis ?? visibleResult,
     digest: digest.length > 0 ? digest : null,
     signedDraft,
+    externalModel,
   };
 }

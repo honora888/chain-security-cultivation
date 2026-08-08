@@ -12,6 +12,7 @@ import { filterGuardianLlmCandidates } from "./candidate-filter";
 import { runGuardianLlmEnhancement } from "./runner";
 import {
   type GuardianCandidateOnlyAnalysisSuccess,
+  type GuardianExternalModelSkippedStatus,
   type GuardianHybridAnalysisOutcome,
   toPublicLlmEnhancement,
 } from "./hybrid-analysis-types";
@@ -27,6 +28,20 @@ export interface RunHybridGuardianAnalysisOptions {
   readonly provider?: GuardianLlmProvider;
   readonly runDeterministic: RunDeterministicGuardianAnalysis;
   readonly now?: () => Date;
+}
+
+const SENSITIVE_SOURCE_SKIPPED = {
+  status: "skipped",
+  reason: "SENSITIVE_SOURCE",
+} as const satisfies GuardianExternalModelSkippedStatus;
+const SENSITIVE_SOURCE_ERRORS = new WeakSet<GuardianSecurityError>();
+
+export function externalModelStatusForHybridError(
+  error: unknown,
+): GuardianExternalModelSkippedStatus | null {
+  return error instanceof GuardianSecurityError && SENSITIVE_SOURCE_ERRORS.has(error)
+    ? SENSITIVE_SOURCE_SKIPPED
+    : null;
 }
 
 function llmRequestForSample(
@@ -118,6 +133,12 @@ export async function runHybridGuardianAnalysis(
     });
 
     if (llmResult.status !== "enhanced") {
+      if (
+        llmResult.status === "fallback" &&
+        llmResult.errorCode === "SENSITIVE_SOURCE"
+      ) {
+        SENSITIVE_SOURCE_ERRORS.add(error);
+      }
       throw error;
     }
 
@@ -148,6 +169,10 @@ export async function runHybridGuardianAnalysis(
       kind: "deterministic",
       response: deterministicResult,
       deterministicResult,
+      ...(llmResult.status === "fallback" &&
+      llmResult.errorCode === "SENSITIVE_SOURCE"
+        ? { externalModel: SENSITIVE_SOURCE_SKIPPED }
+        : {}),
     };
   }
 

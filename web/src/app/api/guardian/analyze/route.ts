@@ -4,7 +4,10 @@ import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME } from "@/auth/constants";
 import { readSession } from "@/auth/server";
 import { issueGuardianDraftForAuthenticatedSample } from "@/features/guardian-draft/issuance";
-import { runHybridGuardianAnalysis } from "@/features/guardian-llm/hybrid-analysis";
+import {
+  externalModelStatusForHybridError,
+  runHybridGuardianAnalysis,
+} from "@/features/guardian-llm/hybrid-analysis";
 import { createGuardianLlmRuntime } from "@/features/guardian-llm/provider-factory";
 import { GuardianSecurityError } from "@/features/guardian-security/analysis-types";
 import {
@@ -146,7 +149,10 @@ export async function POST(request: Request) {
         secret: process.env.GUARDIAN_DRAFT_SIGNING_SECRET,
       });
       return NextResponse.json(
-        signedDraft ? { ...outcome.response, signedDraft } : outcome.response,
+        {
+          ...outcome.response,
+          ...(signedDraft ? { signedDraft } : {}),
+        },
         {
         status: 200,
         headers: NO_STORE_HEADERS,
@@ -164,7 +170,11 @@ export async function POST(request: Request) {
       secret: process.env.GUARDIAN_DRAFT_SIGNING_SECRET,
     });
 
-    return NextResponse.json(signedDraft ? { ...outcome.response, signedDraft } : outcome.response, {
+    return NextResponse.json({
+      ...outcome.response,
+      ...(outcome.externalModel ? { externalModel: outcome.externalModel } : {}),
+      ...(signedDraft ? { signedDraft } : {}),
+    }, {
       status: 200,
       headers: {
         ...NO_STORE_HEADERS,
@@ -180,8 +190,12 @@ export async function POST(request: Request) {
     if (error instanceof GuardianDraftError) {
       return draftSigningFailure(error);
     }
+    const externalModel = externalModelStatusForHybridError(error);
     const failure = guardianSecurityFailure(error);
-    return NextResponse.json(failure.body, {
+    return NextResponse.json({
+      ...failure.body,
+      ...(externalModel ? { externalModel } : {}),
+    }, {
       status: failure.status,
       headers: NO_STORE_HEADERS,
     });

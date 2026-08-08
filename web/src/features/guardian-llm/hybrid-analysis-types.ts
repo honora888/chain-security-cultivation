@@ -15,6 +15,11 @@ export interface GuardianPublicLlmEnhancement {
   readonly bestiaryNameCandidates: readonly [string, string, string, string];
 }
 
+export interface GuardianExternalModelSkippedStatus {
+  readonly status: "skipped";
+  readonly reason: "SENSITIVE_SOURCE";
+}
+
 export type GuardianDeterministicEnhancedSuccess = GuardianSecuritySuccess & {
   readonly llmEnhancement: GuardianPublicLlmEnhancement;
 };
@@ -58,11 +63,13 @@ export type GuardianHybridAnalysisOutcome =
         | GuardianSecuritySuccess
         | GuardianDeterministicEnhancedSuccess;
       readonly deterministicResult: GuardianSecuritySuccess;
+      readonly externalModel?: GuardianExternalModelSkippedStatus;
     }
   | {
       readonly kind: "candidate-only";
       readonly response: GuardianCandidateOnlyAnalysisSuccess;
       readonly deterministicResult: null;
+      readonly externalModel?: never;
     };
 
 export function toPublicLlmEnhancement(
