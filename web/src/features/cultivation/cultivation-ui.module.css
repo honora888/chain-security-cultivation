@@ -1,0 +1,141 @@
+.cultivationProfile {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(0, 1.2fr) minmax(260px, 1fr) minmax(220px, 0.8fr);
+  gap: 22px 30px;
+  padding: 24px 28px;
+  border-block: 1px solid rgba(226, 195, 120, 0.42);
+  color: #eef2df;
+  background: rgba(5, 36, 43, 0.84);
+}
+
+.profileHeading p,
+.realmSummary span,
+.masterySummary h3,
+.badgeSummary h3 {
+  margin: 0;
+  color: #d8bc75;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.profileHeading h2 {
+  margin: 5px 0 0;
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.profileHeading > span {
+  display: block;
+  margin-top: 8px;
+  color: #abc8c0;
+  font-size: 11px;
+}
+
+.realmSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.realmSummary > div {
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+
+.realmSummary strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.expProgress {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.expProgress > div {
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(107, 180, 165, 0.44);
+  background: rgba(1, 17, 22, 0.55);
+}
+
+.expProgress > div span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4f9a8e, #dfc473);
+}
+
+.expProgress p,
+.badgeSummary p,
+.profileStatus,
+.profileError {
+  margin: 0;
+  color: #b9cec7;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.masterySummary dl {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 9px 0 0;
+}
+
+.masterySummary dl > div {
+  text-align: center;
+}
+
+.masterySummary dt {
+  color: #a9c8bf;
+  font-size: 11px;
+}
+
+.masterySummary dd {
+  margin: 3px 0 0;
+  color: #f1dc9e;
+  font-weight: 750;
+}
+
+.badgeSummary {
+  grid-column: 4;
+}
+
+.badgeSummary p {
+  margin-top: 9px;
+  color: #eef2df;
+}
+
+.profileStatus,
+.profileError {
+  grid-column: 1 / -1;
+}
+
+.profileError {
+  color: #ffc6bc;
+}
+
+@media (max-width: 1050px) {
+  .cultivationProfile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .badgeSummary {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .cultivationProfile {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .realmSummary {
+    grid-template-columns: 1fr 1fr;
+  }
+}

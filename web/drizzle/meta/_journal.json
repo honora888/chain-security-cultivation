@@ -15,6 +15,13 @@
       "when": 1786060800000,
       "tag": "0001_active_bestiary_name_reservation",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786147200000,
+      "tag": "0002_quest_completions",
+      "breakpoints": true
     }
   ]
 }

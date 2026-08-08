@@ -12,6 +12,7 @@ import {
   QUEST_ONE_COMPLETION_CONCLUSIONS,
   QUEST_ONE_REWARD_TIMING,
 } from "@/data/quest-1";
+import type { CultivationCompletionResponse } from "@/features/cultivation/contracts";
 
 import { ChainStatusPanel } from "./ChainStatusPanel";
 import { DynamicDefeatedSequence } from "./DynamicDefeatedSequence";
@@ -23,6 +24,7 @@ interface RewardSequenceProps {
   reducedMotion: boolean;
   showChainStatus: boolean;
   onAnimationEnd: (event: AnimationEvent<HTMLElement>) => void;
+  settlement: CultivationCompletionResponse | null;
 }
 
 const rewardTimingStyle = {
@@ -39,7 +41,11 @@ export function RewardSequence({
   reducedMotion,
   showChainStatus,
   onAnimationEnd,
+  settlement,
 }: RewardSequenceProps) {
+  const replay = settlement?.alreadyCompleted === true;
+  const waterMastery = settlement?.profile.mastery.Water ?? 0;
+  const previousWaterMastery = replay ? waterMastery : Math.max(0, waterMastery - (settlement?.awardedThisRequest.mastery ?? 0));
   return (
     <section
       className={`${styles.rewardSequence} ${
@@ -65,11 +71,13 @@ export function RewardSequence({
         >
           <span className={styles.rewardStamp}>Quest 1 · 已完成</span>
           <h2 id="reward-title">
-            {complete ? "本地学习结算" : "战利品正在显现"}
+            {replay ? "重新修炼完成" : complete ? "修炼所得已入档" : "战利品正在显现"}
           </h2>
           <p>
-            {complete
-              ? "噬灵回环兽已封印，本次学习奖励已完整展示。"
+            {replay
+              ? "此秘境的首通修炼所得已经领取，本次为重新修炼。"
+              : complete
+              ? "噬灵回环兽已封印，首通所得已保存到修炼档案。"
               : "封印余波汇入修为、水属性熟练度与本地徽记。"}
           </p>
         </header>
@@ -78,14 +86,14 @@ export function RewardSequence({
       <div className={styles.rewardCards} aria-label="本次本地学习奖励">
         <article className={styles.rewardExpCard}>
           <span>修炼经验</span>
-          <strong>+{QUEST_ONE.exp} EXP</strong>
-          <small>本次获得 · 本地学习数据</small>
+          <strong>{replay ? "首通已领取" : `+${settlement?.awardedThisRequest.exp ?? 0} EXP`}</strong>
+          <small>{replay ? "本次不重复增加修为" : "本次首通获得 · 服务端已保存"}</small>
         </article>
 
         <article className={styles.rewardMasteryCard}>
           <span>水属性熟练度</span>
-          <strong>0 → {QUEST_ONE.mastery}</strong>
-          <small>本次获得 +{QUEST_ONE.mastery} · 本地学习数据</small>
+          <strong>{replay ? waterMastery : `${previousWaterMastery} → ${waterMastery}`}</strong>
+          <small>{replay ? "保持当前熟练度" : `本次首通获得 +${settlement?.awardedThisRequest.mastery ?? 0}`}</small>
         </article>
 
         <article className={styles.rewardBadgeCard}>
@@ -95,8 +103,8 @@ export function RewardSequence({
             shouldAnimate={!complete}
             state="unlocked"
           />
-          <strong>{QUEST_ONE.badge}</strong>
-          <small>本地奖励展示 · 已解锁</small>
+          <strong>{settlement?.awardedThisRequest.badgeLabel ?? QUEST_ONE.badge}</strong>
+          <small>{replay ? "首通徽记已持有" : "修炼档案徽记 · 已解锁"}</small>
         </article>
       </div>
 
@@ -119,7 +127,7 @@ export function RewardSequence({
       </section>
 
       <p className={styles.rewardDataNote}>
-        EXP、水属性熟练度与徽记均为本地学习结算，不写入链上。
+        EXP、水属性熟练度与徽记保存在修炼档案中；Stage 36 不写入 Monad。
       </p>
 
       {complete && showChainStatus ? (

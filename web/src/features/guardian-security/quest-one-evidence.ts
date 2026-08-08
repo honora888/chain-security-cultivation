@@ -1,7 +1,9 @@
+import { QUEST_ONE } from "@/data/quest-1";
+
 import type { QuestOneEvidenceProfile } from "./analysis-types";
 
 export const QUEST_ONE_CONTENT_HASH =
-  "0x1935647cb838b5dd3caa4448702b2928cfc4532381fe7a9b1f84481029253f69" as const;
+  QUEST_ONE.contentHash;
 
 export const QUEST_ONE_EVIDENCE_PROFILE: QuestOneEvidenceProfile = {
   caseId: "quest-1-reentrancy",

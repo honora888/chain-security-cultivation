@@ -16,6 +16,12 @@ import type {
   QuestCatalogItem,
   QuestRealmDefinition,
 } from "@/features/quest-catalog/quest-catalog-types";
+import type { RealmName } from "@/features/guardian-security/analysis-types";
+import {
+  canChallengeRealm,
+  challengeRelationship,
+  challengeRelationshipLabel,
+} from "@/features/cultivation/progression";
 
 import styles from "./quest-catalog.module.css";
 
@@ -93,10 +99,12 @@ function RealmTab({
   );
 }
 
-function QuestCard({ quest }: { quest: QuestCatalogItem }) {
+function QuestCard({ quest, cultivatorRealm }: { quest: QuestCatalogItem; cultivatorRealm: RealmName }) {
   const secondaryLabels = quest.secondaryElements?.map(
     (element) => ELEMENT_LABELS[element],
   );
+  const relationship = challengeRelationship(cultivatorRealm, quest.realm);
+  const eligible = canChallengeRealm(cultivatorRealm, quest.realm);
 
   return (
     <article className={styles.questCard} data-realm={quest.category}>
@@ -105,6 +113,9 @@ function QuestCard({ quest }: { quest: QuestCatalogItem }) {
           <p>Quest {questNumber(quest.questNumber)}</p>
           <span className={styles.openStatus}>已开放</span>
         </div>
+        <strong className={styles.challengeStatus} data-relationship={relationship}>
+          {challengeRelationshipLabel(relationship)}
+        </strong>
         <p className={styles.questType}>{quest.formalType}</p>
         <h3>{quest.title}</h3>
         <p className={styles.questSummary}>{quest.summary}</p>
@@ -138,10 +149,21 @@ function QuestCard({ quest }: { quest: QuestCatalogItem }) {
         </ol>
       </div>
 
-      <Link className={styles.enterQuestLink} href={quest.href}>
-        进入秘境
-        <span aria-hidden="true">→</span>
-      </Link>
+      <div className={styles.questReward}>
+        <span>修炼所得</span>
+        <strong>{quest.reward.exp} EXP</strong>
+        <small>
+          {ELEMENT_LABELS[quest.reward.masteryElement]}属性熟练度 +{quest.reward.mastery}<br />
+          {quest.reward.badgeLabel}
+        </small>
+      </div>
+
+      {eligible ? (
+        <Link className={styles.enterQuestLink} href={quest.href}>
+          进入秘境
+          <span aria-hidden="true">→</span>
+        </Link>
+      ) : <span className={styles.lockedQuest}>境界不足</span>}
     </article>
   );
 }
@@ -183,7 +205,7 @@ function EmptyRealm({ realm }: { realm: QuestRealmDefinition }) {
   );
 }
 
-export function QuestRealmExplorer() {
+export function QuestRealmExplorer({ cultivatorRealm = "Qi Refining" }: { cultivatorRealm?: RealmName }) {
   const [selectedCategory, setSelectedCategory] =
     useState<QuestCatalogCategory>("Water");
   const tabRefs = useRef<
@@ -322,7 +344,7 @@ export function QuestRealmExplorer() {
               >
                 <div className={styles.questScrollTrack}>
                   {selectedQuests.map((quest) => (
-                    <QuestCard key={quest.id} quest={quest} />
+                    <QuestCard key={quest.id} quest={quest} cultivatorRealm={cultivatorRealm} />
                   ))}
                   <FutureQuestPage realm={selectedRealm} />
                 </div>

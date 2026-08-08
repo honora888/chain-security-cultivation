@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { QuestRealmExplorer } from "@/features/quest-catalog/quest-realm-explorer";
+import { CultivationQuestHub } from "@/features/cultivation/cultivation-quest-hub";
 import { WalletIdentityControl } from "@/features/wallet-auth/wallet-identity-controls";
 
 import styles from "@/features/quest-catalog/quest-catalog.module.css";
@@ -48,7 +48,9 @@ export default function QuestCatalogPage() {
           <Link href="/contribute">异兽献策</Link>
           <Link href="/profile">我的修仙档案</Link>
         </nav>
-        <WalletIdentityControl />
+        <div className={styles.catalogIdentity} aria-label="当前钱包身份">
+          <WalletIdentityControl />
+        </div>
       </header>
 
       <main className={styles.catalogMain}>
@@ -62,7 +64,7 @@ export default function QuestCatalogPage() {
           </p>
         </section>
 
-        <QuestRealmExplorer />
+        <CultivationQuestHub />
       </main>
     </div>
   );

@@ -35,6 +35,18 @@ import type {
   BattleState,
   MotionMode,
 } from "@/features/quest-1/battle-types";
+import {
+  completeQuestOne,
+  cultivationApiErrorMessage,
+  getCultivationProfile,
+} from "@/features/cultivation/cultivation-api-client";
+import {
+  QUEST_ONE_COMPLETION_EVIDENCE_SCHEMA_VERSION,
+  type CultivationCompletionResponse,
+  type CultivationProfile,
+} from "@/features/cultivation/contracts";
+import { cultivationRealmLabel } from "@/features/guardian-security/cultivation-labels";
+import { useWalletAuth } from "@/features/wallet-auth/wallet-auth-provider";
 
 import { AttackReplay } from "./AttackReplay";
 import { BestiaryEntryDialog } from "./BestiaryEntryDialog";
@@ -96,6 +108,7 @@ function persistBattleState(state: BattleState) {
 }
 
 export function QuestBattleExperience() {
+  const wallet = useWalletAuth();
   const [experienceStage, setExperienceStage] =
     useState<QuestExperienceStage>("entry");
   const [state, dispatch] = useReducer(
@@ -104,6 +117,12 @@ export function QuestBattleExperience() {
     () => createInitialBattleState(),
   );
   const [systemReduced, setSystemReduced] = useState(false);
+  const [profile, setProfile] = useState<CultivationProfile | null>(null);
+  const [profileWallet, setProfileWallet] = useState("");
+  const [settlement, setSettlement] = useState<CultivationCompletionResponse | null>(null);
+  const [settlementStatus, setSettlementStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [settlementError, setSettlementError] = useState<string | null>(null);
+  const settlementInFlight = useRef(false);
   const hydratedOnce = useRef(false);
   const feedbackRef = useRef<HTMLDivElement>(null);
   const classificationFeedbackRef = useRef<HTMLDivElement>(null);
@@ -133,6 +152,18 @@ export function QuestBattleExperience() {
     state.viewedReplaySteps.includes(step.id),
   );
   const liveMessage = useMemo(() => getLiveMessage(state.phase), [state.phase]);
+  const currentWallet = wallet.walletAddress?.toLowerCase() ?? "";
+  const visibleProfile = wallet.authenticated && profileWallet === currentWallet ? profile : null;
+
+  useEffect(() => {
+    if (!wallet.authenticated || !currentWallet) return;
+    const controller = new AbortController();
+    void getCultivationProfile(controller.signal).then((nextProfile) => {
+      setProfile(nextProfile);
+      setProfileWallet(currentWallet);
+    }).catch(() => undefined);
+    return () => controller.abort();
+  }, [currentWallet, wallet.authenticated]);
 
   useEffect(() => {
     if (experienceStage !== "battle" || hydratedOnce.current) return;
@@ -384,11 +415,55 @@ export function QuestBattleExperience() {
 
   function handleReset() {
     clearBattleProgress();
+    setSettlement(null);
+    setSettlementStatus("idle");
+    setSettlementError(null);
     dispatch({ type: "RESET_QUEST" });
   }
 
+  async function handleSettlement(): Promise<void> {
+    if (state.phase !== "ACT5_COMPLETE" || settlementInFlight.current) return;
+    if (!wallet.authenticated) {
+      setSettlementStatus("error");
+      setSettlementError("请先完成钱包签名入世，再结算修炼所得。");
+      return;
+    }
+    settlementInFlight.current = true;
+    setSettlementStatus("submitting");
+    setSettlementError(null);
+    try {
+      const result = await completeQuestOne({
+        schemaVersion: QUEST_ONE_COMPLETION_EVIDENCE_SCHEMA_VERSION,
+        selectedCodeLineId: state.selectedCodeLineId ?? "",
+        classification: {
+          vulnerability: state.classificationAnswers.vulnerability ?? "",
+          element: state.classificationAnswers.element ?? "",
+          risk: state.classificationAnswers.risk ?? "",
+        },
+        viewedReplaySteps: [...state.viewedReplaySteps],
+        repairOrder: [...state.repairOrder],
+      });
+      setSettlement(result);
+      setProfile(result.profile);
+      setProfileWallet(currentWallet);
+      setSettlementStatus("idle");
+      dispatch({ type: "START_REWARD_SEQUENCE" });
+    } catch (error) {
+      setSettlementStatus("error");
+      setSettlementError(cultivationApiErrorMessage(error));
+    } finally {
+      settlementInFlight.current = false;
+    }
+  }
+
   if (experienceStage === "entry") {
-    return <QuestEntryPage onStartQuest={() => setExperienceStage("battle")} />;
+    return (
+      <QuestEntryPage
+        authenticated={wallet.authenticated}
+        onStartQuest={() => setExperienceStage("battle")}
+        profile={visibleProfile}
+      />
+    );
   }
 
   if (!state.hydrated) {
@@ -513,6 +588,11 @@ export function QuestBattleExperience() {
         </div>
 
         <div className={styles.hudActions}>
+          <div className={styles.cultivatorHud}>
+            <span>当前修为</span>
+            <strong>{cultivationRealmLabel(visibleProfile?.progression.realm ?? "Qi Refining")}</strong>
+            <small>{visibleProfile?.totalExp ?? 0} / {visibleProfile?.progression.nextRealmExp ?? 1000} EXP</small>
+          </div>
           <label>
             <span>动态效果</span>
             <select
@@ -568,6 +648,7 @@ export function QuestBattleExperience() {
             onAnimationEnd={handleRewardAnimationEnd}
             reducedMotion={reducedMotion}
             showChainStatus={state.phase === "ACT6_COMPLETE"}
+            settlement={settlement}
           />
         ) : isActFive ? (
           state.phase === "ACT5_REPAIR" ? (
@@ -740,24 +821,29 @@ export function QuestBattleExperience() {
             </button>
           </div>
         ) : isActFive ? (
-          <button
-            className={styles.primaryButton}
-            disabled={state.transitionLocked}
-            onClick={() =>
-              dispatch({
-                type:
-                  state.phase === "ACT5_COMPLETE"
-                    ? "START_REWARD_SEQUENCE"
-                    : "SUBMIT_REPAIR",
-              })
-            }
-          >
-            {state.phase === "ACT5_SEALING"
-              ? "封印闭合中"
-              : state.phase === "ACT5_COMPLETE"
-                ? QUEST_ONE_COPY.act6.action
-                : copy.action}
-          </button>
+          <div className={styles.settlementAction}>
+            <button
+              className={styles.primaryButton}
+              disabled={state.transitionLocked || settlementStatus === "submitting"}
+              onClick={() => {
+                if (state.phase === "ACT5_COMPLETE") void handleSettlement();
+                else dispatch({ type: "SUBMIT_REPAIR" });
+              }}
+            >
+              {settlementStatus === "submitting"
+                ? "正在结算修炼所得…"
+                : state.phase === "ACT5_SEALING"
+                  ? "封印闭合中"
+                  : state.phase === "ACT5_COMPLETE"
+                    ? QUEST_ONE_COPY.act6.action
+                    : copy.action}
+            </button>
+            {settlementError ? (
+              <p className={styles.settlementError} role="alert" aria-live="assertive">
+                {settlementError}
+              </p>
+            ) : null}
+          </div>
         ) : isActFour ? (
           <button
             className={styles.primaryButton}

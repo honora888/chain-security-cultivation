@@ -5,6 +5,7 @@ import type {
   QuestRealmDefinition,
   RareAttribute,
 } from "@/features/quest-catalog/quest-catalog-types";
+import { QUEST_ONE } from "@/data/quest-1";
 
 const FIVE_ELEMENTS = new Set<FiveElement>([
   "Metal",
@@ -128,6 +129,12 @@ export const QUEST_CATALOG = assertQuestCatalog([
       "完成 CEI 修复",
       "提交验证证据",
     ],
+    reward: {
+      exp: QUEST_ONE.exp,
+      masteryElement: QUEST_ONE.elementMachine,
+      mastery: QUEST_ONE.mastery,
+      badgeLabel: QUEST_ONE.badge,
+    },
   },
 ] as const satisfies readonly QuestCatalogItem[]);
 
@@ -136,4 +143,3 @@ export function questsForCategory(
 ): readonly QuestCatalogItem[] {
   return QUEST_CATALOG.filter((quest) => quest.category === category);
 }
-

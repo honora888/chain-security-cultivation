@@ -10,12 +10,16 @@ import type { RepairBlockId } from "@/features/quest-1/battle-types";
 
 export const QUEST_ONE = {
   id: 1,
+  contentHash: "0x1935647cb838b5dd3caa4448702b2928cfc4532381fe7a9b1f84481029253f69",
   name: "噬灵回环兽",
   realm: "金丹期",
+  realmMachine: "Core Formation",
   element: "水",
+  elementMachine: "Water",
   vulnerability: "经典重入漏洞",
   risk: "High",
-  badge: "水系守护者",
+  badgeKey: "water-guardian",
+  badge: "水系守护者徽记",
   exp: 120,
   mastery: 1,
 } as const;

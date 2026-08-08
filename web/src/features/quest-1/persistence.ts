@@ -16,7 +16,7 @@ import type {
 
 const PROGRESS_KEY = "chain-security-cultivation:quest-1:v1";
 const MOTION_KEY = "chain-security-cultivation:motion-preference:v1";
-const STORAGE_VERSION = 5;
+const STORAGE_VERSION = 6;
 const LAST_REPLAY_STEP = QUEST_ONE_ATTACK_REPLAY_STEPS.length - 1;
 
 const CHECKPOINTS: StableCheckpoint[] = [
@@ -470,6 +470,16 @@ function restoreVersionFive(
   restoreVersionFourOrFive(parsed, hydrated, CHECKPOINTS);
 }
 
+function restoreVersionSix(
+  parsed: Record<string, unknown>,
+  hydrated: HydratedBattleData,
+): void {
+  const safeParsed = parsed.checkpoint === "ACT6_COMPLETE"
+    ? { ...parsed, checkpoint: "ACT5_COMPLETE" }
+    : parsed;
+  restoreVersionFourOrFive(safeParsed, hydrated, CHECKPOINTS);
+}
+
 export function loadBattleData(): HydratedBattleData {
   const hydrated = createSafeHydratedData();
 
@@ -489,8 +499,11 @@ export function loadBattleData(): HydratedBattleData {
         restoreVersionThree(parsed, hydrated);
       } else if (parsed.version === 4) {
         restoreVersionFour(parsed, hydrated);
-      } else if (parsed.version === STORAGE_VERSION) {
+      } else if (parsed.version === 5) {
         restoreVersionFive(parsed, hydrated);
+        if (hydrated.checkpoint === "ACT6_COMPLETE") hydrated.checkpoint = "ACT5_COMPLETE";
+      } else if (parsed.version === STORAGE_VERSION) {
+        restoreVersionSix(parsed, hydrated);
       }
     }
   } catch {

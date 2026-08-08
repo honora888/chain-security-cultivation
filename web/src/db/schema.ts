@@ -85,6 +85,37 @@ export const walletSessions = pgTable(
   }),
 );
 
+export const questCompletions = pgTable(
+  "quest_completions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    walletAddress: text("wallet_address").notNull(),
+    questId: integer("quest_id").notNull(),
+    expAwarded: integer("exp_awarded").notNull(),
+    masteryElement: text("mastery_element").notNull(),
+    masteryAwarded: integer("mastery_awarded").notNull(),
+    badgeKey: text("badge_key").notNull(),
+    completionHash: text("completion_hash").notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    walletQuestUnique: uniqueIndex("quest_completions_wallet_quest_unique").on(
+      table.walletAddress,
+      table.questId,
+    ),
+    walletAddressIndex: index("quest_completions_wallet_address_idx").on(table.walletAddress),
+    completedAtIndex: index("quest_completions_completed_at_idx").on(table.completedAt),
+    expAwardedCheck: check(
+      "quest_completions_exp_awarded_non_negative",
+      sql`${table.expAwarded} >= 0`,
+    ),
+    masteryAwardedCheck: check(
+      "quest_completions_mastery_awarded_non_negative",
+      sql`${table.masteryAwarded} >= 0`,
+    ),
+  }),
+);
+
 export const securityCases = pgTable(
   "security_cases",
   {

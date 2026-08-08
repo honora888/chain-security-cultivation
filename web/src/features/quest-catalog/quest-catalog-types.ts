@@ -27,13 +27,19 @@ export interface QuestCatalogItem {
   primaryElement?: FiveElement;
   secondaryElements?: readonly FiveElement[];
   rareAttributes?: readonly RareAttribute[];
-  realm: string;
+  realm: RealmName;
   realmLabel: string;
   severity: string;
   status: QuestCatalogStatus;
   href: string;
   summary: string;
   learningPath: readonly string[];
+  reward: {
+    exp: number;
+    masteryElement: FiveElement;
+    mastery: number;
+    badgeLabel: string;
+  };
 }
 
 export interface QuestRealmDefinition {
@@ -44,4 +50,5 @@ export interface QuestRealmDefinition {
   keywords: string;
   description: string;
 }
+import type { RealmName } from "@/features/guardian-security/analysis-types";
 

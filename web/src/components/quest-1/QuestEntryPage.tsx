@@ -3,6 +3,9 @@
 import Link from "next/link";
 
 import { QUEST_ONE } from "@/data/quest-1";
+import type { CultivationProfile } from "@/features/cultivation/contracts";
+import { challengeRelationship, challengeRelationshipLabel } from "@/features/cultivation/progression";
+import { cultivationRealmLabel } from "@/features/guardian-security/cultivation-labels";
 
 import { QuestOneIcon, type QuestOneIconName } from "./QuestOneIcon";
 import { QuestEntryVideo } from "./QuestEntryVideo";
@@ -22,10 +25,14 @@ const questFacts: Array<{
 ];
 
 interface QuestEntryPageProps {
+  authenticated: boolean;
   onStartQuest: () => void;
+  profile: CultivationProfile | null;
 }
 
-export function QuestEntryPage({ onStartQuest }: QuestEntryPageProps) {
+export function QuestEntryPage({ authenticated, onStartQuest, profile }: QuestEntryPageProps) {
+  const cultivatorRealm = profile?.progression.realm ?? "Qi Refining";
+  const relationship = challengeRelationship(cultivatorRealm, QUEST_ONE.realmMachine);
   return (
     <div className={styles.entryPage}>
       <div className={styles.entrySceneBackground} aria-hidden="true">
@@ -89,6 +96,14 @@ export function QuestEntryPage({ onStartQuest }: QuestEntryPageProps) {
           <div className={styles.entryBriefingRow}>
             <h2><QuestOneIcon name="badge" aria-hidden="true" />修炼所得</h2>
             <p>{QUEST_ONE.exp} EXP · 水属性熟练度 +{QUEST_ONE.mastery} · 水系守护者徽记</p>
+          </div>
+          <div className={styles.entryBriefingRow}>
+            <h2><QuestOneIcon name="seal" aria-hidden="true" />当前修为</h2>
+            <p>
+              {cultivationRealmLabel(cultivatorRealm)} · {profile?.totalExp ?? 0} / {profile?.progression.nextRealmExp ?? 1000} EXP
+              <strong className={styles.entryChallengeStatus}>{challengeRelationshipLabel(relationship)}</strong>
+              {!authenticated ? <small>签名入世后可结算并保存首通所得。</small> : null}
+            </p>
           </div>
         </section>
 
